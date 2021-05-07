@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# ls -sf "$PWD/gitconfig" "$HOME/.gitconfig"
+
+echo "Git setup done! 🌟\n"

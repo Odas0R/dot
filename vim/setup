@@ -21,8 +21,8 @@ ln -sf "$PWD/coc-settings.json" "$HOME/.vim/coc-settings.json"
 # :CocInstall coc-tsserver
 # :CocInstall coc-markdownlint
 
-echo
 echo Do not forget to :PlugInstall!
+echo "Vim setup done! 🌟\n"
 
 
 

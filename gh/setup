@@ -1,5 +1,7 @@
 #!/bin/sh
+
 mkdir -p ~/.config/gh
-ln -fs "$PWD/config.yml" "$HOME/.config/gh/config.yml"
-ls -l ~/.config/gh
+ln -sf "$PWD/config.yml" "$HOME/.config/gh/config.yml"
 echo 'You might need to do gh auth --with-token $(auth token github)'
+
+echo "Gh setup done! 🌟\n"

@@ -1,6 +1,19 @@
 #!/bin/sh
 
-for i in gh; do
+# a single directory where user data is stored, defaulting to ~/.local/share;
+
+ln -sf "$PWD/bashrc" "$HOME/.bashrc"
+ln -sf "$PWD/inputrc" "$HOME/.inputrc"
+ln -sf "$PWD/bash" "$HOME/.bash"
+
+[ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"
+ln -sf "$PWD/scripts" "$HOME/.local/bin/scripts"
+
+
+echo ""
+echo "Executing all setup scripts ✨...\n"
+
+for i in gh git vim; do
   cd $i && ./setup; cd -
 done
 
