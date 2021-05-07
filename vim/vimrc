@@ -1,0 +1,145 @@
+let mapleader = ","
+
+" automatically indent new lines
+set autoindent
+
+" automatically write files when changing when multiple files open
+set autowrite
+
+" activate line numbers
+set nonumber
+
+" Remove line number relative
+set norelativenumber
+
+" Remove line and column number of the cursor position
+set noruler
+
+" Number of screen lines to use for the command-line.
+set cmdheight=2
+
+" If nothing was written in the buffer after 100ms
+set updatetime=100
+
+" remove vim default showing mode, using lightline
+set noshowmode
+set tabstop=2
+
+set textwidth=72
+set softtabstop=2
+set shiftwidth=2
+set laststatus=2
+set smartindent
+set smarttab
+
+" replace tabs with spaces automatically
+set expandtab
+
+" Stop vim from adding \n to the end of the line
+set nofixendofline
+
+" better ascii friendly listchars for spaces
+set listchars=space:*,trail:*,nbsp:*,extends:>,precedes:<,tab:\|>
+
+" don't fold
+set foldmethod=manual
+
+" mark trailing spaces as errors
+match ErrorMsg '\s\+$'
+
+" turn on/off default spell checking
+" set spell
+" set unspell
+
+" not secure but needed
+set nobackup
+set noswapfile
+set nowritebackup
+
+set icon
+
+" Theme
+set termguicolors
+set background=dark
+
+" highlight search hits: ,+<cr> to clear
+set hlsearch
+set incsearch
+set linebreak
+nnoremap <silent> <C-L> :nohl<CR><C-L>
+
+" avoid most of the 'Hit Enter ...' messages
+set shortmess=aoOtI
+
+" stop complaints about switching buffer with changes
+set hidden
+
+" command history
+set history=100
+
+" plugins and stuff need it
+syntax enable
+
+" faster scrolling
+set ttyfast
+
+" allow sensing the filetype
+filetype plugin on
+set omnifunc=syntaxcomplete#Complete
+
+" allow identing based on filetype
+filetype indent on
+
+" Search
+set wildignore+=**/node_modules/**
+set wildmenu
+set autochdir
+
+" tab on visual selection
+vmap <Tab> >gv
+vmap <S-Tab> <gv
+
+" make Y consitent with D and C (yank til end)
+map Y y$
+
+" Return to last edit position when opening files
+autocmd BufReadPost *
+      \ if line("'\"") > 0 && line("'\"") <= line("$") |
+      \   exe "normal! g`\"" |
+      \ endif
+
+" Custom Mappings
+nnoremap <leader>q :wq<cr>
+nnoremap <leader>f ?
+
+" Map alternatives the <ESC> key
+inoremap jj <Esc>
+cnoremap jj <Esc>
+inoremap kk <Esc>
+cnoremap kk <Esc>
+inoremap kj <Esc>
+cnoremap kj <Esc>
+
+" disable <C-s> saving
+nnoremap <C-s> :w<cr>
+inoremap <C-s> <esc>:w<cr>
+nnoremap <leader>w :w<cr>
+
+" disable arrow keys
+noremap <up> :echoerr "use k instead"<cr>
+noremap <down> :echoerr "use j instead"<cr>
+noremap <left> :echoerr "use h instead"<cr>
+noremap <right> :echoerr "use l instead"<cr>
+inoremap <up> <NOP>
+inoremap <down> <NOP>
+inoremap <left> <NOP>
+inoremap <right> <NOP>
+
+" source vim changes when ever you save .vimrc
+nnoremap <silent> <buffer> <leader>s :w<CR>:so ~/.vimrc<CR>
+
+" External Configs
+let $CONFIG = "~/.vim/config/"
+source $CONFIG/plugins.vim
+source $CONFIG/markdown.vim
+source $CONFIG/html.vim

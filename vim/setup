@@ -1,0 +1,23 @@
+#!/bin/sh
+
+if [ -z "$(which vim)" -o -z "$(which vimtutor)" ]; then
+    echo Need to install full vim.
+    exit 1
+fi
+
+# Setup Vim
+ln -sf "$PWD/vimrc" "$HOME/.vimrc"
+ln -sf "$PWD/config" "$HOME/.vim/config"
+
+# Setup Coc Language Server
+ln -sf "$PWD/coc" "$HOME/.config/coc"
+ln -sf "$PWD/coc-settings.json" "$HOME/.vim/coc-settings.json"
+
+# Install npm-check-updates, check if coc extensions updates are needed, install
+cd "$HOME/.config/coc/extensions" && rm -rf node_modules && npm i; cd -
+
+echo
+echo Do not forget to :PlugInstall!
+
+
+
