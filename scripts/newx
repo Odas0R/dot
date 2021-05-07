@@ -1,0 +1,17 @@
+#!/bin/sh
+
+path="$HOME/.local/bin/scripts/${1}"
+
+[ ! -n "${1}" ] && echo "usage: newscript <name>" && exit 1;
+
+if [ -e "${path}" ]; then
+  read -p "${1} already exists. Edit? " yes
+  case "${yes}" in
+    y|yes|ok|okay) exec vim "${path}"
+  esac
+  exit 0
+fi
+
+printf "#!/bin/sh\n\n" > "${path}"
+chmod +x "${path}" 
+vim "${path}"
