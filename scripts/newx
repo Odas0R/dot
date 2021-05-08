@@ -13,5 +13,5 @@ if [ -e "${path}" ]; then
 fi
 
 printf "#!/bin/sh\n\n" > "${path}"
-chmod +x "${path}" 
-vim "${path}"
+chmod +x "${path}"
+exec vim +2 "${path}"
