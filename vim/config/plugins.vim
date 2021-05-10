@@ -17,6 +17,7 @@ Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'Raimondi/delimitMate'
 Plug 'plasticboy/vim-markdown'
+Plug 'tpope/vim-commentary'
 Plug 'junegunn/goyo.vim'
 Plug 'vitalk/vim-simple-todo' " TODO: Create your own plugin
 
@@ -199,3 +200,8 @@ command! -bang -nargs=? -complete=dir GFiles
       \ fzf#vim#with_preview(
       \   {'options': ['--layout=reverse', '--info=inline']}
       \ ), <bang>1)
+
+" Vim Commentary
+"
+" https://github.com/tpope/vim-commentary
+"

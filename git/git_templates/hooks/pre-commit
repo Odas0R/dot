@@ -1,0 +1,8 @@
+#!/bin/sh
+
+branch="$(git branch --show-current)"
+if [ "$branch" = "master" -o "$branch" = "main" ]; then
+  echo "You are on ${branch}.\n"
+  echo "Move to another branch & create a pull request. \n"
+  exit 1
+fi

@@ -13,6 +13,7 @@ ln -sf "$PWD/config" "$HOME/.vim/config"
 ln -sf "$PWD/coc" "$HOME/.config/coc"
 ln -sf "$PWD/coc-settings.json" "$HOME/.vim/coc-settings.json"
 
+# TODO: Add this to the let g:global-coc-...[check todos]
 # Install language servers & linters
 # :CocInstall coc-sh
 # :CocInstall coc-css

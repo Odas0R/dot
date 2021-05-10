@@ -6,6 +6,7 @@ alias desktop="cd $DESKTOP"
 alias rmidn="rm -r **/*:Zone.Identifier && rm -R **/.*:Zone.Identifier"
 alias vi="vim"
 alias v="vim"
+alias sb="source ~/.bashrc"
 
 alias la="ls -la"
 alias ls="ls --format=single-column --classify --color --group-directories-first"

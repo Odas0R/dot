@@ -1,5 +1,7 @@
 #!/bin/sh
 
-# ls -sf "$PWD/gitconfig" "$HOME/.gitconfig"
+# run this to 
+# git config --global init.templatedir '~/.git_templates'
 
+ln -sf "$PWD/git_templates" "$HOME/.git_templates"
 echo "Git setup done! 🌟\n"

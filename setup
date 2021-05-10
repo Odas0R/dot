@@ -13,7 +13,7 @@ ln -sf "$PWD/scripts" "$HOME/.local/bin/scripts"
 echo ""
 echo "Executing all setup scripts ✨...\n"
 
-for i in gh git vim; do
+for i in gh git vim tmux; do
 	cd $i && ./setup; cd - >/dev/null
 done
 
