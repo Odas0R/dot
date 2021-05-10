@@ -1,3 +1,3 @@
 #!/bin/sh
 
-[ -h "$MARKPATH/$1" ] && vim "$MARKPATH/$1" ||  echo "mark not found"
+[ -h "$MARKPATH/$1" ] && exec vim "$MARKPATH/$1" ||  echo "mark not found"
