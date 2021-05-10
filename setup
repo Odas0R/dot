@@ -14,7 +14,7 @@ echo ""
 echo "Executing all setup scripts ✨...\n"
 
 for i in gh git vim; do
-  cd $i && ./setup; cd -
+	cd $i && ./setup; cd - >/dev/null
 done
 
 exit
