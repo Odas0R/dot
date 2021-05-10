@@ -93,24 +93,16 @@ filetype indent on
 " Search
 set wildignore+=**/node_modules/**
 set wildmenu
-set autochdir
 
 " tab on visual selection
 vmap <Tab> >gv
 vmap <S-Tab> <gv
-
-" make Y consitent with D and C (yank til end)
-map Y y$
 
 " Return to last edit position when opening files
 autocmd BufReadPost *
       \ if line("'\"") > 0 && line("'\"") <= line("$") |
       \   exe "normal! g`\"" |
       \ endif
-
-" Custom Mappings
-nnoremap <leader>q :wq<cr>
-nnoremap <leader>f ?
 
 " Map alternatives the <ESC> key
 inoremap jj <Esc>
@@ -121,13 +113,10 @@ inoremap kj <Esc>
 cnoremap kj <Esc>
 
 " saving the file
+nnoremap <leader>q :wq<cr>
+nnoremap <leader>w :w<cr>
 nnoremap <C-s> :w<cr>
 inoremap <C-s> <esc>:w<cr>
-nnoremap <leader>w :w<cr>
-
-" switch panels with <C-h> & <C-l>
-noremap <C-h> <C-W>h
-noremap <C-l> <C-W>l
 
 " disable arrow keys
 noremap <up> :echoerr "use k instead"<cr>
@@ -140,7 +129,7 @@ inoremap <left> <NOP>
 inoremap <right> <NOP>
 
 " source vim changes when ever you save .vimrc
-nnoremap <silent> <buffer> <leader>s :source ~/.vimrc<CR>
+" nnoremap <silent> <buffer> <leader>s :source ~/.vimrc<CR>
 
 " External Configs
 let $CONFIG = "~/.vim/config/"

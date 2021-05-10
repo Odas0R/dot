@@ -55,12 +55,7 @@ imap <expr> <leader><tab> emmet#expandAbbrIntelligent("\<leader><tab>")
 " https://github.com/mvdan/sh
 "
 let g:shfmt_fmt_on_save = 1
-
-" shfmt uses tabs by default, use spaces instead
-"
-" Yaml, Dockerfiles, etc, all use spaces so it's better
-" to keep this format
-let g:shfmt_extra_args = '-i 2'
+let g:shfmt_extra_args = '-i 2' " spaces
 
 " Golang
 "
@@ -183,13 +178,6 @@ endfunction
 " https://github.com/Shougo/vimfiler.vim/blob/master/doc/vimfiler.txt
 "
 let g:vimfiler_as_default_explorer = 1
-let g:vimfiler_enable_auto_cd = 1
-
-au FileType vimfiler inoremap <C-h> <C-w>h
-au FileType vimfiler inoremap <C-l> <C-l>l
-
-" open vimfiler when there's no file args
-autocmd VimEnter * if !argc() | VimFiler | endif
 
 " Toggle VimFiler with '\'
 nnoremap \ :VimFilerExplorer<CR>
@@ -202,10 +190,10 @@ autocmd FileType vimfiler nmap <buffer> \ <Plug>(vimfiler_close)
 let g:fzf_preview_window = ['right:60%:wrap', 'ctrl-/']
 
 " command to show fzf
-nnoremap <C-p> :Files<cr>
+nnoremap <C-p> :GFiles<cr>
 
 " preview window
-command! -bang -nargs=? -complete=dir Files
+command! -bang -nargs=? -complete=dir GFiles
       \ call fzf#vim#files(
       \ <q-args>,
       \ fzf#vim#with_preview(
