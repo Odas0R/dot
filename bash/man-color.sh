@@ -1,7 +1,6 @@
-export LESS_TERMCAP_mb=$cyan
-export LESS_TERMCAP_md=$yellow
-export LESS_TERMCAP_me=$reset
-export LESS_TERMCAP_se=$reset
-export LESS_TERMCAP_so=$blue
-export LESS_TERMCAP_ue=$reset
-export LESS_TERMCAP_us="[4m"
+export LESS_TERMCAP_md=$'\e[01;31m'
+export LESS_TERMCAP_me=$'\e[0m'
+export LESS_TERMCAP_us=$'\e[01;32m'
+export LESS_TERMCAP_ue=$'\e[0m'
+export LESS_TERMCAP_so=$'\e[45;93m'
+export LESS_TERMCAP_se=$'\e[0m'
