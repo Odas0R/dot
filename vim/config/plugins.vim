@@ -128,6 +128,10 @@ au VimEnter * nmap <C-k> <Plug>Markdown_MoveToPreviousHeader
 au VimEnter * nmap <C-j> <Plug>Markdown_MoveToNextHeader
 augroup END
 
+" Add colors to the markdown syntax
+highlight htmlBold gui=bold guifg=#fb4934 ctermfg=124
+highlight htmlItalic gui=italic guifg=#ff8700 ctermfg=214
+
 " Coc Configuration
 "
 " Use `<C-k>` and `<C-j>` to navigate diagnostics
@@ -191,10 +195,10 @@ autocmd FileType vimfiler nmap <buffer> \ <Plug>(vimfiler_close)
 let g:fzf_preview_window = ['right:60%:wrap', 'ctrl-/']
 
 " command to show fzf
-nnoremap <C-p> :GFiles<cr>
+nnoremap <C-p> :GitFiles<cr>
 
 " preview window
-command! -bang -nargs=? -complete=dir GFiles
+command! -bang -nargs=? -complete=dir GitFiles
       \ call fzf#vim#files(
       \ <q-args>,
       \ fzf#vim#with_preview(

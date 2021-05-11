@@ -7,51 +7,51 @@ CONFIGS=~/dot
 COMMANDS="vim bash vplugins gh git aliases tmux"
 
 case $1 in
-  -h | --help)
-    printf "usage: config <config>\n"
-    printf "Available: ${COMMANDS}\n\n"
-    exit 0
-    ;;
-  vim)
-    exec vim $CONFIGS/vim/vimrc
-    exit 0
-    ;;
-  bash)
-    exec vim $CONFIGS/bashrc
-    exit 0
-    ;;
-  vplugins)
-    exec vim $CONFIGS/vim/config/plugins.vim
-    exit 0
-    ;;
-  gh)
-    exec vim $CONFIGS/gh/config.yml
-    exit 0
-    ;;
-  git)
-    exec vim ~/.gitconfig
-    exit 0
-    ;;
-  aliases)
-    exec vim $CONFIGS/bash/aliases.sh
-    exit 0
-    ;;
-  tmux)
-    exec vim $HOME/.tmux.conf
-    exit 0
-    ;;
-  complete)
-    exec vim $HOME/.bash/complete.sh
-    exit 0
-    ;;
-  --bash-completion)
-    printf "$COMMANDS"
-    exit 0
-    ;;
-  edit)
-    exec vim $CONFIGS/scripts/config
-    exit 0
-    ;;
+-h | --help)
+  printf "usage: config <config>\n"
+  printf "Available: ${COMMANDS}\n\n"
+  exit 0
+  ;;
+vim)
+  exec vim $CONFIGS/vim/vimrc
+  exit 0
+  ;;
+bash)
+  exec vim $CONFIGS/bashrc
+  exit 0
+  ;;
+vplugins)
+  exec vim $CONFIGS/vim/config/plugins.vim
+  exit 0
+  ;;
+gh)
+  exec vim $CONFIGS/gh/config.yml
+  exit 0
+  ;;
+git)
+  exec vim ~/.gitconfig
+  exit 0
+  ;;
+aliases)
+  exec vim $CONFIGS/bash/aliases.sh
+  exit 0
+  ;;
+tmux)
+  exec vim $HOME/.tmux.conf
+  exit 0
+  ;;
+complete)
+  exec vim $HOME/.bash/complete.sh
+  exit 0
+  ;;
+--bash-completion)
+  printf "$COMMANDS"
+  exit 0
+  ;;
+edit)
+  exec vim $CONFIGS/scripts/config
+  exit 0
+  ;;
 esac
 
 printf "usage: config <config>\n"
