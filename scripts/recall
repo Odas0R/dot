@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Take it this way:
+#
+# Retrieving information using active recall helps you remember it.
+# It’s much better than simply recognizing an answer, re-reading
+# information, note-taking, or concept mapping.
+
+file="${RECALLPATH}/${1}.md"
+
+[ ! -n "${1}" ] && printf "usage: recall <topic> \n" && return
+
+if [ ! -f "${file}" ]; then
+  printf "# ${2}\n\n" >"${file}"
+  exec vi $file
+else
+  exec vi $file
+fi

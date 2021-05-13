@@ -4,20 +4,20 @@ DESKTOP="/mnt/c/Users/guilh/Desktop"
 alias open="explorer.exe"
 alias desktop="cd $DESKTOP"
 alias rmidn="rm -r **/*:Zone.Identifier && rm -R **/.*:Zone.Identifier"
+alias sb="source ~/.bashrc"
+
+# Vim
 alias vi="vim"
 alias v="vim"
-alias sb="source ~/.bashrc"
+# Good for editing scripts
+vvim() { command vim $(whereis "$@" | cut -d: -f2); }
 
 alias la="ls -la"
 alias ls="ls --format=single-column --classify --color --group-directories-first"
 alias ..="cd .."
 cd() {
-	builtin cd "$@" && ls
+  builtin cd "$@" && ls
 }
-
-alias rm="rm -i"
-alias cp="cp -i"
-alias mv="mv -i"
 
 alias gs="git status -s"
 alias ga="git add ."
@@ -29,10 +29,10 @@ alias gl="git log --pretty=format:'%C(blue)%h%C(red)%d %C(white)%s - %C(cyan)%cn
 alias gd="git diff"
 
 gcp() {
-	ga && gc && gp
+  ga && gc && gp
 }
 
 # Get the pid of a locahost:$1
 pid() {
-	ss -lptn "sport = :$1"
+  ss -lptn "sport = :$1"
 }

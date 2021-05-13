@@ -1,5 +1,4 @@
 #!/bin/sh
 
 # find notes by rg expression
-[ ! $1 ] && exec vim ~/notes/ -c "Files" || exec vim ~/notes/ -c "Rg ${1}"
-
+[ ! -n "${1}" ] && exec vi -c "Files ~/notes/" || exec vi $HOME/notes/ -c "Rg ${1}"
