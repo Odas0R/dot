@@ -98,6 +98,16 @@ set wildmenu
 vmap <Tab> >gv
 vmap <S-Tab> <gv
 
+" Spelling on autocomplete
+set complete+=kspell
+" Config of vim autocomplete panel
+set completeopt=menuone,longest
+" Remove the autocomplete status bar
+set shortmess+=c
+" Remap code completion to <leader><tab>
+inoremap <leader><tab> <C-x><C-o>
+nnoremap <leader><tab> <C-x><C-o>
+
 " Return to last edit position when opening files
 autocmd BufReadPost *
       \ if line("'\"") > 0 && line("'\"") <= line("$") |
