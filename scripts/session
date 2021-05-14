@@ -1,0 +1,27 @@
+#!/bin/sh
+
+[ ! -n "${1}" ] && echo "usage: session [ new | rename | kill ] session_id\n" && exec tmux ls && exit 0
+
+case $1 in
+-h | --help)
+  echo "usage: session [ new | rename | kill ] session_id\n"
+  exec tmux ls
+  echo ""
+  exit 0
+  ;;
+new)
+  exec tmux new-session -s $2
+  exit 0
+  ;;
+rename)
+  exec tmux rename-session -t $2 $3
+  exit 0
+  ;;
+kill)
+  exec tmux kill-session -t $2 $3
+  exit 0
+  ;;
+esac
+
+# If no args like rename, kill, attach
+exec tmux attach -t $1

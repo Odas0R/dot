@@ -49,7 +49,8 @@ let g:lightline = {
 " https://github.com/mattn/emmet-vim
 "
 let g:user_emmet_expandabbr_key='<leader><tab>'
-imap <expr> <leader><tab> emmet#expandAbbrIntelligent("\<leader><tab>")
+" TODO: set au FileType for emmet
+imap <expr> <leader>e emmet#expandAbbrIntelligent("\<leader><tab>")
 
 " shfmt - bash formatter
 "
@@ -134,11 +135,12 @@ highlight htmlItalic gui=italic guifg=#ff8700 ctermfg=214
 
 " Coc Configuration
 "
-" Use `<C-k>` and `<C-j>` to navigate diagnostics
-" Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
-"
 " https://github.com/neoclide/coc.nvim/wiki/Language-servers
 "
+
+" Install these coc-extensions next time you initiate vim
+let g:coc_global_extensions = ['coc-stylelintplus']
+
 nmap <silent> <C-k> <Plug>(coc-diagnostic-prev)
 nmap <silent> <C-j> <Plug>(coc-diagnostic-next)
 
@@ -188,6 +190,11 @@ let g:vimfiler_as_default_explorer = 1
 nnoremap \ :VimFilerExplorer<CR>
 autocmd FileType vimfiler nmap <buffer> \ <Plug>(vimfiler_close)
 
+" Remove safemode, and autocd
+call vimfiler#custom#profile('default', 'context', {
+      \   'safe' : 0,
+      \ })
+
 " FZF
 "
 " https://github.com/junegunn/fzf.vim
@@ -195,10 +202,18 @@ autocmd FileType vimfiler nmap <buffer> \ <Plug>(vimfiler_close)
 let g:fzf_preview_window = ['right:60%:wrap', 'ctrl-/']
 
 " command to show fzf
-nnoremap <C-p> :GitFiles<cr>
+nnoremap <C-p> :GFiles<cr>
 
-" preview window
-command! -bang -nargs=? -complete=dir GitFiles
+" preview window git files
+command! -bang -nargs=? -complete=dir GFiles
+      \ call fzf#vim#gitfiles(
+      \ <q-args>,
+      \ fzf#vim#with_preview(
+      \   {'options': ['--layout=reverse', '--info=inline']}
+      \ ), <bang>1)
+
+" preview window files
+command! -bang -nargs=? -complete=dir Files
       \ call fzf#vim#files(
       \ <q-args>,
       \ fzf#vim#with_preview(

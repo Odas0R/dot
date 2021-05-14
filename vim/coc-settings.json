@@ -1,8 +1,16 @@
 {
   "eslint.alwaysShowStatus": true,
-  "eslint.autoFixOnSave": true,
   "eslint.format.enable": true,
+  "eslint.autoFixOnSave": true,
+
+  "stylelintplus.autoFixOnSave": true,
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+  "wxss.validate": false,
+
+  "html.validate.styles": true,
+  "html.format.enable": true,
 
   "javascript.preferences.quoteStyle": "double"
-
 }

@@ -1,0 +1,16 @@
+#!/bin/sh
+
+file="${RECALLPATH}/${1}.md"
+forgotten="${RECALLPATH}/forgotten"
+
+[ ! -d "${forgotten}" ] && mkdir $forgotten
+
+[ ! -n "${1}" ] && printf "usage: recall <topic> \n" && return
+
+if [ -f "${file}" ]; then
+  mv $file $forgotten
+else
+  echo "topic doesn't exist. \n"
+fi
+
+echo "usage: recall <topic> \n"
