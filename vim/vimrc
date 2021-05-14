@@ -104,9 +104,10 @@ set complete+=kspell
 set completeopt=menuone,longest
 " Remove the autocomplete status bar
 set shortmess+=c
-" Remap code completion to <leader><tab>
-inoremap <leader><tab> <C-x><C-o>
-nnoremap <leader><tab> <C-x><C-o>
+
+" Prevent x from overriding what's in the clipboard
+noremap x "_X
+noremap X "_X
 
 " Return to last edit position when opening files
 autocmd BufReadPost *

@@ -36,3 +36,8 @@ gcp() {
 pid() {
   ss -lptn "sport = :$1"
 }
+
+# jump to mark
+jump() {
+  [ -h "$MARKPATH/$1" ] && cd -P "$MARKPATH/$1" || echo "mark not found"
+}

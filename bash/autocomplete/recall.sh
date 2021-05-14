@@ -1,5 +1,3 @@
-export RECALLPATH=$HOME/notes/recall
-
 _recall() {
   local wordlist=$(find $RECALLPATH -iname "*.md" -exec sh -c 'for f
 do basename -- "$f" .md;done' sh {} +)
