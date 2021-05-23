@@ -94,19 +94,9 @@ inoremap <right> <NOP>
 
 call plug#begin('~/.vim/plugged')
 
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'z0mbix/vim-shfmt', { 'for': 'sh' }
-Plug 'mattn/emmet-vim'
-Plug 'yuezk/vim-js'
-Plug 'HerringtonDarkholme/yats.vim'
-Plug 'maxmellon/vim-jsx-pretty'
 Plug 'morhetz/gruvbox'
 Plug 'itchyny/lightline.vim'
-Plug 'Shougo/vimfiler.vim'
-Plug 'Shougo/unite.vim'
-Plug 'tpope/vim-eunuch' " Commands to Move, Rename, Delete files
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-Plug 'junegunn/fzf.vim'
 Plug 'Raimondi/delimitMate'
 Plug 'plasticboy/vim-markdown'
 Plug 'tpope/vim-commentary'
@@ -130,19 +120,14 @@ let g:gruvbox_italic=1
 let g:lightline = {
       \ 'colorscheme': 'gruvbox',
       \ 'active': {
-      \   'left': [ [ 'mode', 'paste' ],
+      \   'left': [ [ 'mode', 'paste', 'spell' ],
       \             [ 'gitbranch' ],
       \             [ 'readonly', 'filename', 'modified' ] ],
+      \ },
+      \ 'component_function': {
+      \   'gitbranch': 'FugitiveHead'
+      \ },
       \ }
-      \ }
-
-" Emmet
-"
-" https://github.com/mattn/emmet-vim
-"
-let g:user_emmet_expandabbr_key='<cr>'
-let g:user_emmet_install_global = 0
-autocmd FileType html,typescriptreact,javascriptreact EmmetInstall
 
 " shfmt - bash formatter
 "
@@ -150,38 +135,6 @@ autocmd FileType html,typescriptreact,javascriptreact EmmetInstall
 "
 let g:shfmt_fmt_on_save = 1
 let g:shfmt_extra_args = '-i 2' " spaces
-
-" Golang
-"
-" https://github.com/fatih/vim-go
-"
-let g:go_fmt_fail_silently = 0
-let g:go_fmt_command = 'goimports'
-let g:go_fmt_autosave = 1
-let g:go_gopls_enabled = 1
-let g:go_highlight_types = 1
-let g:go_highlight_fields = 1
-let g:go_highlight_functions = 1
-let g:go_highlight_function_calls = 1
-let g:go_highlight_operators = 1
-let g:go_highlight_extra_types = 1
-let g:go_highlight_variable_declarations = 1
-let g:go_highlight_variable_assignments = 1
-let g:go_highlight_build_constraints = 1
-let g:go_highlight_diagnostic_errors = 1
-let g:go_highlight_diagnostic_warnings = 1
-let g:go_auto_type_info = 1
-let g:go_auto_sameids = 0
-"let g:go_metalinter_command='golangci-lint'
-let g:go_metalinter_command='golint'
-let g:go_metalinter_autosave=1
-"let g:go_gopls_analyses = { 'composites' : v:false }
-au FileType go nmap <leader>t :GoTest!<CR>
-au FileType go nmap <leader>v :GoVet!<CR>
-au FileType go nmap <leader>b :GoBuild!<CR>
-au FileType go nmap <leader>c :GoCoverageToggle<CR>
-au FileType go nmap <leader>i :GoInfo<CR>
-au FileType go nmap <leader>l :GoMetaLinter!<CR>
 
 " Vim Markdown
 "
@@ -196,12 +149,13 @@ let g:vim_markdown_autowrite = 1 " auto save
 let g:vim_markdown_folding_disabled = 1 " remove markdown folding
 
 au FileType markdown setlocal conceallevel=2 " add conceallevel 2 on markdown files
+
 " auto format on file save
 au FileType markdown nnoremap <leader>f gggqG :w<cr>
 au FileType markdown inoremap <leader>f <esc> gggqG :w<cr>
-" bindings to add italics & bold
+
+" bindings to add bold
 autocmd FileType markdown inoremap <C-b> ****<left><left>
-autocmd FileType markdown inoremap <C-i> **<left>
 
 let g:vim_markdown_new_list_item_indent = 0 " remove new list indetation"
 let g:vim_markdown_edit_url_in = 'current' " open a new .md file on the current view
@@ -210,45 +164,3 @@ let g:netrw_browsex_viewer="cmd.exe /C start" " open the link on the default bro
 " Add colors to the markdown syntax
 highlight htmlBold gui=bold guifg=#fb4934 ctermfg=124
 highlight htmlItalic gui=italic guifg=#ff8700 ctermfg=214
-
-
-" VimFiler
-"
-" https://github.com/Shougo/vimfiler.vim/blob/master/doc/vimfiler.txt
-"
-let g:vimfiler_as_default_explorer = 1
-
-" Toggle VimFiler with '\'
-nnoremap \ :VimFilerExplorer<CR>
-autocmd FileType vimfiler nmap <buffer> \ <Plug>(vimfiler_close)
-
-
-" FZF
-"
-" https://github.com/junegunn/fzf.vim
-"
-let g:fzf_preview_window = ['right:60%:wrap', 'ctrl-/']
-
-" command to show fzf
-nnoremap <C-p> :GFiles<cr>
-
-" preview window git files
-command! -bang -nargs=? -complete=dir GFiles
-      \ call fzf#vim#gitfiles(
-      \ <q-args>,
-      \ fzf#vim#with_preview(
-      \   {'options': ['--layout=reverse', '--info=inline']}
-      \ ), <bang>1)
-
-" preview window files
-command! -bang -nargs=? -complete=dir Files
-      \ call fzf#vim#files(
-      \ <q-args>,
-      \ fzf#vim#with_preview(
-      \   {'options': ['--layout=reverse', '--info=inline']}
-      \ ), <bang>1)
-
-" Vim Commentary
-"
-" https://github.com/tpope/vim-commentary
-"

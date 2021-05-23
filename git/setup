@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# run this to 
+# run this to
 # git config --global init.templatedir '~/.git_templates'
 
 ln -sf "$PWD/git_templates" "$HOME/.git_templates"
