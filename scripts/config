@@ -4,7 +4,7 @@
 # config bash -> opens vim on ~/.bashrc
 
 CONFIGS=~/dot
-COMMANDS="vim bash vplugins gh git aliases tmux"
+COMMANDS="vim bash gh git aliases tmux"
 
 case $1 in
 -h | --help)
@@ -18,10 +18,6 @@ vim)
   ;;
 bash)
   exec vim $CONFIGS/bashrc
-  exit 0
-  ;;
-vplugins)
-  exec vim $CONFIGS/vim/config/plugins.vim
   exit 0
   ;;
 gh)

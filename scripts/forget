@@ -9,8 +9,7 @@ forgotten="${RECALLPATH}/forgotten"
 
 if [ -f "${file}" ]; then
   mv $file $forgotten
+  echo "file was forgotten in forgotten/ dir"
 else
   echo "topic doesn't exist. \n"
 fi
-
-echo "usage: recall <topic> \n"

@@ -1,7 +1,6 @@
 # Variables
 DESKTOP="/mnt/c/Users/guilh/Desktop"
 
-alias open="explorer.exe"
 alias desktop="cd $DESKTOP"
 alias rmidn="rm -r **/*:Zone.Identifier && rm -R **/.*:Zone.Identifier"
 alias sb="source ~/.bashrc"
