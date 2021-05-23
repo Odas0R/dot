@@ -6,4 +6,4 @@ _mark() {
 }
 
 # Complete marks commands
-complete -F _mark jump unmark cpmark vmark
+complete -F _mark jump unmark cpmark vmark workspace
