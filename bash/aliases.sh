@@ -8,8 +8,6 @@ alias sb="source ~/.bashrc"
 # Vim
 alias vi="vim"
 alias v="vim"
-# Good for editing scripts
-vvim() { command vim $(whereis "$@" | cut -d: -f2); }
 
 alias la="ls -la"
 alias ls="ls --format=single-column --classify --color --group-directories-first"

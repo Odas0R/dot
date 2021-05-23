@@ -1,29 +1,12 @@
 #!/bin/sh
 
 if [ -z "$(which vim)" -o -z "$(which vimtutor)" ]; then
-    echo Need to install full vim.
-    exit 1
+  echo Need to install full vim.
+  exit 1
 fi
 
 # Setup Vim
 ln -sf "$PWD/vimrc" "$HOME/.vimrc"
-ln -sf "$PWD/config" "$HOME/.vim/config"
-
-# Setup Coc Language Server
-ln -sf "$PWD/coc" "$HOME/.config/coc"
-ln -sf "$PWD/coc-settings.json" "$HOME/.vim/coc-settings.json"
-
-# TODO: Add this to the let g:global-coc-...[check todos]
-# Install language servers & linters
-# :CocInstall coc-sh
-# :CocInstall coc-css
-# :CocInstall coc-html
-# :CocInstall coc-eslint
-# :CocInstall coc-tsserver
-# :CocInstall coc-markdownlint
 
 echo Do not forget to :PlugInstall!
 echo "Vim setup done! 🌟\n"
-
-
-
