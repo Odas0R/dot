@@ -1,12 +1,17 @@
 #!/bin/sh
 
-[ ! -n "${1}" ] && echo "usage: session [ new | rename | kill ] session_id\n" && exec tmux ls && exit 0
+[ ! -n "${1}" ] && exec tmux && exit 0
 
 case $1 in
 -h | --help)
-  echo "usage: session [ new | rename | kill ] session_id\n"
-  exec tmux ls
-  echo ""
+  echo "Session is a tmux wrapper tool for better readability...\n"
+  echo "usage: session [ new | rename | kill | ls | -h | --help ] session_id\n"
+  exit 0
+  ;;
+ls)
+  echo "Sessions Available:\n"
+  sessions=$(exec tmux ls)
+  echo "${sessions}\n"
   exit 0
   ;;
 new)
