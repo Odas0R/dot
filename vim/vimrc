@@ -96,10 +96,11 @@ Plug 'tpope/vim-commentary'
 Plug 'junegunn/goyo.vim'
 Plug 'vitalk/vim-simple-todo' " TODO: Create your own plugin
 Plug 'roxma/vim-tmux-clipboard'
+Plug 'skywind3000/asyncrun.vim'
 
 call plug#end()
 
-" theme
+" Theme
 "
 " https://github.com/morhetz/gruvbox
 "
@@ -113,6 +114,30 @@ let g:gruvbox_italic=1
 "
 let g:shfmt_fmt_on_save = 1
 let g:shfmt_extra_args = '-i 2' " spaces
+
+" Asyncrun
+"
+" https://github.com/skywind3000/asyncrun.vim
+"
+let g:asyncrun_status = ''
+" let g:asyncrun_shell = '/bin/bash'
+let g:airline_section_error = airline#section#create_right(['%{g:asyncrun_status}'])
+
+" open asyncrun panel when text is added to it
+augroup vimrc
+    autocmd QuickFixCmdPost * call asyncrun#quickfix_toggle(8, 1)
+augroup END
+
+" toggle asyncrun panel
+noremap <F9> :call asyncrun#quickfix_toggle(8)<cr>
+
+" Linters
+"
+" Example to spawn a terminal:
+" au FileType sh autocmd BufWritePost * :AsyncRun -mode=term -pos=bottom -rows=10 shellcheck "$(VIM_FILEPATH)"
+"
+" POSIX linter
+au FileType sh autocmd BufWritePost * :AsyncRun shellcheck %
 
 " Vim Markdown
 "
