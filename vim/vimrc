@@ -123,11 +123,6 @@ let g:asyncrun_status = ''
 " let g:asyncrun_shell = '/bin/bash'
 let g:airline_section_error = airline#section#create_right(['%{g:asyncrun_status}'])
 
-" open asyncrun panel when text is added to it
-augroup vimrc
-    autocmd QuickFixCmdPost * call asyncrun#quickfix_toggle(8, 1)
-augroup END
-
 " toggle asyncrun panel
 noremap <F9> :call asyncrun#quickfix_toggle(8)<cr>
 
