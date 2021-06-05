@@ -1,5 +1,6 @@
 # Variables
-DESKTOP="/mnt/c/Users/guilh/Desktop"
+export DESKTOP="/mnt/c/Users/guilh/Desktop"
+export BROWSER="/mnt/c/Program\ Files/Mozilla\ Firefox/firefox.exe"
 
 alias desktop="cd $DESKTOP"
 alias rmidn="rm -r **/*:Zone.Identifier && rm -R **/.*:Zone.Identifier"
