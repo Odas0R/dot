@@ -1,5 +1,7 @@
 let mapleader = ","
 
+set spelllang=en_us
+
 set autoindent " automatically indent new lines
 set autowrite " automatically write files when changing when multiple files open
 set nonumber " activate line numbers
@@ -96,7 +98,7 @@ Plug 'tpope/vim-commentary'
 Plug 'junegunn/goyo.vim'
 Plug 'vitalk/vim-simple-todo' " TODO: Create your own plugin
 Plug 'roxma/vim-tmux-clipboard'
-Plug 'skywind3000/asyncrun.vim'
+Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
 
 call plug#end()
 
@@ -114,25 +116,6 @@ let g:gruvbox_italic=1
 "
 let g:shfmt_fmt_on_save = 1
 let g:shfmt_extra_args = '-i 2' " spaces
-
-" Asyncrun
-"
-" https://github.com/skywind3000/asyncrun.vim
-"
-let g:asyncrun_status = ''
-" let g:asyncrun_shell = '/bin/bash'
-let g:airline_section_error = airline#section#create_right(['%{g:asyncrun_status}'])
-
-" toggle asyncrun panel
-noremap <F9> :call asyncrun#quickfix_toggle(8)<cr>
-
-" Linters
-"
-" Example to spawn a terminal:
-" au FileType sh autocmd BufWritePost * :AsyncRun -mode=term -pos=bottom -rows=10 shellcheck "$(VIM_FILEPATH)"
-"
-" POSIX linter
-au FileType sh autocmd BufWritePost * :AsyncRun shellcheck %
 
 " Vim Markdown
 "
