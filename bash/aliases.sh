@@ -4,6 +4,7 @@ DESKTOP="/mnt/c/Users/guilh/Desktop"
 alias desktop="cd $DESKTOP"
 alias rmidn="rm -r **/*:Zone.Identifier && rm -R **/.*:Zone.Identifier"
 alias sb="source ~/.bashrc"
+alias fixtime="sudo ntpdate time.windows.com"
 
 # Vim
 alias vi="vim"
