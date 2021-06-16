@@ -8,6 +8,7 @@ alias sb="source ~/.bashrc"
 alias fixtime="sudo ntpdate time.windows.com"
 
 # Vim
+alias vim="code" # Dont use vim never more fuck that shit
 alias vi="vim"
 alias v="vim"
 
@@ -29,6 +30,10 @@ alias gl="git log --pretty=format:'%C(blue)%h%C(red)%d %C(white)%s - %C(cyan)%cn
 # Get the pid of a locahost:$1
 pid() {
   ss -lptn "sport = :$1"
+}
+
+gcp() {
+  ga && gc && gp
 }
 
 # jump to mark
