@@ -1,3 +1,4 @@
+#!/bin/sh
 # Color Syntax:
 #
 # '\[\e[x;ym $ \e[m\]'
@@ -15,26 +16,26 @@
 #
 
 # Utils
-start_print="\["
-end_print="\]"
-end_theme="\e[m"
-reset="\e[0m"
+export start_print="\["
+export end_print="\]"
+export end_theme="\e[m"
+export reset="\e[0m"
 
 # Regular
-black="\e[0;30m"  # Black
-red="\e[0;31m"    # Red
-green="\e[0;32m"  # Green
-yellow="\e[0;33m" #
-blue="\e[0;34m"   # Blue
-purple="\e[0;35m" # Purple
-cyan="\e[0;36m"   # Cyan
-white="\e[0;37m"  # White
+export black="\e[0;30m"  # Black
+export red="\e[0;31m"    # Red
+export green="\e[0;32m"  # Green
+export yellow="\e[0;33m" #
+export blue="\e[0;34m"   # Blue
+export purple="\e[0;35m" # Purple
+export cyan="\e[0;36m"   # Cyan
+export white="\e[0;37m"  # White
 
 # Bold
-black_bold="\e[1;30m"  # Black
-red_bold="\e[1;31m"    # Red
-green_bold="\e[1;32m"  # Green
-yellow_bold="\e[1;33m" #
-blue_bold="\e[1;34m"   # Blue
-purple_bold="\e[1;35m" # Purple
-cyan_bold="\e[1;36m"   # Cyan
+export black_bold="\e[1;30m"  # Black
+export red_bold="\e[1;31m"    # Red
+export green_bold="\e[1;32m"  # Green
+export yellow_bold="\e[1;33m" #
+export blue_bold="\e[1;34m"   # Blue
+export purple_bold="\e[1;35m" # Purple
+export cyan_bold="\e[1;36m"   # Cyan

@@ -23,7 +23,7 @@ rename)
   exit 0
   ;;
 kill)
-  exec tmux kill-session -t "$2" "$3"
+  exec tmux kill-session -t "$2"
   exit 0
   ;;
 esac

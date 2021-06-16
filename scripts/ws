@@ -1,0 +1,4 @@
+#!/bin/sh
+
+[ -h "$MARKPATH/$1" ] && exec code -r "$(readlink "${MARKPATH}/${1}")" ||
+  echo "workspace not found."
