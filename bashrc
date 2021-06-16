@@ -1,3 +1,4 @@
+#!/bin/sh
 if [ -e /etc/bashrc ]; then
   source /etc/bashrc
 fi

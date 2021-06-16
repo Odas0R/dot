@@ -13,31 +13,31 @@ case $1 in
   exit 0
   ;;
 vim)
-  exec vim $CONFIGS/vim/vimrc
+  exec code $CONFIGS/vim/vimrc
   exit 0
   ;;
 bash)
-  exec vim $CONFIGS/bashrc
+  exec code $CONFIGS/bashrc
   exit 0
   ;;
 gh)
-  exec vim $CONFIGS/gh/config.yml
+  exec code $CONFIGS/gh/config.yml
   exit 0
   ;;
 git)
-  exec vim ~/.gitconfig
+  exec code ~/.gitconfig
   exit 0
   ;;
 aliases)
-  exec vim $CONFIGS/bash/aliases.sh
+  exec code $CONFIGS/bash/aliases.sh
   exit 0
   ;;
 tmux)
-  exec vim $HOME/.tmux.conf
+  exec code $HOME/.tmux.conf
   exit 0
   ;;
 complete)
-  exec vim $HOME/.bash/complete.sh
+  exec code $HOME/.bash/complete.sh
   exit 0
   ;;
 --bash-completion)
@@ -45,7 +45,7 @@ complete)
   exit 0
   ;;
 edit)
-  exec vim $CONFIGS/scripts/config
+  exec code $CONFIGS/scripts/config
   exit 0
   ;;
 esac
