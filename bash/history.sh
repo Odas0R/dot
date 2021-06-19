@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # vi or die
 set -o vi
 

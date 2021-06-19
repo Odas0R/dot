@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 export DESKTOP="/mnt/c/Users/guilh/Desktop"
 export BROWSER="/mnt/c/Program\ Files/Mozilla\ Firefox/firefox.exe"
 
