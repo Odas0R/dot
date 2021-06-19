@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 parse_git_branch() {
   git_folder=./.git
   if [ -d $git_folder ]; then

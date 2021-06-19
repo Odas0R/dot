@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export RECALLPATH=$HOME/notes/recall
 export MARKPATH=$HOME/.marks
 
