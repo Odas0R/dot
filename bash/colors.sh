@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 # Color Syntax:
 #
 # '\[\e[x;ym $ \e[m\]'
