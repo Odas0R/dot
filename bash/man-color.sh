@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export LESS_TERMCAP_md=$'\e[01;31m'
 export LESS_TERMCAP_me=$'\e[0m'
 export LESS_TERMCAP_us=$'\e[01;32m'
