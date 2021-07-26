@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# This is a very simple automated add, commit, push that is run when you
+# open a mark by using `ws` if there's local changes that weren't
+# committed yet
+
+syncRepos="dot zet"
+
+sync() {
+  # Iterate through the repos to be sync
+
+  for repo in $syncRepos; do
+    # Check if repo exists
+    if [ ! -h "$MARKPATH/$repo" ]; then
+      echo "repo ${repo} does not exist, fix it."
+      return
+    fi
+
+    # CD into the repo, sync and go back
+    cd -P "$MARKPATH/$repo"
+    git add . && git commit -m "automated from gitsync... 🎉" && git push
+    cd -
+
+    return
+  done
+}
+
+sync
