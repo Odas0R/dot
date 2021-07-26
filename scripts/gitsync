@@ -21,7 +21,6 @@ sync() {
     cd -P "$MARKPATH/$repo"
     git add . && git commit -m "automated from gitsync... 🎉" && git push
 
-    return
   done
 
   cd "$cwd"
