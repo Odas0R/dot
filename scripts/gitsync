@@ -17,10 +17,13 @@ sync() {
       return
     fi
 
-    # CD into the repo, sync and go back
+    # CD into the repo from the symlink
     cd -P "$MARKPATH/$repo"
-    git add . && git commit -m "automated from gitsync... 🎉" && git push
 
+    # Check if there are changes in the current repo
+    if [ -n "$(git status --porcelain)" ]; then
+      git add . && git commit -m "automated from gitsync... 🎉" && git push
+    fi
   done
 
   cd "$cwd"
