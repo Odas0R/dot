@@ -7,6 +7,7 @@
 syncRepos="dot zet"
 
 sync() {
+  cwd=$(pwd)
   # Iterate through the repos to be sync
 
   for repo in $syncRepos; do
@@ -19,10 +20,11 @@ sync() {
     # CD into the repo, sync and go back
     cd -P "$MARKPATH/$repo"
     git add . && git commit -m "automated from gitsync... 🎉" && git push
-    cd -
 
     return
   done
+
+  cd "$cwd"
 }
 
 sync
