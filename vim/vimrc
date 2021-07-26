@@ -63,11 +63,6 @@ autocmd BufReadPost *
 " ========
 let mapleader = ","
 
-" functions keys
-map <F1> :set number!<CR>
-map <F2> :set spell!<CR>
-nmap <leader>2 :set paste<CR>i
-
 " open vim file on vscode
 nnoremap <leader>oc :exe ':silent !code %'<CR>:redraw!<CR>
 nnoremap <leader>vu :so $HOME/.vimrc<CR>
@@ -80,12 +75,21 @@ nnoremap <C-l> :nohl<CR><C-l>
 vmap <Tab> >gv
 vmap <S-Tab> <gv
 
+" functions keys
+map <F1> :set number!<CR>
+map <F2> :set spell!<CR>
+nmap <leader>2 :set paste<CR>i
+
 " save like ide's
 nnoremap <C-s> :w<cr>
 inoremap <C-s> <esc>:w<cr>a
 
 " Linters
 autocmd FileType bash,sh nnoremap <leader>l :w<cr>:!clear && shellcheck %<cr>
+
+" Runners
+autocmd FileType sh nnoremap <F3> :w<cr>:!clear && sh %<cr>
+autocmd FileType bash nnoremap <F3> :w<cr>:!clear && bash %<cr>
 
 " Formatters
 
