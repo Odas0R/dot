@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 
 _config() {
   wordList=$(config --bash-completion)
   curw=${COMP_WORDS[COMP_CWORD]}
-  COMPREPLY=("$(compgen -W "${wordList[@]}" -- "$curw")")
+  COMPREPLY=($(compgen -W '${wordList[@]}' -- "$curw"))
   return 0
 }
 # Complete config commands

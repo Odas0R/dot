@@ -3,7 +3,7 @@
 _mark() {
   curw=${COMP_WORDS[COMP_CWORD]}
   wordlist=$(find $MARKPATH -type l -printf "%f\n")
-  COMPREPLY=("$(compgen -W "${wordlist[@]}" -- "$curw")")
+  COMPREPLY=($(compgen -W '${wordlist[@]}' -- "$curw"))
   return 0
 }
 
