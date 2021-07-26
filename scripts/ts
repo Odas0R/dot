@@ -1,0 +1,5 @@
+#!/bin/sh
+
+fileName=$(basename "$1" .ts)
+
+tsc "${fileName}.ts" && node "${fileName}.js" && rm "${fileName}.js"

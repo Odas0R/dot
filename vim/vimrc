@@ -1,1 +1,129 @@
-syntax on
+let skip_defaults_vim=1
+set nocompatible                                                  " use VIM as Vi
+
+set autoindent                                                    " automatically indent new lines
+set autowrite                                                     " automatically write files when changing when multiple files open
+set number                                                        " activate line numbers
+set ruler                                                         " turn col and row position on in bottom right
+set showmode                                                      " show command and insert mode
+
+set textwidth=72                                                  " enough for line numbers + gutter within 80 standard
+set tabstop=2                                                     " number of spaces that a <Tab> has
+set shiftwidth=2                                                  " number of spaces on identation
+set softtabstop=2                                                 " read :help ahaha 😂
+set expandtab                                                     " replace tabs /w spaces
+set smartindent
+set smarttab
+set norelativenumber
+set listchars=space:*,trail:*,nbsp:*,extends:>,precedes:<,tab:\|> " better ascii friendly listchars
+set nofixendofline                                                " stop vim from silently messing with files that it shouldn't
+
+set foldmethod=manual                                             " no folding
+set nofoldenable                                                  " no folding
+set icon
+
+match ErrorMsg '\s\+$'                                            " mark trailing spaces as errors
+set shortmess=aoOtTI                                              " avoid most of the 'Hit Enter ...' messages
+set viminfo='20,<1000,s1000                                       " prevents truncated yanks, deletes, etc.
+set wildmenu                                                      " better command-line completion
+set wildignore+=**/node_modules/**                                " ignore node_modules
+set omnifunc=syntaxcomplete#Complete                              " enable omni-completion
+
+
+syntax on                                                         " syntax for plugins etc
+filetype plugin on                                                " allow sensing the filetype
+set ttyfast                                                       " faster scrolling
+
+set hidden                                                        " stop complaints about switching buffer with changes
+set history=100                                                   " command history
+
+" autocompletion
+set complete+=kspell " Spelling on autocomplete
+set completeopt=menuone,longest " Config of vim autocomplete panel
+set shortmess+=c " Remove the autocomplete status bar
+
+" highlight search hits
+set hlsearch
+set incsearch
+set linebreak
+
+" more risky, but cleaner
+set nobackup
+set noswapfile
+set nowritebackup
+
+" Return to last edit position when opening files
+autocmd BufReadPost *
+      \ if line("'\"") > 0 && line("'\"") <= line("$") |
+      \   exe "normal! g`\"" |
+      \ endif
+
+" ========
+" Bindings
+" ========
+let mapleader = ","
+
+" functions keys
+map <F1> :set number!<CR>
+map <F2> :set spell!<CR>
+nmap <leader>2 :set paste<CR>i
+
+" open vim file on vscode
+nnoremap <leader>oc :exe ':silent !code %'<CR>:redraw!<CR>
+nnoremap <leader>vu :so $HOME/.vimrc<CR>
+nnoremap <leader>ve :e $HOME/.vimrc<CR>
+
+" disable search highlighting with <C-L> when refreshing screen
+nnoremap <C-l> :nohl<CR><C-l>
+
+" tab on visual selected
+vmap <Tab> >gv
+vmap <S-Tab> <gv
+
+" save like ide's
+nnoremap <C-s> :w<cr>
+inoremap <C-s> <esc>:w<cr>a
+
+" Linters
+autocmd FileType bash,sh nnoremap <leader>l :w<cr>:!clear && shellcheck %<cr>
+
+" Formatters
+
+" Plugins
+
+call plug#begin()
+
+Plug 'sheerun/vim-polyglot'
+Plug 'plasticboy/vim-markdown'
+Plug 'tpope/vim-commentary'
+Plug 'vitalk/vim-simple-todo'
+Plug 'z0mbix/vim-shfmt', { 'for': 'sh' }
+
+call plug#end()
+
+" shfmt
+let g:shfmt_fmt_on_save = 1
+let g:shfmt_extra_args = '-i 2' " spaces
+
+" vim-commentary -- My favorite file type isn't supported!
+" autocmd FileType apache setlocal commentstring=#\ %s
+
+" vim markdown
+au FileType markdown setlocal conceallevel=2
+let g:vim_markdown_no_extensions_in_markdown = 1
+let g:vim_markdown_autowrite = 1
+let g:vim_markdown_folding_disabled = 1
+let g:vim_markdown_new_list_item_indent = 0
+let g:vim_markdown_edit_url_in = 'current'
+let g:netrw_browsex_viewer="cmd.exe /C start"
+
+" Add colors to some syntax
+
+" vim shit
+hi SpellBad ctermbg=red ctermfg=white
+
+" markdown,pandoc
+au FileType markdown,pandoc hi Title cterm=bold ctermbg=NONE ctermfg=magenta
+au FileType markdown,pandoc hi htmlBold cterm=bold ctermbg=NONE ctermfg=blue
+au FileType markdown,pandoc hi htmlItalic cterm=italic ctermbg=NONE ctermfg=yellow
+

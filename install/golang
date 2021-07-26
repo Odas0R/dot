@@ -16,4 +16,4 @@ sudo rm -rf /usr/local/go &&
   sudo tar -C /usr/local -xzf $tarFile &&
   sudo rm $tarFile
 
-echo "Dont forget to: export PATH=PATH:/usr/local/go/bin"
+echo 'Dont forget to: export PATH=$PATH:/usr/local/go/bin'

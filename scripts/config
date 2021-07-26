@@ -4,7 +4,7 @@
 # config bash -> opens vim on ~/.bashrc
 
 CONFIGS=~/dot
-COMMANDS="vim bash gh git aliases tmux"
+COMMANDS="vim bash gh git alias tmux config"
 
 case $1 in
 -h | --help)
@@ -13,39 +13,39 @@ case $1 in
   exit 0
   ;;
 vim)
-  exec code $CONFIGS/vim/vimrc
+  exec vim $CONFIGS/vim/vimrc
   exit 0
   ;;
 bash)
-  exec code $CONFIGS/bashrc
+  exec vim $CONFIGS/bashrc
   exit 0
   ;;
 gh)
-  exec code $CONFIGS/gh/config.yml
+  exec vim $CONFIGS/gh/config.yml
   exit 0
   ;;
 git)
-  exec code ~/.gitconfig
+  exec vim ~/.gitconfig
   exit 0
   ;;
-aliases)
-  exec code $CONFIGS/bash/aliases.sh
+alias)
+  exec vim $CONFIGS/bash/aliases.sh
   exit 0
   ;;
 tmux)
-  exec code $HOME/.tmux.conf
+  exec vim $HOME/.tmux.conf
   exit 0
   ;;
 complete)
-  exec code $HOME/.bash/complete.sh
+  exec vim $HOME/.bash/complete.sh
   exit 0
   ;;
 --bash-completion)
   printf "$COMMANDS"
   exit 0
   ;;
-edit)
-  exec code $CONFIGS/scripts/config
+config)
+  exec vim $CONFIGS/scripts/config
   exit 0
   ;;
 esac

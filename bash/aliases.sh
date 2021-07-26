@@ -4,15 +4,23 @@ export DESKTOP="/mnt/c/Users/guilh/Desktop"
 export BROWSER="/mnt/c/Program\ Files/Mozilla\ Firefox/firefox.exe"
 
 alias desktop="cd ${DESKTOP}"
-alias rmidn="rm -r **/*:Zone.Identifier && rm -R **/.*:Zone.Identifier"
+alias rmidentifiers="rm -r **/*:Zone.Identifier && rm -R **/.*:Zone.Identifier"
 alias sb="source ~/.bashrc"
 alias fixtime="sudo ntpdate time.windows.com"
 
+# Shortcuts
+alias todos="vim $HOME/zet/todos.md"
+alias goals="vim $HOME/zet/goals.md"
+alias tech="vim $HOME/zet/tech.md"
+
 # Vim
-alias vim="code" # Dont use vim never more fuck that shit
 alias vi="vim"
 alias v="vim"
 
+# Source bash
+alias so="source ~/.bashrc"
+
+# Utils
 alias la="ls -la"
 alias ls="ls --format=single-column --classify --color --group-directories-first"
 alias ..="cd .."
@@ -20,6 +28,7 @@ cd() {
   builtin cd "$@" && ls
 }
 
+# Github
 alias gs="git status -s"
 alias ga="git add ."
 alias gc="git commit"

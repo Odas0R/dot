@@ -1,2 +1,2 @@
 #!/bin/sh
-exec open 'https://calendar.google.com/calendar/u/1/r/'
+exec explorer.exe 'https://calendar.google.com/calendar/u/1/r/'
