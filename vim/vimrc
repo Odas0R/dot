@@ -29,6 +29,7 @@ set shortmess=aoOtTI                                              " avoid most o
 set viminfo='20,<1000,s1000                                       " prevents truncated yanks, deletes, etc.
 set omnifunc=syntaxcomplete#Complete                              " enable omni-completion
 
+set path+=**                                                      " search recursively into directories
 set wildmenu                                                      " better command-line completion
 set wildignore+=**/node_modules/**                                " ignore node_modules
 
