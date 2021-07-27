@@ -1,9 +1,0 @@
-#!/bin/sh
-
-# cd to a marked directory, and sync everything (background job)
-
-if [ -h "$MARKPATH/$1" ]; then
-  cd -P "$MARKPATH/$1" && (gitsync &)
-else
-  echo "mark not found"
-fi
