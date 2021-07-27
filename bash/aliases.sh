@@ -38,7 +38,7 @@ alias gl="git log --pretty=format:'%C(blue)%h%C(red)%d %C(white)%s - %C(cyan)%cn
 # really can't understand why this wont work as a script.
 jump() {
   if [ -h "$MARKPATH/$1" ]; then
-    cd -P "${MARKPATH}/${1}" && gitsync &
+    cd -P "${MARKPATH}/${1}" && (gitsync &)
   else
     echo "mark not found"
   fi
