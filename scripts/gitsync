@@ -28,4 +28,4 @@ sync() {
 }
 
 # Run the command on the background, always
-(sync && echo "Everything synced 🎉" &) &>/dev/null
+(sync &) &>/dev/null
