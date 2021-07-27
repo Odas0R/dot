@@ -100,8 +100,8 @@ call plug#begin()
 Plug 'sonph/onehalf', { 'rtp': 'vim' }
 Plug 'sheerun/vim-polyglot'
 Plug 'plasticboy/vim-markdown'
-Plug 'tpope/vim-commentary'
-Plug 'vitalk/vim-simple-todo'
+Plug 'tpope/vim-commentary'                 " TODO: Create your own script...
+Plug 'vitalk/vim-simple-todo'               " TODO: Create your own script...
 Plug 'z0mbix/vim-shfmt', { 'for': 'sh' }
 Plug 'vim-airline/vim-airline'
 
@@ -118,6 +118,9 @@ if exists('+termguicolors')
   let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
   set termguicolors
 endif
+
+" tabnine
+set rtp+=~/.vim/tabnine-vim
 
 " shfmt
 let g:shfmt_fmt_on_save = 1
