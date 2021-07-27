@@ -5,7 +5,6 @@
 # committed yet
 
 syncRepos="dot zet"
-cwd=$(pwd)
 
 # Iterate through the repos to be sync
 for repo in $syncRepos; do
@@ -21,8 +20,7 @@ for repo in $syncRepos; do
   # Check if there are changes in the current repo
   if [ -n "$(git status --porcelain)" ]; then
     git add . && git commit -m "automated from gitsync... 🎉" -q && git push -q
+    # Go back
+    # cd -
   fi
 done
-
-# CD into the current working directory
-cd "$cwd" && printf "Updated all the repos! 🎉\n"
