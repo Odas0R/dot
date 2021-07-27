@@ -2,4 +2,4 @@
 
 # Opens the zet workspace & updates all the git repos
 
-exec code "$HOME/zet" && gitsync &
+code "$HOME/zet" && gitsync
