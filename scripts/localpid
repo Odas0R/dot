@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Find the PID of a server w/ a given port
+
+exec ss -lptn "sport = :${1}"

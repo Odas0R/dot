@@ -1,4 +1,6 @@
 #!/bin/sh
 
+# Opens a script/command with vi
+
 cmd=$(command -v "$1")
 [ -n "$cmd" ] && exec vi "$cmd"

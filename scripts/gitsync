@@ -5,28 +5,24 @@
 # committed yet
 
 syncRepos="dot zet"
+cwd=$(pwd)
 
-sync() {
-  cwd=$(pwd)
-  # Iterate through the repos to be sync
+# Iterate through the repos to be sync
+for repo in $syncRepos; do
+  # Check if repo exists
+  if [ ! -h "$MARKPATH/$repo" ]; then
+    echo "repo ${repo} does not exist, fix it."
+    exit
+  fi
 
-  for repo in $syncRepos; do
-    # Check if repo exists
-    if [ ! -h "$MARKPATH/$repo" ]; then
-      echo "repo ${repo} does not exist, fix it."
-      return
-    fi
+  # CD into the repo from the symlink
+  cd -P "$MARKPATH/$repo" || return
 
-    # CD into the repo from the symlink
-    cd -P "$MARKPATH/$repo"
+  # Check if there are changes in the current repo
+  if [ -n "$(git status --porcelain)" ]; then
+    git add . && git commit -m "automated from gitsync... 🎉" && git push
+  fi
+done
 
-    # Check if there are changes in the current repo
-    if [ -n "$(git status --porcelain)" ]; then
-      git add . && git commit -m "automated from gitsync... 🎉" && git push
-    fi
-  done
-
-  cd "$cwd"
-}
-
-sync
+# CD into the current working directory
+cd "$cwd" && printf "Updated all the repos! 🎉\n"
