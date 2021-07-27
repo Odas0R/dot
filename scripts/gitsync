@@ -20,7 +20,7 @@ for repo in $syncRepos; do
 
   # Check if there are changes in the current repo
   if [ -n "$(git status --porcelain)" ]; then
-    git add . && git commit -m "automated from gitsync... 🎉" && git push
+    git add . && git commit -m "automated from gitsync... 🎉" -q && git push -q
   fi
 done
 
