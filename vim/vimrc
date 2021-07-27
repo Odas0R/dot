@@ -9,48 +9,51 @@ set showmode                                                      " show command
 
 set textwidth=72                                                  " enough for line numbers + gutter within 80 standard
 set tabstop=2                                                     " number of spaces that a <Tab> has
-set shiftwidth=2                                                  " number of spaces on identation
-set softtabstop=2                                                 " read :help ahaha 😂
-set expandtab                                                     " replace tabs /w spaces
+set shiftwidth=2                                                  " number of spaces on indentation
+set softtabstop=2                                                 " read :help 😂
+set numberwidth=2
 set smartindent
 set smarttab
-set norelativenumber
-set listchars=space:*,trail:*,nbsp:*,extends:>,precedes:<,tab:\|> " better ascii friendly listchars
-set nofixendofline                                                " stop vim from silently messing with files that it shouldn't
+
+set expandtab                                                     " replace tabs /w spaces
+set nofixendofline                                                " stop vim from adding \n to files
+set listchars=space:*,trail:*,nbsp:*,extends:>,precedes:<,tab:\|> " better ascii friendly list chars
 
 set foldmethod=manual                                             " no folding
 set nofoldenable                                                  " no folding
+
 set icon
 
 match ErrorMsg '\s\+$'                                            " mark trailing spaces as errors
 set shortmess=aoOtTI                                              " avoid most of the 'Hit Enter ...' messages
 set viminfo='20,<1000,s1000                                       " prevents truncated yanks, deletes, etc.
-set wildmenu                                                      " better command-line completion
-set wildignore+=**/node_modules/**                                " ignore node_modules
 set omnifunc=syntaxcomplete#Complete                              " enable omni-completion
 
+set wildmenu                                                      " better command-line completion
+set wildignore+=**/node_modules/**                                " ignore node_modules
 
 syntax on                                                         " syntax for plugins etc
-filetype plugin on                                                " allow sensing the filetype
+filetype plugin on                                                " allow sensing the file type
 set ttyfast                                                       " faster scrolling
 
 set hidden                                                        " stop complaints about switching buffer with changes
 set history=100                                                   " command history
 
-" autocompletion
-set complete+=kspell " Spelling on autocomplete
-set completeopt=menuone,longest " Config of vim autocomplete panel
-set shortmess+=c " Remove the autocomplete status bar
-
 " highlight search hits
 set hlsearch
 set incsearch
 set linebreak
+nnoremap <C-l> :nohl<CR><C-l>
 
 " more risky, but cleaner
 set nobackup
 set noswapfile
 set nowritebackup
+
+" auto completion
+set complete+=kspell                                              " spelling on autocomplete
+set completeopt=menuone,longest                                   " config of vim autocomplete panel
+set shortmess+=c                                                  " remove the autocomplete status bar
 
 " Return to last edit position when opening files
 autocmd BufReadPost *
@@ -63,13 +66,9 @@ autocmd BufReadPost *
 " ========
 let mapleader = ","
 
-" open vim file on vscode
 nnoremap <leader>oc :exe ':silent !code %'<CR>:redraw!<CR>
 nnoremap <leader>vu :so $HOME/.vimrc<CR>
 nnoremap <leader>ve :e $HOME/.vimrc<CR>
-
-" disable search highlighting with <C-L> when refreshing screen
-nnoremap <C-l> :nohl<CR><C-l>
 
 " tab on visual selected
 vmap <Tab> >gv
@@ -80,7 +79,7 @@ map <F1> :set number!<CR>
 map <F2> :set spell!<CR>
 nmap <leader>2 :set paste<CR>i
 
-" save like ide's
+" save like an IDE
 nnoremap <C-s> :w<cr>
 inoremap <C-s> <esc>:w<cr>a
 
@@ -97,13 +96,27 @@ autocmd FileType bash nnoremap <F3> :w<cr>:!clear && bash %<cr>
 
 call plug#begin()
 
+Plug 'sonph/onehalf', { 'rtp': 'vim' }
 Plug 'sheerun/vim-polyglot'
 Plug 'plasticboy/vim-markdown'
 Plug 'tpope/vim-commentary'
 Plug 'vitalk/vim-simple-todo'
 Plug 'z0mbix/vim-shfmt', { 'for': 'sh' }
+Plug 'vim-airline/vim-airline'
 
 call plug#end()
+
+" colorscheme
+set t_Co=256
+set cursorline
+colorscheme onehalfdark
+let g:airline_theme='onehalfdark'
+
+if exists('+termguicolors')
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+  set termguicolors
+endif
 
 " shfmt
 let g:shfmt_fmt_on_save = 1

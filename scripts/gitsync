@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # This is a very simple automated add, commit, push that is run when you
-# open a mark by using `ws` if there's local changes that weren't
+# open/cd a mark by using `ws`, and `jump`, if there's local changes that weren't
 # committed yet
 
 syncRepos="dot zet"
@@ -18,7 +18,7 @@ sync() {
     # CD into the repo from the symlink
     cd -P "$MARKPATH/$repo" || return
 
-    # Check if there are changes in the current repo
+    # Check if there are uncommitted changes
     if [ -n "$(git status --porcelain)" ]; then
       git add . && git commit -m "automated from gitsync... 🎉" -q && git push -q
       # Go back
