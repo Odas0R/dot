@@ -1,0 +1,10 @@
+#!/bin/sh
+
+currentDate=$(date +"%Y-%m-%d")
+file="${HOME}/zet/journal/${currentDate}.md"
+
+if [ -f "$file" ]; then
+  vi "$file"
+else
+  printf "# Journal Entry, ${currentDate}\n\n\n" >>"$file" && vi +3 "$file"
+fi

@@ -1,5 +1,84 @@
 #!/bin/sh
 
-# Opens the zet workspace & updates all the git repos
+# Your zet workflow:
+#
+# format: this-is-a-note.isotime.md
+#
+# [ ] Linking:          Link two zets w/ the $isotime (copy it w/ tmux selection)
+# [ ] Progress:         Tells you how much time you've worked in the past
+#                       week, month, year. Metrics for pomodoro
+# [ ] Orphans:          Finds all the notes that are orphans, notes that are
+#                       orphans don't contain "# Links" at the bottom of the file
+# [X] Query:            Use grep for full-text search by multiple keywords
+# [X] Open Note:        Open fily by iso time
+# [X] Daily:            Zet Journal for managing your shit (pomo)
 
-code "$HOME/zet" && gitsync
+ZET="${HOME}/zet"
+INBOX="${ZET}/inbox"
+
+print_help() {
+  printf "%s
+Zettelkasten program
+It is organized by inbox & permanent notes.
+
+Commands:
+  --help | -h      Show help commands
+  f | find         Finds a note by id iso time
+  query | q        Queries the zettels with Regex, you can filter by tags.
+"
+}
+
+# Creates a new file on the /inbox w/ a template.
+# TODO: Create a better strong sed replace regex for specific cases that could break the name
+zet_new() {
+  fileName=$(echo "$@" | sed 's/?|!//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+  file="${fileName}.$(isosec).md"
+
+  tee "${INBOX}/${file}" <<EOF >/dev/null
+# $@
+
+# Bibliography
+EOF
+
+  vi "${INBOX}/${file}"
+}
+
+# Finds a file by iso time id & opens it on vim
+zet_find() {
+  file="$(find $INBOX -name "*${1}*")"
+  [ -n "$file" ] && vim "$file" || printf "file not found.\n"
+}
+
+zet_query() {
+  query=$(echo "$@" | sed 's/ /\\|/g' | sed 's/q\\|//g')
+  # color: gives colored output
+  # R: recursive find files
+  # n: display line numbers
+  # i: ignore case
+  # -m NUM: Stops reading a file after NUM matching lines
+  # w: exact matches in a file
+
+  ls $INBOX | grep --color -Rni -m 1 -w "$query"
+}
+
+case $1 in
+-h | --help)
+  print_help
+  exit 0
+  ;;
+"")
+  print_help
+  exit 0
+  ;;
+f | find)
+  zet_find $2
+  exit 0
+  ;;
+q | query)
+  zet_query "$@"
+  exit 0
+  ;;
+esac
+
+# Create a new zet file
+zet_new "$@"

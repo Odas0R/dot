@@ -6,6 +6,6 @@ if [ -n "${DISPLAY}" ]; then
 fi
 
 export HRULEWIDTH=73
-export EDITOR=code
-export VISUAL=code
-export EDITOR_PREFIX=code
+export EDITOR=vi
+export VISUAL=vi
+export EDITOR_PREFIX=vi
