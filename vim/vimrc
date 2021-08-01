@@ -1,7 +1,6 @@
 let skip_defaults_vim=1
 set nocompatible                                                  " use VIM as Vi
 
-set autoindent                                                    " automatically indent new lines
 set autowrite                                                     " automatically write files when changing when multiple files open
 set number                                                        " activate line numbers
 set ruler                                                         " turn col and row position on in bottom right
@@ -13,6 +12,7 @@ set shiftwidth=2                                                  " number of sp
 set softtabstop=2                                                 " read :help 😂
 set numberwidth=2
 set smartindent
+set autoindent                                                    " automatically indent new lines
 set smarttab
 
 set expandtab                                                     " replace tabs /w spaces
@@ -44,7 +44,7 @@ set history=100                                                   " command hist
 set hlsearch
 set incsearch
 set linebreak
-nnoremap <C-l> :nohl<CR><C-l>
+nnoremap <C-l> :nohl<cr><C-l>
 
 " more risky, but cleaner
 set nobackup
@@ -69,30 +69,57 @@ au BufReadPost *
       \   exe "normal! g`\"" |
       \ endif
 
+let g:netrw_banner = 0
+let g:netrw_liststyle = 3
+let g:netrw_browse_split = 4
+let g:netrw_altv = 1
+let g:netrw_winsize = 20
+let g:netrw_keepdir = 0
+let g:netrw_list_hide = &wildignore
+
+" Netrw Mappings
+nnoremap \ :Lexplore<cr>
+function! NetrwMappings()
+  " Go down a directory / open file
+  nmap <buffer> l <cr>
+  " Close the preview window
+  nmap <buffer> P <C-w>z
+  " Focus on file and close netrw
+  nmap <buffer> L <cr>:Lexplore<cr>
+endfunction
+autocmd FileType netrw call NetrwMappings()
+
+
 " ========
 " Bindings
 " ========
 let mapleader = ","
 
-nnoremap <leader>vu :so $HOME/.vimrc<CR>
-nnoremap <leader>ve :e $HOME/.vimrc<CR>
+nnoremap <leader>vu :so $HOME/.vimrc<cr>
+nnoremap <leader>ve :e $HOME/.vimrc<cr>
+
+" copy-paste between tabs
+vmap <C-c> :.w! ~/.vimbuffer<CR>
+nmap <C-c> :.w! ~/.vimbuffer<CR>
+map <C-v> :r ~/.vimbuffer<CR>
 
 " tab on visual selected
 vmap <Tab> >gv
 vmap <S-Tab> <gv
-
 
 " save like an IDE BAD HABITSSSSSSSSSS
 nnoremap <C-s> :w<cr>
 inoremap <C-s> <esc>:w<cr>a
 
 " <F NUM> Mappings
-nnoremap <F1> :set number!<CR>
-nnoremap <F2> :set spell!<CR>
+nnoremap <F1> :set number!<cr>
+nnoremap <F2> :set spell!<cr>
 
 " Linters <F3> -- make the mapping local to the <buffer> 😯
 au FileType bash,sh nnoremap <buffer> <F3> :w<cr>:!clear && shellcheck %<cr>
 au FileType html  nnoremap <buffer> <F3> :w<cr>:!clear && htmlhint %<cr>
+
+au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab | nnoremap <buffer> <F3> :w<cr>:!clear && yamllint %<cr>
 
 " Run Code <F4>
 au FileType sh nnoremap <buffer> <F4> :w<cr>:!clear && sh %<cr>
@@ -128,9 +155,9 @@ endfun
 
 au FileType html au BufWritePre <buffer> call s:HtmlFormat()
 au FileType vim au BufWritePre <buffer> call s:Format()
+" au FileType yaml au BufWritePre <buffer> call s:Format()
 
 " Plugins
-
 call plug#begin()
 
 Plug 'sonph/onehalf', { 'rtp': 'vim' }
@@ -141,6 +168,7 @@ Plug 'vitalk/vim-simple-todo'               " TODO: Create your own script...
 Plug 'z0mbix/vim-shfmt', { 'for': 'sh' }
 Plug 'vim-airline/vim-airline'
 Plug 'mattn/emmet-vim'
+Plug 'Yggdroot/indentLine'
 
 call plug#end()
 
@@ -157,6 +185,10 @@ endif
 
 " tabnine
 set rtp+=~/.vim/tabnine-vim
+
+" indentLine
+let g:indentLine_char = '|'
+au FileType markdown let g:indentLine_setConceal = 0
 
 " emmet w/ <Tab> TODO: Add more filetypes, example react, vue, ... etc.
 augroup EmmetSettings

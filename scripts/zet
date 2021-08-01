@@ -31,7 +31,7 @@ Commands:
 # Creates a new file on the /inbox w/ a template.
 # TODO: Create a better strong sed replace regex for specific cases that could break the name
 zet_new() {
-  fileName=$(echo "$@" | sed 's/?|!//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+  fileName=$(echo "$@" | sed 's/[?|!]//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
   file="${fileName}.$(isosec).md"
 
   tee "${INBOX}/${file}" <<EOF >/dev/null
