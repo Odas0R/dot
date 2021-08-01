@@ -9,12 +9,13 @@ ln -sf "$PWD/bash" "$HOME/.bash"
 [ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"
 ln -sf "$PWD/scripts" "$HOME/.local/bin/scripts"
 
-echo ""
-echo "Executing all setup scripts ✨...\n"
+printf "Executing all setup scripts ✨...\n"
 
-for i in gh git vim tmux; do
-  cd $i && ./setup
-  cd - >/dev/null
+folders="gh git vim tmux windows-terminal"
+
+for path in $folders; do
+  cd "$path" && ./setup
+  cd - >/dev/null || exit
 done
 
 exit

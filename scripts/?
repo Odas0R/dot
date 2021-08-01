@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Opens up the browser to check shit (wsl2 version)
+
+query=$(echo "$@" | sed 's/ /+/g')
+
+exec '/mnt/c/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe' "https://duckduckgo.com/?q=${query}&atb=v236-1&ia=web"
