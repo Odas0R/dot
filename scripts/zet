@@ -17,14 +17,14 @@ ZET="${HOME}/zet"
 INBOX="${ZET}/inbox"
 
 print_help() {
-  printf "%s
+  printf "
 Zettelkasten program
 It is organized by inbox & permanent notes.
 
 Commands:
   --help | -h      Show help commands
   f | find         Finds a note by id iso time
-  query | q        Queries the zettels with Regex, you can filter by tags.
+  q | query        Queries the zettels with Regex, you can filter by tags.
 "
 }
 
@@ -45,7 +45,7 @@ EOF
 
 # Finds a file by iso time id & opens it on vim
 zet_find() {
-  file="$(find $INBOX -name "*${1}*")"
+  file="$(find "$INBOX" -name "*${1}*")"
   [ -n "$file" ] && vim "$file" || printf "file not found.\n"
 }
 
@@ -57,8 +57,7 @@ zet_query() {
   # i: ignore case
   # -m NUM: Stops reading a file after NUM matching lines
   # w: exact matches in a file
-
-  ls $INBOX | grep --color -Rni -m 1 -w "$query"
+  cd "$INBOX" && grep --color -Rni -m 1 -w "$query" && cd - >/dev/null || exit
 }
 
 case $1 in
@@ -71,7 +70,7 @@ case $1 in
   exit 0
   ;;
 f | find)
-  zet_find $2
+  zet_find "$2"
   exit 0
   ;;
 q | query)
