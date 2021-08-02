@@ -1,14 +1,13 @@
 #!/bin/bash
 
 export DESKTOP="/mnt/c/Users/guilh/Desktop"
-export BROWSER="/mnt/c/Program\ Files/Mozilla\ Firefox/firefox.exe"
+export BROWSER="/mnt/c/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
 
 # Paths
 alias desktop="cd ${DESKTOP}"
 
 # Shortcuts
 alias todos="vim $HOME/zet/todos.md"
-alias goals="vim $HOME/zet/goals.md"
 alias tech="vim $HOME/zet/tech.md"
 
 # Vim

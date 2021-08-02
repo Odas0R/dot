@@ -13,7 +13,7 @@ case $1 in
   exit 0
   ;;
 vi)
-  exec vi $CONFIGS/vi/virc
+  exec vi $CONFIGS/vim/vimrc
   exit 0
   ;;
 bash)

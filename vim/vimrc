@@ -5,6 +5,7 @@ set autowrite                                                     " automaticall
 set number                                                        " activate line numbers
 set ruler                                                         " turn col and row position on in bottom right
 set showmode                                                      " show command and insert mode
+set showcmd                                                       " show command on the right side (leader key)
 
 set textwidth=72                                                  " enough for line numbers + gutter within 80 standard
 set tabstop=2                                                     " number of spaces that a <Tab> has
@@ -44,14 +45,13 @@ set history=100                                                   " command hist
 set hlsearch
 set incsearch
 set linebreak
-nnoremap <C-l> :nohl<cr><C-l>
+nnoremap <C-l> :nohl<CR><C-l>
 
 " more risky, but cleaner
 set nobackup
 set noswapfile
 set nowritebackup
 
-" auto completion
 set complete+=kspell                                              " spelling on autocomplete
 set completeopt=menuone,longest                                   " config of vim autocomplete panel
 set shortmess+=c                                                  " remove the autocomplete status bar
@@ -69,6 +69,9 @@ au BufReadPost *
       \   exe "normal! g`\"" |
       \ endif
 
+" Create the 'tags' file
+" command! MakeTags !ctags -R .
+
 let g:netrw_banner = 0
 let g:netrw_liststyle = 3
 let g:netrw_browse_split = 4
@@ -78,14 +81,14 @@ let g:netrw_keepdir = 0
 let g:netrw_list_hide = &wildignore
 
 " Netrw Mappings
-nnoremap \ :Lexplore<cr>
+nnoremap \ :Lexplore<CR>
 function! NetrwMappings()
   " Go down a directory / open file
-  nmap <buffer> l <cr>
+  nmap <buffer> l <CR>
   " Close the preview window
   nmap <buffer> P <C-w>z
   " Focus on file and close netrw
-  nmap <buffer> L <cr>:Lexplore<cr>
+  nmap <buffer> L <CR>:Lexplore<CR>
 endfunction
 autocmd FileType netrw call NetrwMappings()
 
@@ -95,37 +98,33 @@ autocmd FileType netrw call NetrwMappings()
 " ========
 let mapleader = ","
 
-nnoremap <leader>vu :so $HOME/.vimrc<cr>
-nnoremap <leader>ve :e $HOME/.vimrc<cr>
-
-" copy-paste between tabs
-vmap <C-c> :.w! ~/.vimbuffer<CR>
-nmap <C-c> :.w! ~/.vimbuffer<CR>
-map <C-v> :r ~/.vimbuffer<CR>
+nnoremap <leader>vu :so $HOME/.vimrc<CR>
+nnoremap <leader>ve :e $HOME/.vimrc<CR>
 
 " tab on visual selected
 vmap <Tab> >gv
 vmap <S-Tab> <gv
 
 " save like an IDE BAD HABITSSSSSSSSSS
-nnoremap <C-s> :w<cr>
-inoremap <C-s> <esc>:w<cr>a
+nnoremap <C-s> :w<CR>
+inoremap <C-s> <esc>:w<CR>a
 
 " <F NUM> Mappings
-nnoremap <F1> :set number!<cr>
-nnoremap <F2> :set spell!<cr>
+nnoremap <F1> :set number!<CR>
+nnoremap <F2> :set spell!<CR>
 
 " Linters <F3> -- make the mapping local to the <buffer> 😯
-au FileType bash,sh nnoremap <buffer> <F3> :w<cr>:!clear && shellcheck %<cr>
-au FileType html  nnoremap <buffer> <F3> :w<cr>:!clear && htmlhint %<cr>
-
-au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab | nnoremap <buffer> <F3> :w<cr>:!clear && yamllint %<cr>
+au FileType bash,sh nnoremap <buffer> <F3> :w<CR>:!clear && shellcheck %<CR>
+au FileType html  nnoremap <buffer> <F3> :w<CR>:!clear && htmlhint %<CR>
+au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab | nnoremap <buffer> <F3> :w<CR>:!clear && yamllint %<CR>
 
 " Run Code <F4>
-au FileType sh nnoremap <buffer> <F4> :w<cr>:!clear && sh %<cr>
-au FileType bash nnoremap <buffer> <F4> :w<cr>:!clear && bash %<cr>
+au FileType sh nnoremap <buffer> <F4> :w<CR>:!clear && sh %<CR>
+au FileType bash nnoremap <buffer> <F4> :w<CR>:!clear && bash %<CR>
 
+" ============================================================
 " Formatters (using vim-autoformat, does a lot of work for me)
+" ============================================================
 
 " this is complete sorcery, I managed to force consistent cursor
 " placement on format.
@@ -157,18 +156,24 @@ au FileType html au BufWritePre <buffer> call s:HtmlFormat()
 au FileType vim au BufWritePre <buffer> call s:Format()
 " au FileType yaml au BufWritePre <buffer> call s:Format()
 
+" ==========================================================
 " Plugins
+" ==========================================================
+
 call plug#begin()
 
 Plug 'sonph/onehalf', { 'rtp': 'vim' }
 Plug 'sheerun/vim-polyglot'
 Plug 'plasticboy/vim-markdown'
-Plug 'tpope/vim-commentary'                 " TODO: Create your own script...
-Plug 'vitalk/vim-simple-todo'               " TODO: Create your own script...
+" TODO: Create your own script...
+Plug 'tpope/vim-commentary'
+" TODO: Create your own script...
+Plug 'vitalk/vim-simple-todo'
 Plug 'z0mbix/vim-shfmt', { 'for': 'sh' }
 Plug 'vim-airline/vim-airline'
 Plug 'mattn/emmet-vim'
-Plug 'Yggdroot/indentLine'
+" copy text to the system clipboard from anywhere using the ANSI OSC52 sequence.
+Plug 'ojroques/vim-oscyank'
 
 call plug#end()
 
@@ -186,24 +191,23 @@ endif
 " tabnine
 set rtp+=~/.vim/tabnine-vim
 
-" indentLine
-let g:indentLine_char = '|'
-au FileType markdown let g:indentLine_setConceal = 0
-
 " emmet w/ <Tab> TODO: Add more filetypes, example react, vue, ... etc.
 augroup EmmetSettings
-  autocmd! FileType html imap <tab> <plug>(emmet-expand-abbr)
+  autocmd! FileType html imap <leader><tab> <plug>(emmet-expand-abbr)
 augroup END
+
+" OSCYankReg MAGIC ✨
+autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname  is '' | OSCYankReg " | endif
 
 " shfmt
 let g:shfmt_fmt_on_save = 1
 let g:shfmt_extra_args = '-i 2' " spaces
 
-" vim-commentary -- My favorite file type isn't supported!
+" vim-commentary -- support other filetypes
 " au FileType apache setlocal commentstring=#\ %s
 
 " vim markdown
-au FileType markdown set conceallevel=2 | set spell | set nonumber
+au FileType markdown set conceallevel=2 spell nonumber
 let g:vim_markdown_no_extensions_in_markdown = 1
 let g:vim_markdown_autowrite = 1
 let g:vim_markdown_folding_disabled = 1
@@ -211,7 +215,18 @@ let g:vim_markdown_new_list_item_indent = 0
 let g:vim_markdown_edit_url_in = 'current'
 let g:netrw_browsex_viewer="cmd.exe /C start"
 
+" ==========================================================
+" Snippets -- Simpler is better
+" ==========================================================
+" Html
+nnoremap <leader>html :-1r $SNIPPETS/html/skeleton.html<CR>7jf>a
+" Alpine
+nnoremap <leader>alpine:newsletter :-1r $SNIPPETS/alpine/newsletter.js<CR>
+
+" ==========================================================
 " Color Overrides
+" ==========================================================
+
 au FileType * hi SpellBad guifg=white guibg=lightred
 au FileType * hi Error guifg=white guibg=lightred
 au FileType * hi ErrorMsg guifg=white guibg=lightred
@@ -220,3 +235,4 @@ au FileType markdown,pandoc hi Title cterm=bold ctermfg=magenta ctermbg=NONE
 au FileType markdown,pandoc hi htmlBold cterm=bold ctermfg=blue ctermbg=NONE
 au FileType markdown,pandoc hi htmlItalic cterm=italic ctermfg=yellow ctermbg=NONE
 au FileType markdown,pandoc hi htmlLink ctermfg=cyan guifg=cyan cterm=underline gui=underline ctermbg=NONE
+
