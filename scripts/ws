@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ -h "$MARKPATH/$1" ]; then
-  code -r "$(readlink "${MARKPATH}/${1}")" && zet && gitsync
+  code "$(readlink "${MARKPATH}/${1}")"
 else
   printf "workspace not found.\n"
 fi

@@ -31,7 +31,7 @@ Commands:
 # Creates a new file on the /inbox w/ a template.
 # TODO: Create a better strong sed replace regex for specific cases that could break the name
 zet_new() {
-  fileName=$(echo "$@" | sed 's/[?|!]//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+  fileName=$(echo "$@" | sed "s/[?|!]//g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
   file="${fileName}.$(isosec).md"
 
   tee "${INBOX}/${file}" <<EOF >/dev/null
@@ -41,12 +41,6 @@ zet_new() {
 EOF
 
   vi "${INBOX}/${file}"
-}
-
-# Finds a file by iso time id & opens it on vim
-zet_find() {
-  file="$(find "$INBOX" -name "*${1}*")"
-  [ -n "$file" ] && vim "$file" || printf "file not found.\n"
 }
 
 zet_query() {
@@ -69,15 +63,17 @@ case $1 in
   print_help
   exit 0
   ;;
-f | find)
-  zet_find "$2"
-  exit 0
-  ;;
 q | query)
   zet_query "$@"
   exit 0
   ;;
 esac
 
-# Create a new zet file
-zet_new "$@"
+# Checks if the first given argument is a valid id.
+# If it is a zet file, it will open it, otherwise creates a new file
+firstArg="$(find "$INBOX" -name "*${1}*")"
+if [ -n "$firstArg" ]; then
+  vim "$firstArg"
+else
+  zet_new "$@"
+fi

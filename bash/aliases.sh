@@ -3,12 +3,10 @@
 export DESKTOP="/mnt/c/Users/guilh/Desktop"
 export BROWSER="/mnt/c/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
 
-# Paths
-alias desktop="cd ${DESKTOP}"
-
 # Shortcuts
-alias todos="vim $HOME/zet/todos.md"
+alias distractions="vim $HOME/zet/todos.md"
 alias tech="vim $HOME/zet/tech.md"
+alias habits="vim $HOME/zet/habits.md"
 
 # Vim
 alias vi="vim"
@@ -34,11 +32,8 @@ alias gb="git branch -a -l -v"
 alias gf="git fetch origin"
 alias gl="git log --pretty=format:'%C(blue)%h%C(red)%d %C(white)%s - %C(cyan)%cn,%C(green)%cr'"
 
-# really can't understand why this wont work as a script.
+# cd doesn't work on shell scripts
+# https://stackoverflow.com/questions/255414/why-cant-i-change-directories-using-cd-in-a-script
 jump() {
-  if [ -h "$MARKPATH/$1" ]; then
-    cd -P "$MARKPATH/$1"
-  else
-    echo "mark not found"
-  fi
+  [ -h "$MARKPATH/$1" ] && cd "$(readlink "${MARKPATH}/${1}")" || exit
 }

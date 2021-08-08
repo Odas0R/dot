@@ -2,7 +2,7 @@ let skip_defaults_vim=1
 set nocompatible                                                  " use VIM as Vi
 
 set autowrite                                                     " automatically write files when changing when multiple files open
-set number                                                        " activate line numbers
+set relativenumber
 set ruler                                                         " turn col and row position on in bottom right
 set showmode                                                      " show command and insert mode
 set showcmd                                                       " show command on the right side (leader key)
@@ -30,7 +30,7 @@ set shortmess=aoOtTI                                              " avoid most o
 set viminfo='20,<1000,s1000                                       " prevents truncated yanks, deletes, etc.
 set omnifunc=syntaxcomplete#Complete                              " enable omni-completion
 
-set path+=**                                                      " search recursively into directories
+set path+=**
 set wildmenu                                                      " better command-line completion
 set wildignore+=**/node_modules/**                                " ignore node_modules
 
@@ -69,9 +69,30 @@ au BufReadPost *
       \   exe "normal! g`\"" |
       \ endif
 
-" Create the 'tags' file
-" command! MakeTags !ctags -R .
+" ============================================================
+" Custom Settings per FileType
+" ============================================================
 
+au FileType markdown setlocal conceallevel=2 spell nonumber
+
+" ============================================================
+" Quickfix, Better Grep
+" ============================================================
+
+set grepprg=rg\ -S\ --vimgrep
+set grepformat^=%f:%l:%c:%m
+augroup autoquickfix
+  autocmd!
+  autocmd QuickFixCmdPost [^l]* cwindow
+  autocmd QuickFixCmdPost    l* lwindow
+augroup END
+
+" ============================================================
+" Netrw, defaults & mappings
+" ============================================================
+
+nnoremap \ :Lexplore<CR>
+let g:netrw_browsex_viewer="cmd.exe /C start"
 let g:netrw_banner = 0
 let g:netrw_liststyle = 3
 let g:netrw_browse_split = 4
@@ -79,9 +100,6 @@ let g:netrw_altv = 1
 let g:netrw_winsize = 20
 let g:netrw_keepdir = 0
 let g:netrw_list_hide = &wildignore
-
-" Netrw Mappings
-nnoremap \ :Lexplore<CR>
 function! NetrwMappings()
   " Go down a directory / open file
   nmap <buffer> l <CR>
@@ -92,14 +110,15 @@ function! NetrwMappings()
 endfunction
 autocmd FileType netrw call NetrwMappings()
 
-
-" ========
+" ============================================================
 " Bindings
-" ========
+" ============================================================
+
 let mapleader = ","
 
 nnoremap <leader>vu :so $HOME/.vimrc<CR>
 nnoremap <leader>ve :e $HOME/.vimrc<CR>
+nnoremap <leader>ce :silent !code %<CR>:redraw!<CR>
 
 " tab on visual selected
 vmap <Tab> >gv
@@ -112,6 +131,7 @@ inoremap <C-s> <esc>:w<CR>a
 " <F NUM> Mappings
 nnoremap <F1> :set number!<CR>
 nnoremap <F2> :set spell!<CR>
+nnoremap <leader>2 :set paste<CR>
 
 " Linters <F3> -- make the mapping local to the <buffer> 😯
 au FileType bash,sh nnoremap <buffer> <F3> :w<CR>:!clear && shellcheck %<CR>
@@ -139,7 +159,7 @@ fun! s:HtmlFormat()
   endtry
 endfun
 
-fun! s:Format()
+fun! s:DefaultFormat()
   let search = @/
   let cursor_position = getpos('.')
   normal! H
@@ -153,7 +173,7 @@ fun! s:Format()
 endfun
 
 au FileType html au BufWritePre <buffer> call s:HtmlFormat()
-au FileType vim au BufWritePre <buffer> call s:Format()
+au FileType vim au BufWritePre <buffer> call s:DefaultFormat()
 " au FileType yaml au BufWritePre <buffer> call s:Format()
 
 " ==========================================================
@@ -164,7 +184,6 @@ call plug#begin()
 
 Plug 'sonph/onehalf', { 'rtp': 'vim' }
 Plug 'sheerun/vim-polyglot'
-Plug 'plasticboy/vim-markdown'
 " TODO: Create your own script...
 Plug 'tpope/vim-commentary'
 " TODO: Create your own script...
@@ -203,25 +222,7 @@ autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname  is '' | OS
 let g:shfmt_fmt_on_save = 1
 let g:shfmt_extra_args = '-i 2' " spaces
 
-" vim-commentary -- support other filetypes
-" au FileType apache setlocal commentstring=#\ %s
-
 " vim markdown
-au FileType markdown set conceallevel=2 spell nonumber
-let g:vim_markdown_no_extensions_in_markdown = 1
-let g:vim_markdown_autowrite = 1
-let g:vim_markdown_folding_disabled = 1
-let g:vim_markdown_new_list_item_indent = 0
-let g:vim_markdown_edit_url_in = 'current'
-let g:netrw_browsex_viewer="cmd.exe /C start"
-
-" ==========================================================
-" Snippets -- Simpler is better
-" ==========================================================
-" Html
-nnoremap <leader>html :-1r $SNIPPETS/html/skeleton.html<CR>7jf>a
-" Alpine
-nnoremap <leader>alpine:newsletter :-1r $SNIPPETS/alpine/newsletter.js<CR>
 
 " ==========================================================
 " Color Overrides

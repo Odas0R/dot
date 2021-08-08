@@ -2,6 +2,7 @@
 # Custom Path Variables
 export MARKPATH=$HOME/.marks
 export SNIPPETS=$HOME/snippets
+export SCRIPTS=$HOME/.local/bin/scripts
 
 # NVM (Node Version Manager)
 export NVM_DIR="$HOME/.nvm"
