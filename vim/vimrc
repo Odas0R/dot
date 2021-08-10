@@ -95,9 +95,7 @@ nnoremap \ :Lexplore<CR>
 let g:netrw_browsex_viewer="cmd.exe /C start"
 let g:netrw_banner = 0
 let g:netrw_liststyle = 3
-let g:netrw_browse_split = 4
-let g:netrw_altv = 1
-let g:netrw_winsize = 20
+let g:netrw_winsize = 100
 let g:netrw_keepdir = 0
 let g:netrw_list_hide = &wildignore
 function! NetrwMappings()
@@ -135,7 +133,6 @@ nnoremap <leader>2 :set paste<CR>
 
 " Linters <F3> -- make the mapping local to the <buffer> 😯
 au FileType bash,sh nnoremap <buffer> <F3> :w<CR>:!clear && shellcheck %<CR>
-au FileType html  nnoremap <buffer> <F3> :w<CR>:!clear && htmlhint %<CR>
 au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab | nnoremap <buffer> <F3> :w<CR>:!clear && yamllint %<CR>
 
 " Run Code <F4>
@@ -149,17 +146,27 @@ au FileType bash nnoremap <buffer> <F4> :w<CR>:!clear && bash %<CR>
 " this is complete sorcery, I managed to force consistent cursor
 " placement on format.
 " PS: The try-catch is to supress the undojoin error when you :w
-fun! s:HtmlFormat()
+" fun! s:HtmlFormat()
+"   try
+"     let l:pos = getcurpos()
+"     silent execute 'undojoin'
+"     silent execute '%!js-beautify --type html -s 2'
+"     call setpos('.', l:pos)
+"   catch
+"   endtry
+" endfun
+
+fun! s:Shfmt()
   try
     let l:pos = getcurpos()
     silent execute 'undojoin'
-    silent execute '%!js-beautify --type html -s 2'
+    silent execute '%!shfmt -i 2'
     call setpos('.', l:pos)
   catch
   endtry
 endfun
 
-fun! s:DefaultFormat()
+fun! s:Format()
   let search = @/
   let cursor_position = getpos('.')
   normal! H
@@ -172,8 +179,9 @@ fun! s:DefaultFormat()
   call setpos('.', cursor_position)
 endfun
 
-au FileType html au BufWritePre <buffer> call s:HtmlFormat()
-au FileType vim au BufWritePre <buffer> call s:DefaultFormat()
+au FileType vim au BufWritePre <buffer> call s:Format()
+au FileType sh,bash au BufWritePre <buffer> call s:Shfmt()
+" au FileType html au BufWritePre <buffer> call s:HtmlFormat()
 " au FileType yaml au BufWritePre <buffer> call s:Format()
 
 " ==========================================================
@@ -184,13 +192,9 @@ call plug#begin()
 
 Plug 'sonph/onehalf', { 'rtp': 'vim' }
 Plug 'sheerun/vim-polyglot'
-" TODO: Create your own script...
 Plug 'tpope/vim-commentary'
-" TODO: Create your own script...
 Plug 'vitalk/vim-simple-todo'
-Plug 'z0mbix/vim-shfmt', { 'for': 'sh' }
 Plug 'vim-airline/vim-airline'
-Plug 'mattn/emmet-vim'
 " copy text to the system clipboard from anywhere using the ANSI OSC52 sequence.
 Plug 'ojroques/vim-oscyank'
 
@@ -210,19 +214,8 @@ endif
 " tabnine
 set rtp+=~/.vim/tabnine-vim
 
-" emmet w/ <Tab> TODO: Add more filetypes, example react, vue, ... etc.
-augroup EmmetSettings
-  autocmd! FileType html imap <leader><tab> <plug>(emmet-expand-abbr)
-augroup END
-
 " OSCYankReg MAGIC ✨
 autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname  is '' | OSCYankReg " | endif
-
-" shfmt
-let g:shfmt_fmt_on_save = 1
-let g:shfmt_extra_args = '-i 2' " spaces
-
-" vim markdown
 
 " ==========================================================
 " Color Overrides

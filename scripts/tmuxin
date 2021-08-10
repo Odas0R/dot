@@ -1,0 +1,20 @@
+#!/bin/sh
+
+dndPath=$(markpath dnd)
+zetPath=$(markpath zet)
+
+# Kill all the prev sessions
+tmux kill-server
+
+# Tags Explanation
+# -c: path of the session
+# -s: session name
+# -n: window name
+# -d: "detach"
+# [args] '$': the $ can be a script/command to be executed
+
+# Zettel Session
+tmux new -c "$zetPath" -s zettel -n zettel -d \; new-window -n journal -d 'daily' \; new-window -n distractions -d 'distractions'
+
+# Drag&Drop Session
+tmux new -c "$dndPath" -s dnd -n server -d \; new-window -c "$dndPath" -d
