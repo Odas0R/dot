@@ -1,7 +1,10 @@
 #!/bin/sh
 
+set -e
+
 # Opens up the browser to check shit (wsl2 version)
 
 query=$(echo "$@" | sed 's/ /+/g')
 
-exec "${BROWSER}" "https://duckduckgo.com/?q=${query}&atb=v236-1&ia=web" && exit
+exec "${BROWSER}" "https://duckduckgo.com/?q=${query}&atb=v236-1&ia=web"
+exit
