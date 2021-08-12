@@ -1,19 +1,38 @@
 #!/bin/sh
 
-release=$(
-  curl --silent https://golang.org/doc/devel/release.html |
-    grep -Eo 'go[0-9]+(\.[0-9]+)+' |
-    sort -V |
-    uniq |
-    tail -1
-)
+set -e
+
+version=$(curl https://golang.org/VERSION?m=text)
 os="linux"
 arch="amd64"
-tarFile=$release.$os-$arch.tar.gz
+tarFile="${version}.${os}-${arch}.tar.gz"
+url="https://golang.org/dl/${tarFile}"
 
-sudo rm -rf /usr/local/go &&
-  curl https://storage.googleapis.com/golang/$tarFile --output $tarFile &&
-  sudo tar -C /usr/local -xzf $tarFile &&
-  sudo rm $tarFile
+# Download the latest golang
+wget --quiet --continue --show-progress "${url}"
+echo "Downloaded Golang!\n"
 
-echo 'Dont forget to: export PATH=$PATH:/usr/local/go/bin'
+# Remove the old golang
+sudo rm -rf /usr/local/go
+
+# Install the new Go
+sudo tar -C /usr/local -xzf "$tarFile"
+echo "Create the skeleton for your local users go directory\n"
+mkdir -p ~/go
+mkdir -p ~/go/bin
+mkdir -p ~/go/pkg
+mkdir -p ~/go/src
+
+# GoPath
+echo "Don't forget to add these:\n"
+echo "export GOPATH=~/go"
+echo 'export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin'
+
+# Installing Golang Dependencies
+# TODO: Add dependencies?
+
+# Remove Download
+sudo rm "$tarFile"
+
+# Print Go Version
+/usr/local/go/bin/go version
