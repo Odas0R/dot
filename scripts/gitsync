@@ -20,7 +20,8 @@ sync() {
 
     # Check if there are uncommitted changes
     if [ -n "$(git status --porcelain)" ]; then
-      git add . && git commit -m "automated from gitsync... 🎉" -q && git push -q
+      git add . && git commit -m "automated from gitsync... 🎉" -q &&
+        git pull -q && git push -q
       # Go back
       # cd -
     fi
