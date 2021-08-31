@@ -65,9 +65,9 @@ set spelllang+=pt_pt
 
 " Return to last edit position when opening files
 au BufReadPost *
-      \ if line("'\"") > 0 && line("'\"") <= line("$") |
-      \   exe "normal! g`\"" |
-      \ endif
+			\ if line("'\"") > 0 && line("'\"") <= line("$") |
+			\   exe "normal! g`\"" |
+			\ endif
 
 " ============================================================
 " Custom Settings per FileType
@@ -82,9 +82,9 @@ au FileType markdown setlocal conceallevel=2 spell nonumber
 set grepprg=rg\ -S\ --vimgrep
 set grepformat^=%f:%l:%c:%m
 augroup autoquickfix
-  autocmd!
-  autocmd QuickFixCmdPost [^l]* cwindow
-  autocmd QuickFixCmdPost    l* lwindow
+	autocmd!
+	autocmd QuickFixCmdPost [^l]* cwindow
+	autocmd QuickFixCmdPost    l* lwindow
 augroup END
 
 " ============================================================
@@ -99,12 +99,12 @@ let g:netrw_winsize = 100
 let g:netrw_keepdir = 0
 let g:netrw_list_hide = &wildignore
 function! NetrwMappings()
-  " Go down a directory / open file
-  nmap <buffer> l <CR>
-  " Close the preview window
-  nmap <buffer> P <C-w>z
-  " Focus on file and close netrw
-  nmap <buffer> L <CR>:Lexplore<CR>
+	" Go down a directory / open file
+	nmap <buffer> l <CR>
+	" Close the preview window
+	nmap <buffer> P <C-w>z
+	" Focus on file and close netrw
+	nmap <buffer> L <CR>:Lexplore<CR>
 endfunction
 autocmd FileType netrw call NetrwMappings()
 
@@ -134,10 +134,21 @@ nnoremap <leader>2 :set paste<CR>
 " Linters <F3> -- make the mapping local to the <buffer> 😯
 au FileType bash,sh nnoremap <buffer> <F3> :w<CR>:!clear && shellcheck %<CR>
 au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab | nnoremap <buffer> <F3> :w<CR>:!clear && yamllint %<CR>
+" au FileType sql nnoremap <buffer> <F3> :w<CR>:!clear && squawk %<CR>
+
 
 " Run Code <F4>
 au FileType sh nnoremap <buffer> <F4> :w<CR>:!clear && sh %<CR>
 au FileType bash nnoremap <buffer> <F4> :w<CR>:!clear && bash %<CR>
+
+" ============================================================
+" Commands (Useful for file managing, etc)
+"
+" Useful: https://dev.to/dlains/create-your-own-vim-commands-415b
+" ============================================================
+
+command! -complete=file -nargs=1 -bar Remove :call delete(expand(<f-args>)) | bd #
+command! -complete=file -nargs=1 Rename try | saveas <args> | call delete(expand('#')) | bd # | endtry
 
 " ============================================================
 " Formatters (using vim-autoformat, does a lot of work for me)
@@ -157,26 +168,26 @@ au FileType bash nnoremap <buffer> <F4> :w<CR>:!clear && bash %<CR>
 " endfun
 
 fun! s:Shfmt()
-  try
-    let l:pos = getcurpos()
-    silent execute 'undojoin'
-    silent execute '%!shfmt -i 2'
-    call setpos('.', l:pos)
-  catch
-  endtry
+	try
+		let l:pos = getcurpos()
+		silent execute 'undojoin'
+		silent execute '%!shfmt -i 2'
+		call setpos('.', l:pos)
+	catch
+	endtry
 endfun
 
 fun! s:Format()
-  let search = @/
-  let cursor_position = getpos('.')
-  normal! H
-  let window_position = getpos('.')
-  call setpos('.', cursor_position)
-  silent execute 'normal gg=G'
-  let @/ = search
-  call setpos('.', window_position)
-  normal! zt
-  call setpos('.', cursor_position)
+	let search = @/
+	let cursor_position = getpos('.')
+	normal! H
+	let window_position = getpos('.')
+	call setpos('.', cursor_position)
+	silent execute 'normal gg=G'
+	let @/ = search
+	call setpos('.', window_position)
+	normal! zt
+	call setpos('.', cursor_position)
 endfun
 
 au FileType vim au BufWritePre <buffer> call s:Format()
@@ -206,9 +217,9 @@ colorscheme onehalfdark
 let g:airline_theme='onehalfdark'
 
 if exists('+termguicolors')
-  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-  set termguicolors
+	let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+	set termguicolors
 endif
 
 " tabnine

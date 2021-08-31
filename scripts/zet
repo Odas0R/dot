@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Your zet workflow:
 #
@@ -15,6 +15,7 @@
 
 ZET="${HOME}/zet"
 INBOX="${ZET}/inbox"
+BOOKS="${ZET}/books"
 
 print_help() {
   printf "
@@ -22,29 +23,44 @@ Zettelkasten program
 It is organized by inbox & permanent notes.
 
 Commands:
-  --help | -h      Show help commands
-  f | find         Finds a note by id iso time
-  q | query        Queries the zettels with Regex, you can filter by tags.
+  --help | -h           Show help commands
+  f | find              Finds a note by regex on a fzf panel
+  q | query             Queries the zettels with Regex, you can filter by tags.
+  nb | new-book         Creates a new file for book anotations.
+
 "
 }
 
 # Creates a new file on the /inbox w/ a template.
-# TODO: Create a better strong sed replace regex for specific cases that could break the name
 zet_new() {
   fileName=$(echo "$@" | sed "s/[?|!]//g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
-  file="${fileName}.$(isosec).md"
+  file="${INBOX}/${fileName}.$(isosec).md"
 
-  tee "${INBOX}/${file}" <<EOF >/dev/null
+  tee "$file" <<EOF >/dev/null
 # $@
 
 # Bibliography
 EOF
 
-  vi "${INBOX}/${file}"
+  vi +2 "$file"
+}
+
+# Creates a new file on the /books w/ a template.
+zet_newbook() {
+  fileName=$(echo "$@" | sed "s/[?|!]//g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
+  file="${BOOKS}/${fileName}.md"
+
+  # Create the note with the $fileName
+  tee "$file" <<EOF >/dev/null
+# $@
+
+EOF
+
+  vi +2 "$file"
 }
 
 zet_query() {
-  query=$(echo "$@" | sed 's/ /\\|/g' | sed 's/q\\|//g')
+  query="$@"
   # color: gives colored output
   # R: recursive find files
   # n: display line numbers
@@ -54,6 +70,9 @@ zet_query() {
   cd "$INBOX" && grep --color -Rni -m 1 -w "$query" && cd - >/dev/null || exit
 }
 
+#
+# Zet Commands
+#
 case $1 in
 -h | --help)
   print_help
@@ -64,14 +83,18 @@ case $1 in
   exit 0
   ;;
 q | query)
-  zet_query "$@"
+  zet_query "${@:2}"
+  exit 0
+  ;;
+nb | new-book)
+  zet_newbook "${@:2}"
   exit 0
   ;;
 esac
 
 # Checks if the first given argument is a valid id.
 # If it is a zet file, it will open it, otherwise creates a new file
-firstArg="$(find "$INBOX" -name "*${1}*")"
+firstArg="$(find "$INBOX" -name "*.${1}.md")"
 if [ -n "$firstArg" ]; then
   vim "$firstArg"
 else

@@ -4,7 +4,7 @@ export DESKTOP="/mnt/c/Users/guilh/Desktop"
 export BROWSER="/mnt/c/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
 
 # Shortcuts
-alias distractions="vim $HOME/zet/todos.md"
+alias todos="vim $HOME/zet/todos.md"
 alias tech="vim $HOME/zet/tech.md"
 alias habits="vim $HOME/zet/habits.md"
 alias goals="vim $HOME/zet/goals.md"
