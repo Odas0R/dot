@@ -1,10 +1,26 @@
 #!/bin/sh
 
+set -e
+
 currentDate=$(date +"%Y-%m-%d")
 file="${HOME}/zet/journal/${currentDate}.md"
 
 if [ -f "$file" ]; then
   vi "$file"
 else
-  printf "# Journal Entry, ${currentDate}\n\n\n" >>"$file" && vi +3 "$file"
+
+  # Append the daily template on the file
+  tee "$file" <<EOF >/dev/null
+# Journal Entry, ${currentDate}
+
+Instead of watching videos      READ & ZET
+Instead of watching Instagram   READ & ZET
+Instead of procrastinating      READ & ZET
+
+
+
+EOF
+
+  # Open the daily file
+  vi +6 "$file"
 fi
