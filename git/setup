@@ -4,4 +4,6 @@
 # git config --global init.templatedir '~/.git_templates'
 
 ln -sf "$PWD/git_templates" "$HOME/.git_templates"
+ln -sf "$PWD/gitconfig" "$HOME/.gitconfig"
+
 echo "Git setup done! 🌟\n"

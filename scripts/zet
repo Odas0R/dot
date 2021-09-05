@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Your zet workflow:
 #
@@ -60,7 +60,7 @@ EOF
 }
 
 zet_query() {
-  query="$@"
+  query="$*"
   # color: gives colored output
   # R: recursive find files
   # n: display line numbers

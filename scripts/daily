@@ -6,7 +6,7 @@ currentDate=$(date +"%Y-%m-%d")
 file="${HOME}/zet/journal/${currentDate}.md"
 
 if [ -f "$file" ]; then
-  vi "$file"
+  vim "$file"
 else
 
   # Append the daily template on the file

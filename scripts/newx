@@ -1,17 +1,17 @@
-#!/bin/sh
+#!/bin/bash
 
 path="$HOME/.local/bin/scripts/${1}"
 
-[ ! -n "${1}" ] && echo "usage: newscript <name>" && exit 1;
+[ -z "${1}" ] && echo "usage: newscript <name>" && exit 1
 
 if [ -e "${path}" ]; then
-  read -p "${1} already exists. Edit? " yes
+  read -pr "${1} already exists. Edit? " yes
   case "${yes}" in
-    y|yes|ok|okay) exec vim "${path}"
+  y | yes | ok | okay) exec vim "${path}" ;;
   esac
   exit 0
 fi
 
-printf "#!/bin/sh\n\n" > "${path}"
+printf "#!/bin/sh\n\n" >"${path}"
 chmod +x "${path}"
 exec vim +2 "${path}"

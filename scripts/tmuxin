@@ -1,8 +1,11 @@
 #!/bin/sh
 
+set -e
+
 zetPath=$(markpath zet)
 dndPath=$(markpath dnd)
 goSSGPath=$(markpath go-ssg)
+wallServer=$(markpath wall-server)
 
 # Kill all the prev sessions
 tmux kill-server
@@ -22,3 +25,6 @@ tmux new -c "$dndPath" -s $(basename $dndPath) -n server -d \; new-window -c "$d
 
 # Go-ssg Session
 tmux new -c "$goSSGPath" -s $(basename $goSSGPath) -n server -d
+
+# Wall Server
+tmux new -c "$wallServer" -s wall-server -n database -d \; split-window -hf -c "$wallServer" \; split-window -v -c "$wallServer"

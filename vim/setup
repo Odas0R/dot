@@ -1,6 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
-if [ -z "$(which vim)" -o -z "$(which vimtutor)" ]; then
+set -e
+
+if [ ! -x "$(command -v vim)" ]; then
   echo Need to install full vim.
   exit 1
 fi
@@ -9,4 +11,4 @@ fi
 ln -sf "$PWD/vimrc" "$HOME/.vimrc"
 
 echo Do not forget to :PlugInstall!
-echo "Vim setup done! 🌟\n"
+echo "Vim setup done! 🌟"
