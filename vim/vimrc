@@ -1,12 +1,13 @@
-let skip_defaults_vim=1
-set nocompatible                                                  " use VIM as Vi
+
+syntax on                                                         " syntax for plugins etc
+filetype plugin on                                                " allow sensing the file type
+set ttyfast                                                       " faster scrolling
 
 set autowrite                                                     " automatically write files when changing when multiple files open
 set relativenumber
 set ruler                                                         " turn col and row position on in bottom right
 set showmode                                                      " show command and insert mode
 set showcmd                                                       " show command on the right side (leader key)
-
 set textwidth=72                                                  " enough for line numbers + gutter within 80 standard
 set tabstop=2                                                     " number of spaces that a <Tab> has
 set shiftwidth=2                                                  " number of spaces on indentation
@@ -15,31 +16,18 @@ set numberwidth=2
 set smartindent
 set autoindent                                                    " automatically indent new lines
 set smarttab
-
 set expandtab                                                     " replace tabs /w spaces
 set nofixendofline                                                " stop vim from adding \n to files
-set listchars=space:*,trail:*,nbsp:*,extends:>,precedes:<,tab:\|> " better ascii friendly list chars
-
 set foldmethod=manual                                             " no folding
 set nofoldenable                                                  " no folding
-
-set icon
+set laststatus=2
 
 match ErrorMsg '\s\+$'                                            " mark trailing spaces as errors
 set shortmess=aoOtTI                                              " avoid most of the 'Hit Enter ...' messages
-set viminfo='20,<1000,s1000                                       " prevents truncated yanks, deletes, etc.
-set omnifunc=syntaxcomplete#Complete                              " enable omni-completion
-
-set path+=**
-set wildmenu                                                      " better command-line completion
-set wildignore+=**/node_modules/**                                " ignore node_modules
-
-syntax on                                                         " syntax for plugins etc
-filetype plugin on                                                " allow sensing the file type
-set ttyfast                                                       " faster scrolling
 
 set hidden                                                        " stop complaints about switching buffer with changes
 set history=100                                                   " command history
+set updatetime=300
 
 " highlight search hits
 set hlsearch
@@ -52,8 +40,8 @@ set nobackup
 set noswapfile
 set nowritebackup
 
+set completeopt=menuone,noinsert,noselect													" config of vim autocomplete panel
 set complete+=kspell                                              " spelling on autocomplete
-set completeopt=menuone,longest                                   " config of vim autocomplete panel
 set shortmess+=c                                                  " remove the autocomplete status bar
 
 " not bracket matching or folding
@@ -62,6 +50,7 @@ set noshowmatch
 
 " add portuguese dictionary
 set spelllang+=pt_pt
+set encoding=utf-8
 
 " Return to last edit position when opening files
 au BufReadPost *
@@ -69,42 +58,54 @@ au BufReadPost *
 			\   exe "normal! g`\"" |
 			\ endif
 
+
+" ============================================================
+" Path (Files to Ignore)
+" ============================================================
+
+set path+=**
+set wildmenu
+" Ignore this files
+set wildignore+=**/node_modules/**
+set wildignore+=*_build/*
+set wildignore+=**/coverage/*
+set wildignore+=**/node_modules/*
+set wildignore+=**/android/*
+set wildignore+=**/ios/*
+set wildignore+=**/.git/*
+set wildignore+=**/.supabase/*
+
 " ============================================================
 " Custom Settings per FileType
 " ============================================================
 
 au FileType markdown setlocal conceallevel=2 spell nonumber
+au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 
 " ============================================================
-" Quickfix, Better Grep
+" Commands (Useful for file managing, etc)
+"
+"* Useful: https://dev.to/dlains/create-your-own-vim-commands-415b
 " ============================================================
 
-set grepprg=rg\ -S\ --vimgrep
-set grepformat^=%f:%l:%c:%m
-augroup autoquickfix
-	autocmd!
-	autocmd QuickFixCmdPost [^l]* cwindow
-	autocmd QuickFixCmdPost    l* lwindow
-augroup END
+command! -complete=file -nargs=1 -bar Remove :call delete(expand(<f-args>)) | bd #
+command! -complete=file -nargs=1 Rename try | saveas <args> | call delete(expand('#')) | bd # | endtry
 
 " ============================================================
-" Netrw, defaults & mappings
+" Netrw (file explorer)
 " ============================================================
-
-nnoremap \ :Lexplore<CR>
+nnoremap \ :Explore<CR>
 let g:netrw_browsex_viewer="cmd.exe /C start"
 let g:netrw_banner = 0
 let g:netrw_liststyle = 3
-let g:netrw_winsize = 100
 let g:netrw_keepdir = 0
 let g:netrw_list_hide = &wildignore
+let g:netrw_localrmdir='rm -r'
+
 function! NetrwMappings()
-	" Go down a directory / open file
+	nmap <buffer> . gh
 	nmap <buffer> l <CR>
-	" Close the preview window
 	nmap <buffer> P <C-w>z
-	" Focus on file and close netrw
-	nmap <buffer> L <CR>:Lexplore<CR>
 endfunction
 autocmd FileType netrw call NetrwMappings()
 
@@ -116,42 +117,27 @@ let mapleader = ","
 
 nnoremap <leader>vu :so $HOME/.vimrc<CR>
 nnoremap <leader>ve :e $HOME/.vimrc<CR>
-nnoremap <leader>ce :silent !code %<CR>:redraw!<CR>
 
-" tab on visual selected
+" Tab on visual selected
 vmap <Tab> >gv
 vmap <S-Tab> <gv
 
-" save like an IDE BAD HABITSSSSSSSSSS
-nnoremap <C-s> :w<CR>
-inoremap <C-s> <esc>:w<CR>a
+" Navigation
+nnoremap <silent> <C-k> :bnext<CR>
+nnoremap <silent> <C-j> :bprev<CR>
+nnoremap <silent> <leader>ls :Buffers<CR>
+nnoremap <silent> <leader>li :Lines<CR>
+nnoremap <silent> <leader>hi :History<CR>
+nnoremap <silent> <leader>hc :History:<CR>
+nnoremap <silent> <C-p> :FZF<CR>
 
 " <F NUM> Mappings
 nnoremap <F1> :set number!<CR>
 nnoremap <F2> :set spell!<CR>
-nnoremap <leader>2 :set paste<CR>
-
-" Linters <F3> -- make the mapping local to the <buffer> 😯
-au FileType bash,sh nnoremap <buffer> <F3> :w<CR>:!clear && shellcheck %<CR>
-au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab | nnoremap <buffer> <F3> :w<CR>:!clear && yamllint %<CR>
-" au FileType sql nnoremap <buffer> <F3> :w<CR>:!clear && squawk %<CR>
-
-
-" Run Code <F4>
-au FileType sh nnoremap <buffer> <F4> :w<CR>:!clear && sh %<CR>
-au FileType bash nnoremap <buffer> <F4> :w<CR>:!clear && bash %<CR>
+nnoremap <leader>2 :set paste<CR>i
 
 " ============================================================
-" Commands (Useful for file managing, etc)
-"
-" Useful: https://dev.to/dlains/create-your-own-vim-commands-415b
-" ============================================================
-
-command! -complete=file -nargs=1 -bar Remove :call delete(expand(<f-args>)) | bd #
-command! -complete=file -nargs=1 Rename try | saveas <args> | call delete(expand('#')) | bd # | endtry
-
-" ============================================================
-" Formatters (using vim-autoformat, does a lot of work for me)
+" Formatters
 " ============================================================
 
 " this is complete sorcery, I managed to force consistent cursor
@@ -190,10 +176,41 @@ fun! s:Format()
 	call setpos('.', cursor_position)
 endfun
 
-au FileType vim au BufWritePre <buffer> call s:Format()
+fun! s:SqlFormatter()
+	try
+		let l:pos = getcurpos()
+		silent execute 'undojoin'
+		silent execute ':%!sqlformat --keywords lower --identifiers lower -'
+		silent execute ':%!sql-formatter -l postgresql --lines-between-queries 2'
+		call setpos('.', l:pos)
+	catch
+	endtry
+endfun
+
 au FileType sh,bash au BufWritePre <buffer> call s:Shfmt()
+au FileType vim au BufWritePre <buffer> call s:Format()
+" au FileType sql au BufWritePre <buffer> call s:SqlFormatter()
 " au FileType html au BufWritePre <buffer> call s:HtmlFormat()
 " au FileType yaml au BufWritePre <buffer> call s:Format()
+
+" ============================================================
+" Lint/Checkers <F3>
+" ============================================================
+
+au FileType bash,sh nnoremap <buffer> <F3> :w<CR>:!clear && shellcheck %<CR>
+au FileType yaml nnoremap <buffer> <F3> :w<CR>:!clear && yamllint %<CR>
+au FileType sql nnoremap <buffer> <F3> :w<CR>:!clear && squawk %<CR>
+
+
+
+" ==========================================================
+" Run Code <F4>
+" ==========================================================
+"
+au FileType sh nnoremap <buffer> <F4> :w<CR>:!clear && sh %<CR>
+au FileType bash nnoremap <buffer> <F4> :w<CR>:!clear && bash %<CR>
+" au FileType sql,psql nnoremap <buffer> <F4> :call RunSQL()<CR>
+
 
 " ==========================================================
 " Plugins
@@ -205,33 +222,53 @@ Plug 'sonph/onehalf', { 'rtp': 'vim' }
 Plug 'sheerun/vim-polyglot'
 Plug 'tpope/vim-commentary'
 Plug 'vitalk/vim-simple-todo'
-Plug 'vim-airline/vim-airline'
 " copy text to the system clipboard from anywhere using the ANSI OSC52 sequence.
 Plug 'ojroques/vim-oscyank'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'lifepillar/pgsql.vim'
+Plug 'vim-scripts/dbext.vim'
 
 call plug#end()
 
-" colorscheme
+" psql.vim
+let g:sql_type_default = 'pgsql'
+
+" dbext -- :h dbext-tutorial
+" <leader>sbp - select db conn
+" <leader>se - execute
+" <leader>sel - execute line
+" <leader>st - display contents of table
+" <leader>sT - display contents of table (prompts the nr of rows)
+" <leader>stw - display contents of table (prompts to write the where clause)
+" <leader>sta - display contents of table (prompts to write tb name)
+" <leader>sdt - describe a object
+" <leader>sdt+ - describe a object w/ more info (index on the table etc)
+let g:dbext_default_profile_wallstreeters = 'type=PGSQL:user=postgres:dbname=postgres:host=localhost:port=5432'
+augroup wallstreeters
+	au!
+	autocmd BufRead */wallstreeters/server/* DBSetOption profile=wallstreeters
+augroup end
+
+" OSCYankReg MAGIC ✨
+autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname  is '' | OSCYankReg " | endif
+
+" ==========================================================
+" Colorscheme
+" ==========================================================
 set t_Co=256
 colorscheme onehalfdark
-let g:airline_theme='onehalfdark'
-
 if exists('+termguicolors')
 	let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
 	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 	set termguicolors
 endif
 
-" tabnine
-set rtp+=~/.vim/tabnine-vim
-
-" OSCYankReg MAGIC ✨
-autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname  is '' | OSCYankReg " | endif
 
 " ==========================================================
 " Color Overrides
 " ==========================================================
-
 au FileType * hi SpellBad guifg=white guibg=lightred
 au FileType * hi Error guifg=white guibg=lightred
 au FileType * hi ErrorMsg guifg=white guibg=lightred
@@ -241,3 +278,63 @@ au FileType markdown,pandoc hi htmlBold cterm=bold ctermfg=blue ctermbg=NONE
 au FileType markdown,pandoc hi htmlItalic cterm=italic ctermfg=yellow ctermbg=NONE
 au FileType markdown,pandoc hi htmlLink ctermfg=cyan guifg=cyan cterm=underline gui=underline ctermbg=NONE
 
+" ==========================================================
+" CoC Configs
+" ==========================================================
+
+" Merge signcolumn and number into one
+if has("nvim-0.5.0") || has("patch-8.1.1564")
+	" Recently vim can merge signcolumn and number column into one
+	set signcolumn=number
+else
+	set signcolumn=yes
+endif
+
+" Use tab for trigger completion with characters ahead and navigate.
+inoremap <silent><expr> <TAB>
+			\ pumvisible() ? "\<C-n>" :
+			\ <SID>check_back_space() ? "\<TAB>" :
+			\ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+function! s:check_back_space() abort
+	let col = col('.') - 1
+	return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+" Commands
+" Add `:Format` command to format current buffer.
+command! -nargs=0 Format :call CocAction('format')
+
+" Diagnostics
+nnoremap <silent><nowait> <leader>d  :<C-u>CocList diagnostics<cr>
+nmap <silent> g] <Plug>(coc-diagnostic-prev)
+nmap <silent> g[ <Plug>(coc-diagnostic-next)
+" Formatting selected code.
+xmap <leader>f  <Plug>(coc-format-selected)
+nmap <leader>f  <Plug>(coc-format-selected)
+" Actions
+nmap <leader>rn <Plug>(coc-rename)
+nmap <leader>f  <Plug>(coc-codeaction-line)
+" GoTo code navigation.
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
+" Use gh to show documentation in preview window.
+nnoremap <silent> gh :call <SID>show_documentation()<CR>
+
+function! s:show_documentation()
+	if (index(['vim','help'], &filetype) >= 0)
+		execute 'h '.expand('<cword>')
+	elseif (coc#rpc#ready())
+		call CocActionAsync('doHover')
+	else
+		execute '!' . &keywordprg . " " . expand('<cword>')
+	endif
+endfunction
+
+" Highlight the symbol and its references when holding the cursor.
+autocmd CursorHold * silent call CocActionAsync('highlight')
+" select on menu with <Tab>
+inoremap <expr> <Tab> pumvisible() ? coc#_select_confirm() : "<Tab>"

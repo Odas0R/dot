@@ -1,6 +1,19 @@
-#!/bin/sh
+#!/bin/bash
 
-# Opens a script/command with vi
+set -e
+
+if [ -z "$1" ]; then
+  cd "$HOME/dot/scripts"
+  file=$(fzf)
+  [ -f "$file" ] && vim "$file"
+  # cd - >/dev/null
+  exit 1
+fi
 
 cmd=$(command -v "$1")
-[ -n "$cmd" ] && exec vi "$cmd"
+if [ -n "$cmd" ]; then
+  vim "$cmd"
+  exit 1
+else
+  echo "Command not found: $1"
+fi

@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+if [ -n "$1" ]; then
+  # find the files by regex & open them w/ vim
+  find "$HOME/dot" -type f -name "*$1*" -exec vim '{}' +
+  exit 1
+fi
+
+cd "$HOME/dot"
+file="$(fzf)"
+[ -f "$file" ] && vim "$file"

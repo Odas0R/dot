@@ -1,8 +1,5 @@
 #!/bin/bash
 
-export DESKTOP="/mnt/c/Users/guilh/Desktop"
-export BROWSER="/mnt/c/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
-
 # Shortcuts
 alias todos="vim $HOME/zet/todos.md"
 alias tech="vim $HOME/zet/tech.md"
@@ -10,9 +7,11 @@ alias habits="vim $HOME/zet/habits.md"
 alias goals="vim $HOME/zet/goals.md"
 alias workflow="vim $HOME/zet/workflow.md"
 
-# Vim
-alias vi="vim"
-alias v="vim"
+# NeoVim
+alias vim="nvim"
+alias vi="nvim"
+alias v="nvim"
+alias vimdiff="nvim -d"
 
 # Source bash
 alias sb="source ~/.bashrc"
@@ -21,9 +20,6 @@ alias sb="source ~/.bashrc"
 alias la="ls -la"
 alias ls="ls --format=single-column --classify --color --group-directories-first"
 alias ..="cd .."
-cd() {
-  builtin cd "$@" && ls
-}
 
 # Github
 alias gs="git status -s"
