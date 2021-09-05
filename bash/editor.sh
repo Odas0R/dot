@@ -10,9 +10,9 @@ export HRULEWIDTH=73
 
 # Define the editor
 if [ ! -x "$(command -v nvim)" ]; then
-  export VISUAL=vim
+  export VISUAL=/usr/bin/vim
   export EDITOR="$VISUAL"
 else
-  export VISUAL=nvim
+  export VISUAL=/usr/bin/nvim
   export EDITOR="$VISUAL"
 fi
