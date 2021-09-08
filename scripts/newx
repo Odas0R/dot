@@ -2,16 +2,16 @@
 
 path="$HOME/.local/bin/scripts/${1}"
 
-[ -z "${1}" ] && echo "usage: newscript <name>" && exit 1
+[[ -z "${1}" ]] && echo "usage: newx <name>" && exit 1
 
-if [ -e "${path}" ]; then
-  read -pr "${1} already exists. Edit? " yes
-  case "${yes}" in
-  y | yes | ok | okay) exec vim "${path}" ;;
+if [[ -e "$path" ]]; then
+  read -pr "${1} already exists. Edit?" yes
+  case "$yes" in
+  y | yes | ok | okay) exec vim "$path" ;;
   esac
   exit 0
 fi
 
-printf "#!/bin/sh\n\n" >"${path}"
-chmod +x "${path}"
-exec vim +2 "${path}"
+printf "#!/bin/bash\n\n" >"$path"
+chmod +x "$path"
+exec vim +2 "$path"

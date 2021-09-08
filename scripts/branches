@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+is_in_git_repo() {
+  git rev-parse HEAD >/dev/null 2>&1
+}
+
+is_in_git_repo || (echo "You're not in a git repo" && exit 1)
+
+# select the wanted branch
+branch=$(
+  git branch -a --color=always | grep -v '/HEAD\s' | sort |
+    fzf --ansi --multi --tac \
+      --preview 'git log --oneline --graph --date=short --color=always --pretty="format:%C(auto)%cd %h%d %s" $(sed s/^..// <<< {} | cut -d" " -f1)' |
+    sed 's/^..//' | cut -d' ' -f1 |
+    sed 's#^remotes/##'
+)
+
+# exit if a branch wasn't selected
+[[ -z "$branch" ]] && exit 1
+
+# exit if you're already on the selected branch
+[[ "$branch" == "$(git rev-parse --abbrev-ref HEAD)" ]] && exit 1
+
+# checkout to selected branch
+# 1. Update all the branches/tags from all remotes
+# 2. Checkout to the selected branch
+# 3. Pull all current changes from that branch
+git fetch --all
+git checkout "$branch"
+git pull

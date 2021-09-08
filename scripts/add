@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -e
+
+is_in_git_repo() {
+  git rev-parse HEAD >/dev/null 2>&1
+}
+
+is_in_git_repo || (echo "You're not in a git repo" && exit 1)
+
+files=$(
+  git -c color.status=always status --short |
+    fzf --disabled --multi --ansi --nth 2..,.. \
+      --bind 'ctrl-/:toggle-all' \
+      --header 'Ctrl + / to select all files' \
+      --preview '(git diff --color=always -- {-1} | sed 1,4d | bat --theme="OneHalfDark" --color=always --style=numbers)' |
+    cut -c4- |
+    sed 's/.* -> //'
+)
+
+[[ -z "$files" ]] && exit 1
+
+rootPath=$(git rev-parse --show-toplevel)
+readarray -t <<<"$files"
+
+for file in "${MAPFILE[@]}"; do
+  filePath="${rootPath}/${file}"
+  git add "$filePath"
+done

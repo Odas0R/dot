@@ -1,4 +1,4 @@
-
+set nocompatible
 syntax on                                                         " syntax for plugins etc
 filetype plugin on                                                " allow sensing the file type
 set ttyfast                                                       " faster scrolling
@@ -52,11 +52,17 @@ set noshowmatch
 set spelllang+=pt_pt
 set encoding=utf-8
 
+" on yank copy to clipboard
+set clipboard+=unnamedplus
+
+" set the cursor fat on insert
+set guicursor=i:block
+
 " Return to last edit position when opening files
 au BufReadPost *
-			\ if line("'\"") > 0 && line("'\"") <= line("$") |
-			\   exe "normal! g`\"" |
-			\ endif
+      \ if line("'\"") > 0 && line("'\"") <= line("$") |
+      \   exe "normal! g`\"" |
+      \ endif
 
 
 " ============================================================
@@ -79,7 +85,7 @@ set wildignore+=**/.supabase/*
 " Custom Settings per FileType
 " ============================================================
 
-au FileType markdown setlocal conceallevel=2 spell nonumber
+au FileType markdown setlocal conceallevel=2 spell nonumber noautoindent
 au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 
 " ============================================================
@@ -103,9 +109,9 @@ let g:netrw_list_hide = &wildignore
 let g:netrw_localrmdir='rm -r'
 
 function! NetrwMappings()
-	nmap <buffer> . gh
-	nmap <buffer> l <CR>
-	nmap <buffer> P <C-w>z
+  nmap <buffer> . gh
+  nmap <buffer> l <CR>
+  nmap <buffer> P <C-w>z
 endfunction
 autocmd FileType netrw call NetrwMappings()
 
@@ -115,18 +121,15 @@ autocmd FileType netrw call NetrwMappings()
 
 let mapleader = ","
 
-nnoremap <leader>vu :so $HOME/.vimrc<CR>
-nnoremap <leader>ve :e $HOME/.vimrc<CR>
+nnoremap <leader>vu :so $HOME/.config/nvim/init.vim<CR>
+nnoremap <leader>ve :e $HOME/.config/nvim/init.vim<CR>
 
 " Tab on visual selected
 vmap <Tab> >gv
 vmap <S-Tab> <gv
 
 " Navigation
-nnoremap <silent> <C-k> :bnext<CR>
-nnoremap <silent> <C-j> :bprev<CR>
-nnoremap <silent> <leader>ls :Buffers<CR>
-nnoremap <silent> <leader>li :Lines<CR>
+nnoremap <silent> <leader>b :Buffers<CR>
 nnoremap <silent> <leader>hi :History<CR>
 nnoremap <silent> <leader>hc :History:<CR>
 nnoremap <silent> <C-p> :FZF<CR>
@@ -139,59 +142,23 @@ nnoremap <leader>2 :set paste<CR>i
 " ============================================================
 " Formatters
 " ============================================================
-
-" this is complete sorcery, I managed to force consistent cursor
-" placement on format.
-" PS: The try-catch is to supress the undojoin error when you :w
-" fun! s:HtmlFormat()
-"   try
-"     let l:pos = getcurpos()
-"     silent execute 'undojoin'
-"     silent execute '%!js-beautify --type html -s 2'
-"     call setpos('.', l:pos)
-"   catch
-"   endtry
-" endfun
-
-fun! s:Shfmt()
-	try
-		let l:pos = getcurpos()
-		silent execute 'undojoin'
-		silent execute '%!shfmt -i 2'
-		call setpos('.', l:pos)
-	catch
-	endtry
-endfun
-
 fun! s:Format()
-	let search = @/
-	let cursor_position = getpos('.')
-	normal! H
-	let window_position = getpos('.')
-	call setpos('.', cursor_position)
-	silent execute 'normal gg=G'
-	let @/ = search
-	call setpos('.', window_position)
-	normal! zt
-	call setpos('.', cursor_position)
+  let search = @/
+  let cursor_position = getpos('.')
+  normal! H
+  let window_position = getpos('.')
+  call setpos('.', cursor_position)
+  silent execute 'normal gg=G'
+  let @/ = search
+  call setpos('.', window_position)
+  normal! zt
+  call setpos('.', cursor_position)
 endfun
 
-fun! s:SqlFormatter()
-	try
-		let l:pos = getcurpos()
-		silent execute 'undojoin'
-		silent execute ':%!sqlformat --keywords lower --identifiers lower -'
-		silent execute ':%!sql-formatter -l postgresql --lines-between-queries 2'
-		call setpos('.', l:pos)
-	catch
-	endtry
-endfun
-
-au FileType sh,bash au BufWritePre <buffer> call s:Shfmt()
-au FileType vim au BufWritePre <buffer> call s:Format()
-" au FileType sql au BufWritePre <buffer> call s:SqlFormatter()
-" au FileType html au BufWritePre <buffer> call s:HtmlFormat()
-" au FileType yaml au BufWritePre <buffer> call s:Format()
+augroup default_formatter
+  autocmd!
+  autocmd FileType vim au BufWritePre <buffer> call s:Format()
+augroup end
 
 " ============================================================
 " Lint/Checkers <F3>
@@ -201,15 +168,12 @@ au FileType bash,sh nnoremap <buffer> <F3> :w<CR>:!clear && shellcheck %<CR>
 au FileType yaml nnoremap <buffer> <F3> :w<CR>:!clear && yamllint %<CR>
 au FileType sql nnoremap <buffer> <F3> :w<CR>:!clear && squawk %<CR>
 
-
-
 " ==========================================================
 " Run Code <F4>
 " ==========================================================
 "
 au FileType sh nnoremap <buffer> <F4> :w<CR>:!clear && sh %<CR>
 au FileType bash nnoremap <buffer> <F4> :w<CR>:!clear && bash %<CR>
-" au FileType sql,psql nnoremap <buffer> <F4> :call RunSQL()<CR>
 
 
 " ==========================================================
@@ -218,14 +182,15 @@ au FileType bash nnoremap <buffer> <F4> :w<CR>:!clear && bash %<CR>
 
 call plug#begin()
 
-Plug 'sonph/onehalf', { 'rtp': 'vim' }
+" Plug 'sonph/onehalf', { 'rtp': 'vim' }
+Plug 'navarasu/onedark.nvim'
 Plug 'sheerun/vim-polyglot'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'tpope/vim-commentary'
 Plug 'vitalk/vim-simple-todo'
-" copy text to the system clipboard from anywhere using the ANSI OSC52 sequence.
-Plug 'ojroques/vim-oscyank'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+Plug 'hoob3rt/lualine.nvim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'lifepillar/pgsql.vim'
 Plug 'vim-scripts/dbext.vim'
@@ -241,30 +206,46 @@ let g:sql_type_default = 'pgsql'
 " <leader>sel - execute line
 " <leader>st - display contents of table
 " <leader>sT - display contents of table (prompts the nr of rows)
+"
 " <leader>stw - display contents of table (prompts to write the where clause)
 " <leader>sta - display contents of table (prompts to write tb name)
 " <leader>sdt - describe a object
 " <leader>sdt+ - describe a object w/ more info (index on the table etc)
 let g:dbext_default_profile_wallstreeters = 'type=PGSQL:user=postgres:dbname=postgres:host=localhost:port=5432'
 augroup wallstreeters
-	au!
-	autocmd BufRead */wallstreeters/server/* DBSetOption profile=wallstreeters
+  au!
+  autocmd BufRead */wallstreeters/server/* DBSetOption profile=wallstreeters
 augroup end
-
-" OSCYankReg MAGIC ✨
-autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname  is '' | OSCYankReg " | endif
 
 " ==========================================================
 " Colorscheme
 " ==========================================================
-set t_Co=256
-colorscheme onehalfdark
-if exists('+termguicolors')
-	let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-	set termguicolors
-endif
+let g:onedark_style = 'cool'
+colorscheme onedark
 
+lua << EOF
+require('lualine').setup {
+  options = {
+    theme = 'onedark'
+    },
+  sections = {
+    lualine_a = {'mode'},
+    lualine_b = {'branch'},
+    lualine_c = {'filename'},
+    lualine_x = {'encoding', 'filetype'},
+    lualine_y = {'progress'},
+    lualine_z = {'location'}
+    },
+  inactive_sections = {
+    lualine_a = {},
+    lualine_b = {},
+    lualine_c = {'filename'},
+    lualine_x = {'location'},
+    lualine_y = {},
+    lualine_z = {}
+    },
+  }
+EOF
 
 " ==========================================================
 " Color Overrides
@@ -273,10 +254,10 @@ au FileType * hi SpellBad guifg=white guibg=lightred
 au FileType * hi Error guifg=white guibg=lightred
 au FileType * hi ErrorMsg guifg=white guibg=lightred
 
-au FileType markdown,pandoc hi Title cterm=bold ctermfg=magenta ctermbg=NONE
-au FileType markdown,pandoc hi htmlBold cterm=bold ctermfg=blue ctermbg=NONE
-au FileType markdown,pandoc hi htmlItalic cterm=italic ctermfg=yellow ctermbg=NONE
-au FileType markdown,pandoc hi htmlLink ctermfg=cyan guifg=cyan cterm=underline gui=underline ctermbg=NONE
+au FileType markdown,pandoc hi Title cterm=bold guifg=#56B6C2 ctermbg=NONE
+au FileType markdown,pandoc hi htmlBold cterm=bold guifg=#5AB0F6 ctermbg=NONE
+au FileType markdown,pandoc hi htmlItalic cterm=italic guifg=#E5C07B ctermbg=NONE
+au FileType markdown,pandoc hi htmlLink guifg=#56B6C2 cterm=underline gui=underline ctermbg=NONE
 
 " ==========================================================
 " CoC Configs
@@ -284,35 +265,28 @@ au FileType markdown,pandoc hi htmlLink ctermfg=cyan guifg=cyan cterm=underline 
 
 " Merge signcolumn and number into one
 if has("nvim-0.5.0") || has("patch-8.1.1564")
-	" Recently vim can merge signcolumn and number column into one
-	set signcolumn=number
+  " Recently vim can merge signcolumn and number column into one
+  set signcolumn=number
 else
-	set signcolumn=yes
+  set signcolumn=yes
 endif
 
 " Use tab for trigger completion with characters ahead and navigate.
 inoremap <silent><expr> <TAB>
-			\ pumvisible() ? "\<C-n>" :
-			\ <SID>check_back_space() ? "\<TAB>" :
-			\ coc#refresh()
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
 inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
 
 function! s:check_back_space() abort
-	let col = col('.') - 1
-	return !col || getline('.')[col - 1]  =~# '\s'
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
-
-" Commands
-" Add `:Format` command to format current buffer.
-command! -nargs=0 Format :call CocAction('format')
 
 " Diagnostics
 nnoremap <silent><nowait> <leader>d  :<C-u>CocList diagnostics<cr>
-nmap <silent> g] <Plug>(coc-diagnostic-prev)
-nmap <silent> g[ <Plug>(coc-diagnostic-next)
-" Formatting selected code.
-xmap <leader>f  <Plug>(coc-format-selected)
-nmap <leader>f  <Plug>(coc-format-selected)
+nmap <silent> <C-j> <Plug>(coc-diagnostic-prev)
+nmap <silent> <C-k> <Plug>(coc-diagnostic-next)
 " Actions
 nmap <leader>rn <Plug>(coc-rename)
 nmap <leader>f  <Plug>(coc-codeaction-line)
@@ -323,18 +297,18 @@ nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 " Use gh to show documentation in preview window.
 nnoremap <silent> gh :call <SID>show_documentation()<CR>
-
 function! s:show_documentation()
-	if (index(['vim','help'], &filetype) >= 0)
-		execute 'h '.expand('<cword>')
-	elseif (coc#rpc#ready())
-		call CocActionAsync('doHover')
-	else
-		execute '!' . &keywordprg . " " . expand('<cword>')
-	endif
+  if (index(['vim','help'], &filetype) >= 0)
+    execute 'h '.expand('<cword>')
+  elseif (coc#rpc#ready())
+    call CocActionAsync('doHover')
+  else
+    execute '!' . &keywordprg . " " . expand('<cword>')
+  endif
 endfunction
 
 " Highlight the symbol and its references when holding the cursor.
 autocmd CursorHold * silent call CocActionAsync('highlight')
+" IMPORTANT: TabNine multiline works because of the <Tab>
 " select on menu with <Tab>
 inoremap <expr> <Tab> pumvisible() ? coc#_select_confirm() : "<Tab>"

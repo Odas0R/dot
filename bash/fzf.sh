@@ -6,8 +6,9 @@
 
 FD_OPTIONS="--follow --exclude .git --exclude node_modules"
 FZF_BINDS="--bind 'f2:toggle-preview,ctrl-d:half-page-down,ctrl-u:half-page-up'"
+FZF_STYLES="--height=90% --layout=reverse --border --preview-window right:70%"
 
-export FZF_DEFAULT_OPTS="--no-mouse --height 60% --reverse ${FZF_BINDS}"
+export FZF_DEFAULT_OPTS="--no-mouse ${FZF_STYLES} ${FZF_BINDS}"
 export FZF_DEFAULT_COMMAND="fd --type f --type l ${FD_OPTIONS}"
 export FZF_CTRL_T_COMMAND="fd ${FD_OPTIONS}"
 export FZF_ALT_C_COMMAND="fd --type d ${FD_OPTIONS}"
