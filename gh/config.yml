@@ -3,8 +3,6 @@ editor: vim
 prompt: enabled
 pager: less
 aliases:
-    co: pr checkout
-    web: repo view --web
-    repos: repo list --no-archived --source
-    i: issue list -a="odas0r"
-    webi: issue view "$1" --web
+  co: pr checkout
+browser: "'/mnt/c/Program
+Files/BraveSoftware/Brave-Browser/Application/brave.exe'"

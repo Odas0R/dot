@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-# Your zet workflow:
+set -e
+
+# Opens the current routine. Your zet workflow:
 #
 # format: this-is-a-note.isotime.md
 #
@@ -9,13 +11,11 @@
 #                       week, month, year. Metrics for pomodoro
 # [ ] Orphans:          Finds all the notes that are orphans, notes that are
 #                       orphans don't contain "# Links" at the bottom of the file
-# [X] Query:            Use grep for full-text search by multiple keywords
-# [X] Open Note:        Open fily by iso time
-# [X] Daily:            Zet Journal for managing your shit (pomo)
 
 ZET="${HOME}/zet"
 INBOX="${ZET}/inbox"
 BOOKS="${ZET}/books"
+ROUTINES="${ZET}/routines"
 
 print_help() {
   printf "
@@ -24,9 +24,11 @@ It is organized by inbox & permanent notes.
 
 Commands:
   --help | -h           Show help commands
-  f | find              Finds a note by regex on a fzf panel
-  q | query             Queries the zettels with Regex, you can filter by tags.
+  q  | query            Queries the zettels with Regex, you can filter by tags.
+  l  | link 						Links two zettels
   nb | new-book         Creates a new file for book anotations.
+  r  | routine          Opens the current routine.
+  fr | find-routine     Opens a panel w/ preview to fuzzy-find a routine
 
 "
 }
@@ -42,7 +44,7 @@ zet_new() {
 # Bibliography
 EOF
 
-  vi +2 "$file"
+  vim +2 "$file"
 }
 
 # Creates a new file on the /books w/ a template.
@@ -56,18 +58,72 @@ zet_newbook() {
 
 EOF
 
-  vi +2 "$file"
+  vim +2 "$file"
+}
+
+# Creates a new file on the /books w/ a template.
+zet_newroutine() {
+  fileName=$(echo "$@" | sed "s/[?|!]//g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
+  file="${ROUTINES}/${fileName}.$(isosec).md"
+
+  # if there's no args opens the last routine
+  if [[ -z "$fileName" ]]; then
+    cd "$ROUTINES"
+    lastFile="$(ls -lat | head -2 | tail -1 | awk '{print $9}')"
+    echo "$lastFile"
+    vim "$lastFile"
+  else
+    # Creates a new routine
+    touch "$file"
+    vim "$file"
+  fi
+}
+
+zet_find_routine() {
+  # Opens a fzf panel with preview
+  cd "$ROUTINES"
+  file="$(fzf --preview 'bat --style=numbers --color=always {}')"
+  [[ -f "$file" ]] && vim "$file"
 }
 
 zet_query() {
-  query="$*"
-  # color: gives colored output
-  # R: recursive find files
-  # n: display line numbers
-  # i: ignore case
-  # -m NUM: Stops reading a file after NUM matching lines
-  # w: exact matches in a file
-  cd "$INBOX" && grep --color -Rni -m 1 -w "$query" && cd - >/dev/null || exit
+  # using fzf
+  # 1. Search for text in files using Ripgrep
+  # 2. Interactively restart Ripgrep with reload action
+  # 3. Open the file in Vim
+
+  # I use grep here because I want to reach files based on exact words and
+  # not just full-text serach using something like rg
+
+  # solution: https://github.com/junegunn/fzf/blob/master/ADVANCED.md#using-fzf-as-interative-ripgrep-launcher
+  cd "$INBOX"
+  RG_PREFIX="grep --color=always -Rni -w"
+  INITIAL_QUERY="${*:-}"
+  IFS=: read -ra selected < <(
+    FZF_DEFAULT_COMMAND="$RG_PREFIX $(printf %q "$INITIAL_QUERY")" \
+      fzf --ansi \
+      --disabled --query "$INITIAL_QUERY" \
+      --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+      --delimiter : \
+      --preview 'bat --theme="OneHalfDark" --color=always {1} --highlight-line {2}'
+  )
+  [ -n "${selected[0]}" ] && vim "${selected[0]}" "+${selected[1]}"
+}
+
+zet_link() {
+  # If no args open two fzf panels to select the files, and append the file1
+  # url into the file2
+  cd "$INBOX"
+  file1="$(fzf --preview 'bat --style=numbers --color=always {}')"
+  [[ -z "$file1" ]] && exit 1
+  file2="$(fzf --preview 'bat --style=numbers --color=always {}')"
+  [[ -z "$file2" ]] && exit 1
+
+  echo "$file1"
+  echo "$file2"
+
+  # if there's args, they must be a valid zet id
+
 }
 
 #
@@ -86,8 +142,20 @@ q | query)
   zet_query "${@:2}"
   exit 0
   ;;
+l | link)
+  zet_link "${@:2}"
+  exit 0
+  ;;
 nb | new-book)
   zet_newbook "${@:2}"
+  exit 0
+  ;;
+r | routine)
+  zet_newroutine "${@:2}"
+  exit 0
+  ;;
+fr | find-routine)
+  zet_find_routine
   exit 0
   ;;
 esac

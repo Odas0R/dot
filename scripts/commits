@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+
+is_in_git_repo() {
+  git rev-parse HEAD >/dev/null 2>&1
+}
+
+is_in_git_repo || (echo "You're not in a git repo" && exit 1)
+
+commit=$(
+  git log --date=short --format="%C(green)%C(bold)%cd %C(auto)%h%d %s (%an)" --graph --color=always |
+    fzf --ansi --no-sort --multi --bind 'ctrl-s:toggle-sort' \
+      --header 'Press CTRL-S to toggle sort' \
+      --preview 'grep -o "[a-f0-9]\{7,\}" <<< {} | xargs git show --color=always' |
+    grep -o "[a-f0-9]\{7,\}"
+)
+
+# exit if a branch wasn't selected
+[[ -z "$commit" ]] && exit 1
+
+# exit if you're already on the selected commit
+[[ "$commit" == "$(git rev-parse --short HEAD)" ]] && exit 1
+
+# checkout to the commit-sha
+git checkout "$commit"
