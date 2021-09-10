@@ -1,3 +1,9 @@
-#!/bin/sh
+#!/bin/bash
+
+if [[ -n "$1" ]]; then
+  # open issue
+  gh issue view "$1" --web
+  exit 1
+fi
 
 gh repo view --web

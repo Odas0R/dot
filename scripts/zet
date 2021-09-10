@@ -87,23 +87,21 @@ zet_find_routine() {
 }
 
 zet_query() {
-  # using fzf
-  # 1. Search for text in files using Ripgrep
-  # 2. Interactively restart Ripgrep with reload action
-  # 3. Open the file in Vim
+  # -m NUM	: Stops reading a file after NUM matching lines
+  # w				: exact matches in a file
+  # Ctrl+f	: change to fzf for more precise findings
 
-  # I use grep here because I want to reach files based on exact words and
-  # not just full-text serach using something like rg
-
-  # solution: https://github.com/junegunn/fzf/blob/master/ADVANCED.md#using-fzf-as-interative-ripgrep-launcher
+  # example: https://github.com/junegunn/fzf/blob/master/ADVANCED.md#using-fzf-as-interative-ripgrep-launcher
   cd "$INBOX"
-  RG_PREFIX="grep --color=always -Rni -w"
+  RG_PREFIX="rg --column --line-number --no-heading --color=always --ignore-case -m 3 -w "
   INITIAL_QUERY="${*:-}"
   IFS=: read -ra selected < <(
     FZF_DEFAULT_COMMAND="$RG_PREFIX $(printf %q "$INITIAL_QUERY")" \
       fzf --ansi \
       --disabled --query "$INITIAL_QUERY" \
       --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+      --bind "ctrl-f:unbind(change,ctrl-f)+change-prompt(2. fzf> )+enable-search+clear-query" \
+      --prompt '1. ripgrep> ' \
       --delimiter : \
       --preview 'bat --theme="OneHalfDark" --color=always {1} --highlight-line {2}'
   )

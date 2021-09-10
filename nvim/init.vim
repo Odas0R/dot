@@ -135,9 +135,20 @@ nnoremap <silent> <leader>hc :History:<CR>
 nnoremap <silent> <C-p> :FZF<CR>
 
 " <F NUM> Mappings
-nnoremap <F1> :set number!<CR>
-nnoremap <F2> :set spell!<CR>
+nnoremap <F1> :set spell!<CR>
 nnoremap <leader>2 :set paste<CR>i
+
+" ==========================================================
+" Vimdiff
+" =========================================================
+
+if &diff
+  noremap <leader>1 :diffget LOCAL<CR>
+  noremap <leader>2 :diffget BASE<CR>
+  noremap <leader>3 :diffget REMOTE<CR>:q
+  noremap <C-k> ]c
+  noremap <C-j> [c
+endif
 
 " ============================================================
 " Formatters
@@ -157,7 +168,7 @@ endfun
 
 augroup default_formatter
   autocmd!
-  autocmd FileType vim au BufWritePre <buffer> call s:Format()
+  autocmd FileType vim,sql au BufWritePre <buffer> call s:Format()
 augroup end
 
 " ============================================================
@@ -171,10 +182,9 @@ au FileType sql nnoremap <buffer> <F3> :w<CR>:!clear && squawk %<CR>
 " ==========================================================
 " Run Code <F4>
 " ==========================================================
-"
+
 au FileType sh nnoremap <buffer> <F4> :w<CR>:!clear && sh %<CR>
 au FileType bash nnoremap <buffer> <F4> :w<CR>:!clear && bash %<CR>
-
 
 " ==========================================================
 " Plugins
@@ -194,6 +204,8 @@ Plug 'hoob3rt/lualine.nvim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'lifepillar/pgsql.vim'
 Plug 'vim-scripts/dbext.vim'
+" create automatic sessions for tmux-resurrect
+Plug 'tpope/vim-obsession'
 
 call plug#end()
 
@@ -258,6 +270,14 @@ au FileType markdown,pandoc hi Title cterm=bold guifg=#56B6C2 ctermbg=NONE
 au FileType markdown,pandoc hi htmlBold cterm=bold guifg=#5AB0F6 ctermbg=NONE
 au FileType markdown,pandoc hi htmlItalic cterm=italic guifg=#E5C07B ctermbg=NONE
 au FileType markdown,pandoc hi htmlLink guifg=#56B6C2 cterm=underline gui=underline ctermbg=NONE
+
+" vimdiff
+hi DiffText cterm=none gui=none guifg=lightgreen guibg=#242B38
+hi DiffChange cterm=none gui=none guifg=#8B96A9 guibg=#242B38
+hi DiffAdd cterm=none gui=none guifg=#8B96A9 guibg=#242B38
+hi DiffDelete cterm=none gui=none guifg=lightred guibg=#242B38
+
+
 
 " ==========================================================
 " CoC Configs

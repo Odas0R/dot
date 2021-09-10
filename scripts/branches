@@ -3,7 +3,7 @@
 set -e
 
 is_in_git_repo() {
-  git rev-parse HEAD >/dev/null 2>&1
+  git rev-parse HEAD -- >/dev/null 2>&1
 }
 
 is_in_git_repo || (echo "You're not in a git repo" && exit 1)
@@ -27,6 +27,4 @@ branch=$(
 # 1. Update all the branches/tags from all remotes
 # 2. Checkout to the selected branch
 # 3. Pull all current changes from that branch
-git fetch --all
 git checkout "$branch"
-git pull

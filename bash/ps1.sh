@@ -1,14 +1,10 @@
 #!/bin/bash
 
 parse_git_branch() {
-  git_folder="./.git"
-
-  if [ -d $git_folder ]; then
-    if ! git diff-index --quiet HEAD --; then
-      git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/[\1 ⚡] /'
-    else
-      git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/[\1] /'
-    fi
+  if ! git rev-parse HEAD -- >/dev/null 2>&1; then
+    git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/[\1 ⚡] /'
+  else
+    git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/[\1] /'
   fi
 }
 
