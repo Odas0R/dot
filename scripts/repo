@@ -1,9 +1,8 @@
 #!/bin/bash
 
 if [[ -n "$1" ]]; then
-  # open issue
-  gh issue view "$1" --web
-  exit 1
+  # open issue instead
+  gh issue view "#$1" --web
+else
+  gh repo view --web
 fi
-
-gh repo view --web
