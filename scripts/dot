@@ -10,4 +10,13 @@ fi
 
 cd "$HOME/dot"
 file="$(fzf --preview 'bat --style=numbers --color=always {}')"
-[[ -f "$file" ]] && vim "$file"
+
+if [[ -f "$file" ]]; then
+  if [[ "${file: -4}" =~ (.png|jpeg|gif) ]]; then
+    cd "$(dirname "$file")"
+    open "$(basename "$file")"
+    exit 1
+  else
+    vim "$file"
+  fi
+fi

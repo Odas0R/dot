@@ -7,9 +7,15 @@
 [core]
   editor = vi
 [init]
-  defaultBranch = main
+	defaultBranch = main
 [alias]
   co = checkout
   br = branch
 [credential "https://github.com"]
   helper = ! auth git-credential
+[merge]
+	tool = nvimdiff
+	conflictstyle = diff3
+[mergetool]
+	prompt = false
+	keepBackup = false

@@ -21,9 +21,15 @@ files=$(
 [[ -z "$files" ]] && exit 1
 
 rootPath=$(git rev-parse --show-toplevel)
+modifiedFiles="$(git diff --cached --name-only)"
+
 readarray -t <<<"$files"
 
 for file in "${MAPFILE[@]}"; do
   filePath="${rootPath}/${file}"
-  git add "$filePath"
+  if [[ "$modifiedFiles" == *"$file"* ]]; then
+    git reset -- "$file" >/dev/null
+  else
+    git add "$filePath"
+  fi
 done
