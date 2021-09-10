@@ -18,7 +18,6 @@ fi
 stash=$(
   git stash list |
     fzf --reverse --disabled -d: \
-      --header 'Ctrl + d: to drop stash, Enter: to pop stash' \
       --preview 'git show --color=always {1}' |
     cut -d: -f1
 )
