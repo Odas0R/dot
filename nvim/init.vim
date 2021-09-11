@@ -317,7 +317,8 @@ endfunction
 
 " Get snippets from here: https://github.com/honza/vim-snippets
 " You don't need to install 'SirVer/ultisnips' because of coc-snippets
-let g:coc_snippet_next = '<tab>'
+let g:coc_snippet_next = '<c-j>'
+let g:coc_snippet_prev = '<c-k>'
 nnoremap <leader>se :CocCommand snippets.editSnippets<CR>
 
 " Diagnostics
