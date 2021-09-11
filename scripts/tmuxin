@@ -1,0 +1,59 @@
+#!/bin/bash
+
+set -e
+
+zetPath=$(markpath zet)
+wallServer=$(markpath wall-server)
+
+# Tags Explanation
+# -c: path of the session
+# -s: session name
+# -n: window name
+# -d: "detach"
+# send-keys: C-m -> Enter Key
+
+# =============
+# Daily Session
+# =============
+#
+# Manage your daily tasks, todos & zet
+
+session="daily"
+if tmux has-session -t $session &>/dev/null; then
+  tmux kill-session -t "$session"
+fi
+
+tmux new-session -c "$zetPath" -s "$session" -n daily -d
+tmux send-keys -t "$session" "daily" C-m
+
+tmux split-window -c "$zetPath" -t "$session" -h
+tmux send-keys -t "$session" "todos" C-m
+
+tmux select-window -t :+1 \; last-pane
+
+# =====================
+# Wallstreeters Session
+# =====================
+#
+# Manage the project wallstreeters
+
+session="wallstreeters"
+if tmux has-session -t $session &>/dev/null; then
+  tmux kill-session -t "$session"
+fi
+
+tmux new-session -c "$wallServer" -s "$session" -n sql -d
+tmux send-keys -t "$session" "vf" C-m
+
+tmux split-window -c "$wallServer" -t "$session" -h
+tmux send-keys -t "$session" "vf" C-m
+
+tmux new-window -c "$wallServer" -t "$session"
+tmux split-window -c "$wallServer" -t "$session" -h
+
+tmux select-window -t :+1 \; last-pane
+
+# =================
+# Session to Attach
+# =================
+tmux attach-session -t "daily"

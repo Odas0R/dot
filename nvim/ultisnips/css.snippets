@@ -1,0 +1,38 @@
+priority -50
+
+snippet rgb "color rgb"
+rgb(${1:255}, ${2:255}, ${3:255})$0
+endsnippet
+
+snippet rgba "color rgba"
+rgba(${1:255}, ${2:255}, ${3:255}, ${4:0.5})$0
+endsnippet
+
+snippet hsl "color hsl"
+hsl(${1:360}, ${2:100}%, ${3:100}%)$0
+endsnippet
+
+snippet hsla "color hsla"
+hsla(${1:360}, ${2:100}%, ${3:100}%, ${4:0.5})$0
+endsnippet
+
+snippet scrollbar "scrollbar"
+scrollbar-base-color:       ${1:#CCCCCC};${2:
+scrollbar-arrow-color:      ${3:#000000};
+scrollbar-track-color:      ${4:#999999};
+scrollbar-3dlight-color:    ${5:#EEEEEE};
+scrollbar-highlight-color:  ${6:#FFFFFF};
+scrollbar-face-color:       ${7:#CCCCCC};
+scrollbar-shadow-color:     ${9:#999999};
+scrollbar-darkshadow-color: ${8:#666666};}
+endsnippet
+
+snippet selection "selection"
+$1::-moz-selection,
+$1::selection {
+	color: ${2:inherit};
+	background: ${3:inherit};
+}
+endsnippet
+
+# vim:ft=snippets:
