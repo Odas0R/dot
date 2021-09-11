@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+if [[ ! -x "$(command -v pip3)" ]]; then
+  echo "You need to install pip3"
+  echo "check $HOME/dot/install directory"
+  exit 1
+fi
+
+# get the default config under /dot
+if [[ ! -f ".gitlint" ]]; then
+  cp "$HOME/dot/git/gitlint" .gitlint
+fi
+
+# Install git hook
+if [[ ! -f ".git/hooks/commit-msg" ]]; then
+  gitlint install-hook
+fi
