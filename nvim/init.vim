@@ -112,6 +112,7 @@ function! NetrwMappings()
 	nmap <buffer> . gh
 	nmap <buffer> l <CR>
 	nmap <buffer> P <C-w>z
+	nmap <buffer> <tab> mf
 endfunction
 autocmd FileType netrw call NetrwMappings()
 
@@ -153,14 +154,10 @@ endif
 " ==========================================================
 " Remove whitespace
 " =========================================================
-function TrimWhiteSpace()
-	%s/\s*$//
-	''
-endfunction
-autocmd FileWritePre * call TrimWhiteSpace()
-autocmd FileAppendPre * call TrimWhiteSpace()
-autocmd FilterWritePre * call TrimWhiteSpace()
-autocmd BufWritePre * call TrimWhiteSpace()
+autocmd FileWritePre * %s/\s\+$//e | nohl
+autocmd FileAppendPre * %s/\s\+$//e | nohl
+autocmd FilterWritePre * %s/\s\+$//e | nohl
+autocmd BufWritePre * %s/\s\+$//e | nohl
 
 " ============================================================
 " Formatters
@@ -204,7 +201,6 @@ au FileType bash nnoremap <buffer> <F4> :w<CR>:!clear && bash %<CR>
 
 call plug#begin()
 
-" Plug 'sonph/onehalf', { 'rtp': 'vim' }
 Plug 'navarasu/onedark.nvim'
 Plug 'sheerun/vim-polyglot'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
@@ -216,8 +212,6 @@ Plug 'hoob3rt/lualine.nvim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'lifepillar/pgsql.vim'
 Plug 'vim-scripts/dbext.vim'
-" create automatic sessions for tmux-resurrect
-Plug 'tpope/vim-obsession'
 
 call plug#end()
 
@@ -289,7 +283,13 @@ hi DiffChange cterm=none gui=none guifg=#8B96A9 guibg=#242B38
 hi DiffAdd cterm=none gui=none guifg=#8B96A9 guibg=#242B38
 hi DiffDelete cterm=none gui=none guifg=lightred guibg=#242B38
 
+" background transparent
+hi! Normal ctermbg=NONE guibg=NONE
+hi! NonText ctermbg=NONE guibg=NONE
+hi! EndOfBuffer guibg=NONE ctermbg=NONE
 
+" highlight the symbol and its references when holding the cursor.
+autocmd CursorHold * silent call CocActionAsync('highlight')
 
 " ==========================================================
 " CoC Configs
@@ -303,17 +303,22 @@ else
 	set signcolumn=yes
 endif
 
-" Use tab for trigger completion with characters ahead and navigate.
-inoremap <silent><expr> <TAB>
-			\ pumvisible() ? "\<C-n>" :
+" Use tab for trigger completion, and UltiSnips triggering
+imap <silent><expr> <Tab>
+			\ pumvisible() ? coc#_select_confirm() :
+			\ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
 			\ <SID>check_back_space() ? "\<TAB>" :
 			\ coc#refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
 
 function! s:check_back_space() abort
 	let col = col('.') - 1
 	return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
+
+" Get snippets from here: https://github.com/honza/vim-snippets
+" You don't need to install 'SirVer/ultisnips' because of coc-snippets
+let g:coc_snippet_next = '<tab>'
+nnoremap <leader>se :CocCommand snippets.editSnippets<CR>
 
 " Diagnostics
 nnoremap <silent><nowait> <leader>d  :<C-u>CocList diagnostics<cr>
@@ -339,8 +344,3 @@ function! s:show_documentation()
 	endif
 endfunction
 
-" Highlight the symbol and its references when holding the cursor.
-autocmd CursorHold * silent call CocActionAsync('highlight')
-" IMPORTANT: TabNine multiline works because of the <Tab>
-" select on menu with <Tab>
-inoremap <expr> <Tab> pumvisible() ? coc#_select_confirm() : "<Tab>"
