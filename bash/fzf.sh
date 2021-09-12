@@ -13,6 +13,9 @@ export FZF_DEFAULT_COMMAND="fd --type f --type l ${FD_OPTIONS}"
 export FZF_CTRL_T_COMMAND="fd ${FD_OPTIONS}"
 export FZF_ALT_C_COMMAND="fd --type d ${FD_OPTIONS}"
 
+# Bindings
+bind -x '"\C-p": vf'
+
 # To install fd
 # sudo apt install fd-find
 # ln -s $(which fdfind) ~/.local/bin/fd

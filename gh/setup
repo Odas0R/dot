@@ -1,7 +1,20 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-mkdir -p ~/.config/gh
-ln -sf "$PWD/config.yml" "$HOME/.config/gh/config.yml"
-echo 'You might need to do gh auth --with-token $(auth token github)'
+set -e
 
-echo "Gh setup done! 🌟\n"
+if [[ ! -x "$(command -v tmux)" ]]; then
+  echo "gh isn't installed, skipping..." >&2
+  exit 1
+fi
+
+DOT_GH="$HOME/dot/gh"
+
+# create gh config directory
+mkdir -p "$HOME/.config/gh"
+
+# create the symlink to the config
+ln -sf "$DOT_GH/config.yml" "$HOME/.config/gh/config.yml"
+
+echo "Don't forget to: gh auth login"
+
+printf "Gh setup done! 🌟\n"

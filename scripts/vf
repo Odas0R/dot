@@ -2,5 +2,7 @@
 
 set -e
 
-file=$(fzf)
+file=$(
+  fzf --preview 'bat --theme="OneHalfDark" --color=always --style=numbers {}'
+)
 [ -n "$file" ] && exec vim "$file"
