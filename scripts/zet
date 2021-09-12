@@ -29,6 +29,8 @@ Commands:
   nb | new-book         Creates a new file for book anotations.
   r  | routine          Opens the current routine.
   fr | find-routine     Opens a panel w/ preview to fuzzy-find a routine
+  rn | rename           Renames the current zet from the # zet-title
+
 
 "
 }
@@ -108,6 +110,33 @@ zet_query() {
   [ -n "${selected[0]}" ] && vim "${selected[0]}" "+${selected[1]}"
 }
 
+zet_rename() {
+  if [[ ! -f "$1" ]]; then
+    echo "The given file was not valid."
+    exit 1
+  fi
+
+  title="$(
+    head -n 1 "$1" |
+      sed 's/# //g' |
+      sed "s/[?|!|,]//g" |
+      sed "s/ /-/g" |
+      tr "[:upper:]" "[:lower:])"
+  )"
+  fileID="$(echo "$1" | cut -d '.' -f 2)"
+
+  file="${title}.${fileID}.md"
+
+  # create the new file, and delete the old one
+  oldFilePath="$(realpath "$(dirname "$1")")/${1}"
+  newFilePath="$(realpath "$(dirname "$1")")/${file}"
+
+  cat "$oldFilePath" >"$newFilePath"
+  rm "$oldFilePath"
+
+  echo "Note renamed to $newFilePath"
+}
+
 zet_link() {
   # If no args open two fzf panels to select the files, and append the file1
   # url into the file2
@@ -154,6 +183,10 @@ r | routine)
   ;;
 fr | find-routine)
   zet_find_routine
+  exit 0
+  ;;
+rn | rename)
+  zet_rename "${@:2}"
   exit 0
   ;;
 esac
