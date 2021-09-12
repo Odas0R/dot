@@ -3,8 +3,7 @@
 set -e
 
 if [ ! -x "$(command -v nvim)" ]; then
-  echo Need to install full neovim.
-  echo Check /dot/installs
+  echo "Need to install neovim" >&2
   exit 1
 fi
 
@@ -14,13 +13,17 @@ NVIM="$HOME/.config/nvim/"
 mkdir -p "$NVIM"
 
 # setups
-ln -sf "$PWD/init.vim" "$NVIM/init.vim"
-ln -sf "$PWD/spell" "$NVIM/spell"
-ln -sf "$PWD/coc-settings.json" "$NVIM/coc-settings.json"
+ln -sf "$HOME/dot/nvim/init.vim" "$NVIM/init.vim"
+ln -sf "$HOME/dot/nvim/init.vim" "$HOME/.vimrc"
+ln -sf "$HOME/dot/nvim/spell" "$NVIM/spell"
+ln -sf "$HOME/dot/nvim/coc-settings.json" "$NVIM/coc-settings.json"
 
 # installing plug
-curl -fLo "$NVIM/autoload/plug.vim" --create-dirs \
-  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+if [[ ! -f "$NVIM/autoload/plug.vim" ]]; then
+  curl -fLo "$NVIM/autoload/plug.vim" --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+fi
 
-echo Do not forget to :PlugInstall!
+printf "To install all vim plugins :PlugInstall!\n"
+
 echo "Vim setup done! 🌟"
