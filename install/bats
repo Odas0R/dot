@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -e
+
+# create temporary bats directory
+mkdir -p /tmp/bats
+cd /tmp/bats
+
+# clone the bats directory
+git clone https://github.com/bats-core/bats-core.git .
+
+# run the installer
+sudo ./install.sh /usr/local
