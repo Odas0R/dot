@@ -2,12 +2,12 @@
 
 # Use clip.exe instead of xclip on windows
 if [ -n "$WSL_DISTRO_NAME" ]; then
-  clip.exe $1
-  exit 1
+  clip.exe "$1"
+  exit 0
 fi
 
 if [ ! -x "$(command -v xclip)" ]; then
   echo 'Need to install xclip: sudo apt install xclip'
   exit 1
 fi
-xclip $1
+xclip "$1"

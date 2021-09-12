@@ -5,7 +5,7 @@ set -e
 if [[ -n "$1" ]]; then
   # find the files by regex & open them w/ vim
   find "$HOME/dot" -type f -name "*$1*" -exec vim '{}' +
-  exit 1
+  exit 0
 fi
 
 cd "$HOME/dot"
@@ -15,7 +15,7 @@ if [[ -f "$file" ]]; then
   if [[ "${file: -4}" =~ (.png|jpeg|gif) ]]; then
     cd "$(dirname "$file")"
     open "$(basename "$file")"
-    exit 1
+    exit 0
   else
     vim "$file"
   fi
