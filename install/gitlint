@@ -5,7 +5,7 @@ set -e
 if [[ ! -x "$(command -v pip3)" ]]; then
   echo "You need to install pip3:"
   echo "sudo apt install python3-pip"
-  exit 0
+  exit 1
 fi
 
 # install with pip

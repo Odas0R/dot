@@ -24,5 +24,5 @@ alias ..="cd .."
 # cd doesn't work on shell scripts
 # https://stackoverflow.com/questions/255414/why-cant-i-change-directories-using-cd-in-a-script
 jump() {
-  [ -h "$MARKPATH/$1" ] && cd "$(readlink "${MARKPATH}/${1}")" || exit
+  [ -h "$MARKPATH/$1" ] && cd "$(readlink "${MARKPATH}/${1}")" || exit 1
 }

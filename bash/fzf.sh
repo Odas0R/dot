@@ -5,7 +5,7 @@
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 FD_OPTIONS="--follow --exclude .git --exclude node_modules"
-FZF_BINDS="--bind 'f2:toggle-preview,ctrl-d:half-page-down,ctrl-u:half-page-up'"
+FZF_BINDS="--bind 'f2:toggle-preview,ctrl-d:half-page-down,ctrl-u:half-page-up,ctrl-/:toggle-all'"
 FZF_STYLES="--height=90% --layout=reverse --border --preview-window right:70%"
 
 export FZF_DEFAULT_OPTS="--no-mouse ${FZF_STYLES} ${FZF_BINDS}"

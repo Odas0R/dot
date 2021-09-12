@@ -9,13 +9,13 @@ if [ -z "$1" ]; then
       --border --preview 'bat --style=numbers --color=always {}'
   )
   [ -f "$file" ] && vim "$file"
-  exit 1
+  exit 0
 fi
 
 cmd=$(command -v "$1")
 if [ -n "$cmd" ]; then
   vim "$cmd"
-  exit 1
+  exit 0
 else
   echo "Command not found: $1"
 fi

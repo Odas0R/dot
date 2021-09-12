@@ -15,7 +15,7 @@ folders="gh git vim tmux windows-terminal"
 
 for path in $folders; do
   cd "$path" && ./setup
-  cd - >/dev/null || exit
+  cd - >/dev/null || exit 1
 done
 
-exit
+exit 0

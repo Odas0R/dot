@@ -12,7 +12,7 @@ sync() {
     # Check if repo exists
     if [ ! -h "$MARKPATH/$repo" ]; then
       echo "repo ${repo} does not exist, fix it."
-      exit
+      exit 1
     fi
 
     # CD into the repo from the symlink

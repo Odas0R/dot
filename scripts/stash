@@ -4,15 +4,11 @@ is_in_git_repo() {
   git rev-parse HEAD >/dev/null 2>&1
 }
 
-has_arguments() {
-  test -n "${*}"
-}
-
 is_in_git_repo || (echo "You're not in a git repo" && exit 1)
 
 if [[ -n "${*}" ]]; then
   git stash "$@"
-  exit 1
+  exit 0
 fi
 
 stash=$(
