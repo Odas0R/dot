@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -e
+
+fontPath="$HOME/.local/share/fonts"
+
+# create the folder for fonts
+mkdir -p "$fontPath"
+
+readarray -d '' fonts < <(
+  find "$HOME/dot/fonts" -mindepth 1 -type f -name '*.ttf'
+)
+
+# install fonts
+for font in $fonts; do
+  cp "$font" "$fontPath"
+done
+
+# clear the cache and regenerate the fonts
+fc-cache -f -v
