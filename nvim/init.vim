@@ -134,6 +134,8 @@ nnoremap <silent> <leader>b :Buffers<CR>
 nnoremap <silent> <leader>hi :History<CR>
 nnoremap <silent> <leader>hc :History:<CR>
 nnoremap <silent> <C-p> :FZF<CR>
+nnoremap <silent> <C-j> :cnext<CR>
+nnoremap <silent> <C-k> :cprev<CR>
 
 " <F NUM> Mappings
 nnoremap <F1> :set spell!<CR>
@@ -266,6 +268,23 @@ require('lualine').setup {
 EOF
 
 " ==========================================================
+" FZF
+" ==========================================================
+let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.8 } }
+
+
+let g:fzf_preview_window = ['right:70%']
+function! RipgrepFzf(query, fullscreen)
+	let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -w -- %s || true'
+	let initial_command = printf(command_fmt, shellescape(a:query))
+	let reload_command = printf(command_fmt, '{q}')
+	let spec = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}
+	call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
+endfunction
+
+command! -nargs=* -bang Grep call RipgrepFzf(<q-args>, <bang>0)
+
+" ==========================================================
 " Color Overrides
 " ==========================================================
 au FileType * hi SpellBad guifg=white guibg=lightred
@@ -323,8 +342,8 @@ nnoremap <leader>se :CocCommand snippets.editSnippets<CR>
 
 " Diagnostics
 nnoremap <silent><nowait> <leader>d  :<C-u>CocList diagnostics<cr>
-nmap <silent> <C-j> <Plug>(coc-diagnostic-prev)
-nmap <silent> <C-k> <Plug>(coc-diagnostic-next)
+nmap <silent> [g <Plug>(coc-diagnostic-prev)
+nmap <silent> ]g <Plug>(coc-diagnostic-next)
 " Actions
 nmap <leader>rn <Plug>(coc-rename)
 nmap <leader>f  <Plug>(coc-codeaction-line)
