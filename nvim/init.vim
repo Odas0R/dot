@@ -45,8 +45,8 @@ set complete+=kspell                                              " spelling on 
 set shortmess+=c                                                  " remove the autocomplete status bar
 
 " not bracket matching or folding
-let g:loaded_matchparen=1
-set noshowmatch
+" let g:loaded_matchparen=1
+" set noshowmatch
 
 " add portuguese dictionary
 set spelllang+=pt_pt
@@ -60,10 +60,12 @@ set guicursor=i:block
 
 " Return to last edit position when opening files
 au BufReadPost *
-			\ if line("'\"") > 0 && line("'\"") <= line("$") |
-			\   exe "normal! g`\"" |
-			\ endif
+      \ if line("'\"") > 0 && line("'\"") <= line("$") |
+      \   exe "normal! g`\"" |
+      \ endif
 
+" Set off the other paren
+" ( )
 
 " ============================================================
 " Path (Files to Ignore)
@@ -109,10 +111,10 @@ let g:netrw_list_hide = &wildignore
 let g:netrw_localrmdir='rm -r'
 
 function! NetrwMappings()
-	nmap <buffer> . gh
-	nmap <buffer> l <CR>
-	nmap <buffer> P <C-w>z
-	nmap <buffer> <tab> mf
+  nmap <buffer> . gh
+  nmap <buffer> l <CR>
+  nmap <buffer> P <C-w>z
+  nmap <buffer> <tab> mf
 endfunction
 autocmd FileType netrw call NetrwMappings()
 
@@ -146,11 +148,11 @@ nnoremap <leader>2 :set paste<CR>i
 " =========================================================
 
 if &diff
-	noremap <leader>1 :diffget LOCAL<CR>
-	noremap <leader>2 :diffget BASE<CR>
-	noremap <leader>3 :diffget REMOTE<CR>:q
-	noremap <C-k> ]c
-	noremap <C-j> [c
+  noremap <leader>1 :diffget LOCAL<CR>
+  noremap <leader>2 :diffget BASE<CR>
+  noremap <leader>3 :diffget REMOTE<CR>:q
+  noremap <C-k> ]c
+  noremap <C-j> [c
 endif
 
 " ==========================================================
@@ -165,21 +167,21 @@ autocmd BufWritePre * %s/\s\+$//e | nohl
 " Formatters
 " ============================================================
 fun! s:Format()
-	let search = @/
-	let cursor_position = getpos('.')
-	normal! H
-	let window_position = getpos('.')
-	call setpos('.', cursor_position)
-	silent execute 'normal gg=G'
-	let @/ = search
-	call setpos('.', window_position)
-	normal! zt
-	call setpos('.', cursor_position)
+  let search = @/
+  let cursor_position = getpos('.')
+  normal! H
+  let window_position = getpos('.')
+  call setpos('.', cursor_position)
+  silent execute 'normal gg=G'
+  let @/ = search
+  call setpos('.', window_position)
+  normal! zt
+  call setpos('.', cursor_position)
 endfun
 
 augroup default_formatter
-	autocmd!
-	autocmd FileType vim,sql au BufWritePre <buffer> call s:Format()
+  autocmd!
+  autocmd FileType vim,sql au BufWritePre <buffer> call s:Format()
 augroup end
 
 " ============================================================
@@ -233,8 +235,8 @@ let g:sql_type_default = 'pgsql'
 " <leader>sdt+ - describe a object w/ more info (index on the table etc)
 let g:dbext_default_profile_wallstreeters = 'type=PGSQL:user=postgres:dbname=postgres:host=localhost:port=5432'
 augroup wallstreeters
-	au!
-	autocmd BufRead */wallstreeters/server/* DBSetOption profile=wallstreeters
+  au!
+  autocmd BufRead */wallstreeters/server/* DBSetOption profile=wallstreeters
 augroup end
 
 " ==========================================================
@@ -245,26 +247,26 @@ colorscheme onedark
 
 lua << EOF
 require('lualine').setup {
-	options = {
-		theme = 'onedark'
-		},
-	sections = {
-		lualine_a = {'mode'},
-		lualine_b = {'branch'},
-		lualine_c = {'filename'},
-		lualine_x = {'encoding', 'filetype'},
-		lualine_y = {'progress'},
-		lualine_z = {'location'}
-		},
-	inactive_sections = {
-		lualine_a = {},
-		lualine_b = {},
-		lualine_c = {'filename'},
-		lualine_x = {'location'},
-		lualine_y = {},
-		lualine_z = {}
-		},
-	}
+  options = {
+    theme = 'onedark'
+    },
+  sections = {
+    lualine_a = {'mode'},
+    lualine_b = {'branch'},
+    lualine_c = {'filename'},
+    lualine_x = {'encoding', 'filetype'},
+    lualine_y = {'progress'},
+    lualine_z = {'location'}
+    },
+  inactive_sections = {
+    lualine_a = {},
+    lualine_b = {},
+    lualine_c = {'filename'},
+    lualine_x = {'location'},
+    lualine_y = {},
+    lualine_z = {}
+    },
+  }
 EOF
 
 " ==========================================================
@@ -275,11 +277,11 @@ let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.8 } }
 
 let g:fzf_preview_window = ['right:70%']
 function! RipgrepFzf(query, fullscreen)
-	let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -w -- %s || true'
-	let initial_command = printf(command_fmt, shellescape(a:query))
-	let reload_command = printf(command_fmt, '{q}')
-	let spec = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}
-	call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
+  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -w -- %s || true'
+  let initial_command = printf(command_fmt, shellescape(a:query))
+  let reload_command = printf(command_fmt, '{q}')
+  let spec = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}
+  call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
 endfunction
 
 command! -nargs=* -bang Grep call RipgrepFzf(<q-args>, <bang>0)
@@ -303,9 +305,12 @@ hi DiffAdd cterm=none gui=none guifg=#8B96A9 guibg=#242B38
 hi DiffDelete cterm=none gui=none guifg=lightred guibg=#242B38
 
 " background transparent
-hi! Normal ctermbg=NONE guibg=NONE
-hi! NonText ctermbg=NONE guibg=NONE
-hi! EndOfBuffer guibg=NONE ctermbg=NONE
+hi Normal ctermbg=NONE guibg=NONE
+hi NonText ctermbg=NONE guibg=NONE
+hi EndOfBuffer guibg=NONE ctermbg=NONE
+
+" Color matching parenthesis
+hi MatchParen guibg=lightgray
 
 " highlight the symbol and its references when holding the cursor.
 autocmd CursorHold * silent call CocActionAsync('highlight')
@@ -316,22 +321,22 @@ autocmd CursorHold * silent call CocActionAsync('highlight')
 
 " Merge signcolumn and number into one
 if has("nvim-0.5.0") || has("patch-8.1.1564")
-	" Recently vim can merge signcolumn and number column into one
-	set signcolumn=number
+  " Recently vim can merge signcolumn and number column into one
+  set signcolumn=number
 else
-	set signcolumn=yes
+  set signcolumn=yes
 endif
 
 " Use tab for trigger completion, and UltiSnips triggering
 imap <silent><expr> <Tab>
-			\ pumvisible() ? coc#_select_confirm() :
-			\ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
-			\ <SID>check_back_space() ? "\<TAB>" :
-			\ coc#refresh()
+      \ pumvisible() ? coc#_select_confirm() :
+      \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
 
 function! s:check_back_space() abort
-	let col = col('.') - 1
-	return !col || getline('.')[col - 1]  =~# '\s'
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
 
 " Get snippets from here: https://github.com/honza/vim-snippets
@@ -341,26 +346,26 @@ let g:coc_snippet_prev = '<c-k>'
 nnoremap <leader>se :CocCommand snippets.editSnippets<CR>
 
 " Diagnostics
-nnoremap <silent><nowait> <leader>d  :<C-u>CocList diagnostics<cr>
-nmap <silent> [g <Plug>(coc-diagnostic-prev)
-nmap <silent> ]g <Plug>(coc-diagnostic-next)
+nnoremap <silent><nowait> <leader>d  :CocDiagnostics<cr>
+
 " Actions
 nmap <leader>rn <Plug>(coc-rename)
 nmap <leader>f  <Plug>(coc-codeaction-line)
+
 " GoTo code navigation.
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
+
 " Use gh to show documentation in preview window.
 nnoremap <silent> gh :call <SID>show_documentation()<CR>
 function! s:show_documentation()
-	if (index(['vim','help'], &filetype) >= 0)
-		execute 'h '.expand('<cword>')
-	elseif (coc#rpc#ready())
-		call CocActionAsync('doHover')
-	else
-		execute '!' . &keywordprg . " " . expand('<cword>')
-	endif
+  if (index(['vim','help'], &filetype) >= 0)
+    execute 'h '.expand('<cword>')
+  elseif (coc#rpc#ready())
+    call CocActionAsync('doHover')
+  else
+    execute '!' . &keywordprg . " " . expand('<cword>')
+  endif
 endfunction
-

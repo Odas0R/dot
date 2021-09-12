@@ -57,31 +57,29 @@ for ${1:i}${2/.+/ in /}${2:words}; do
 done
 endsnippet
 
-snippet here "here document (here)"
-<<-${2:'${1:TOKEN}'}
-	$0`echo \\n`${1/['"`](.+)['"`]/$1/}
-endsnippet
-
-snippet /ift(est)?/ "if ... then (if)" rb
-if ${2:[ ${1:condition} ]}; then
-	${0:${VISUAL}}
-fi
-endsnippet
-
 snippet if "if ... then (if)" b
 if [[ ${1:condition} ]]; then
 	${0:${VISUAL}}
 fi
 endsnippet
 
-snippet /wh(ile)?/ "while ... (done)" rb
-while ${2:[[ ${1:condition} ]]}; do
+snippet f "function() {...}" b
+${1:function} () {
 	${0:${VISUAL}}
-done
+}
 endsnippet
 
-snippet func "function() {...}" b
-${1:function} () {
+snippet setup "Setup bats test" b
+# Check docs for help:
+# https://bats-core.readthedocs.io/en/stable/tutorial.html
+setup() {
+	load 'test_helper/bats-support/load'
+	load 'test_helper/bats-assert/load'
+}
+endsnippet
+
+snippet test "Create a new unit test" b
+@test "${1:description}" {
 	${0:${VISUAL}}
 }
 endsnippet
