@@ -24,13 +24,12 @@ It is organized by inbox & permanent notes.
 
 Commands:
   --help | -h           Show help commands
-  q  | query            Queries the zettels with Regex, you can filter by tags.
-  l  | link 						Links two zettels
-  nb | new-book         Creates a new file for book anotations.
-  r  | routine          Opens the current routine.
+  q  | query            Queries the zettels with Regex, you can filter by tags
+  l  | link             Links two zettels
+  nb | new-book         Creates a new file for book anotations
+  r  | routine          Opens the current routine
   fr | find-routine     Opens a panel w/ preview to fuzzy-find a routine
-  rn | rename           Renames the current zet from the # zet-title
-
+  rn | rename           Renames the current zet from the '# title'
 
 "
 }

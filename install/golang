@@ -10,21 +10,21 @@ url="https://golang.org/dl/${tarFile}"
 
 # Download the latest golang
 wget --quiet --continue --show-progress "${url}"
-echo "Downloaded Golang!\n"
+printf "Downloaded Golang!\n"
 
 # Remove the old golang
 sudo rm -rf /usr/local/go
 
 # Install the new Go
 sudo tar -C /usr/local -xzf "$tarFile"
-echo "Create the skeleton for your local users go directory\n"
+printf "Create the skeleton for your local users go directory\n"
 mkdir -p ~/go
 mkdir -p ~/go/bin
 mkdir -p ~/go/pkg
 mkdir -p ~/go/src
 
 # GoPath
-echo "Don't forget to add these:\n"
+printf "Don't forget to add these:\n"
 echo "export GOPATH=~/go"
 echo 'export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin'
 

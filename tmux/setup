@@ -1,7 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
-if type tmux >/dev/null 2>&1; then
-  ln -sf "$PWD/tmux.conf" "$HOME/.tmux.conf"
-else
-  printf "Tmux isn't installed. Skipping..."
+DOT_TMUX="$HOME/dot/tmux"
+
+if [[ ! -x "$(command -v tmux)" ]]; then
+  echo "Tmux isn't installed, skipping..." >&2
+  exit 1
 fi
+
+ln -sf "$DOT_TMUX/tmux.conf" "$HOME/.tmux.conf"

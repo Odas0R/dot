@@ -1,21 +1,24 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-# a single directory where user data is stored, defaulting to ~/.local/share;
+set -e
 
-ln -sf "$PWD/bashrc" "$HOME/.bashrc"
-ln -sf "$PWD/inputrc" "$HOME/.inputrc"
-ln -sf "$PWD/bash" "$HOME/.bash"
+# install custom scripts
+mkdir -p "$HOME/.local/bin"
+ln -sf "$HOME/dot/scripts" "$HOME/.local/bin/scripts"
 
-[ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"
-ln -sf "$PWD/scripts" "$HOME/.local/bin/scripts"
+ln -sf "$HOME/dot/bashrc" "$HOME/.bashrc"
+ln -sf "$HOME/dot/inputrc" "$HOME/.inputrc"
+ln -sf "$HOME/dot/bash" "$HOME/.bash"
 
 printf "Executing all setup scripts ✨...\n"
 
-folders="gh git vim tmux windows-terminal"
+readarray -d '' folders < <(
+  find "$HOME/dot" -mindepth 1 -maxdepth 1 -type d \
+    -not -path "$HOME/dot/.git"
+)
 
 for path in $folders; do
-  cd "$path" && ./setup
+  cd "$path"
+  [[ -f "./setup" ]] && ./setup
   cd - >/dev/null || exit 1
 done
-
-exit 0
