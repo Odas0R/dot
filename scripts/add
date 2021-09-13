@@ -1,6 +1,5 @@
 #!/bin/bash
 
-##
 set -e
 
 is_in_git_repo() {
@@ -37,16 +36,9 @@ for file in "${MAPFILE[@]}"; do
     continue
   fi
 
-  # if the files are cached, remove or reset
+  # if the files are cached, reset them
   if [[ "$cachedFiles" == *"$file"* ]]; then
-    modifiedCachedFiles="$(git diff --cached --name-only --diff-filter=M)"
-    deletedCachedFiles="$(git diff --cached --name-only --diff-filter=D)"
-
-    if [[ "$modifiedCachedFiles" == *"$file"* ]]; then
-      git reset -- "$file" >/dev/null
-    elif [[ "$deletedCachedFiles" == *"$file"* ]]; then
-      git remove "$file"
-    fi
+    git reset -- "$file" >/dev/null
   else
     # add new untracked files
     git add "$file"
