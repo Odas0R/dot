@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Shortcuts
-alias todos="vim ~/zet/todos.md"
 alias tech="vim ~/zet/tech.md"
 alias habits="vim ~/zet/habits.md"
 alias goals="vim ~/zet/goals.md"
 alias workflow="vim ~/zet/workflow.md"
+alias todos="vim ~/zet/todos.md"
+alias luamake=/home/odas0r/.config/nvim/lua-language-server/3rd/luamake/luamake
 
 # NeoVim
 alias vim="nvim"

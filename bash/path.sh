@@ -18,6 +18,9 @@ export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
 export GOROOT="/usr/local/go"
 export GOPATH="$HOME/go"
 
+# Cargo
+export CARGOPATH="/home/odas0r/.cargo"
+
 # Perl
 export PERLPATH="/home/odas0r/perl5"
 export PERL5LIB="/home/odas0r/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"
@@ -26,4 +29,4 @@ export PERL_MB_OPT="--install_base \"/home/odas0r/perl5\""
 export PERL_MM_OPT="INSTALL_BASE=/home/odas0r/perl5"
 
 # Global Path
-export PATH="$PATH:$GOROOT/bin:$GOPATH/bin:$PERLPATH/bin:$LOCAL_SCRIPTS"
+export PATH="$PATH:$GOROOT/bin:$GOPATH/bin:$CARGOPATH/bin:$PERLPATH/bin:$LOCAL_SCRIPTS"

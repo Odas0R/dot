@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec tmux popup -d "$HOME/zet/inbox" -h80% -w70% -E vim -c 'Rg'

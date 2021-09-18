@@ -16,7 +16,10 @@ mkdir -p "$NVIM"
 ln -sf "$HOME/dot/nvim/init.vim" "$NVIM/init.vim"
 ln -sf "$HOME/dot/nvim/init.vim" "$HOME/.vimrc"
 ln -sf "$HOME/dot/nvim/spell" "$NVIM/spell"
-ln -sf "$HOME/dot/nvim/coc-settings.json" "$NVIM/coc-settings.json"
+
+# setup snippets
+mkdir -p "$HOME/snippets"
+ln -sf "$HOME/dot/nvim/ultisnips" "$HOME/snippets/ultisnips"
 
 # installing plug
 if [[ ! -f "$NVIM/autoload/plug.vim" ]]; then
