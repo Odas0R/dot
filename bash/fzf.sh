@@ -6,7 +6,7 @@
 
 FD_OPTIONS="--follow --exclude .git --exclude node_modules"
 FZF_BINDS="--bind 'f2:toggle-preview,ctrl-d:half-page-down,ctrl-u:half-page-up,ctrl-/:toggle-all'"
-FZF_STYLES="--height=90% --layout=reverse --border --preview-window right:60%"
+FZF_STYLES="--height=90% --layout=reverse --preview-window right:60%"
 
 export FZF_DEFAULT_OPTS="--no-mouse ${FZF_STYLES} ${FZF_BINDS}"
 export FZF_DEFAULT_COMMAND="fd --type f --type l ${FD_OPTIONS}"

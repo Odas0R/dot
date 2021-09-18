@@ -13,10 +13,8 @@ else
   tee "$file" <<EOF >/dev/null
 # Journal Entry, ${currentDate}
 
-Instead of watching videos      READ & ZET
-Instead of watching Instagram   READ & ZET
-Instead of procrastinating      READ & ZET
-
+*Work so hard you want to quit every day.*
+*Be so hard you never fucking quit.*
 
 
 EOF

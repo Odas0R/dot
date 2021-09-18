@@ -1,0 +1,17 @@
+priority -50
+extends html
+extends javascriptreact
+extends typescript
+
+snippet cn "className global attribute"
+className=$0
+endsnippet
+
+priority -49
+snippet fc "react functional component"
+import React, { VFC } from "react"
+
+interface ${1:function_name}Props {${4:props_types}}
+
+export const ${1:function_name}: VFC<${1:function_name}Props> = (${2:props}) => ${3:function_body}
+endsnippet

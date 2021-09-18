@@ -1,4 +1,5 @@
 set nocompatible
+
 syntax on                                                         " syntax for plugins etc
 filetype plugin on                                                " allow sensing the file type
 set ttyfast                                                       " faster scrolling
@@ -8,7 +9,7 @@ set relativenumber
 set ruler                                                         " turn col and row position on in bottom right
 set showmode                                                      " show command and insert mode
 set showcmd                                                       " show command on the right side (leader key)
-set textwidth=72                                                  " enough for line numbers + gutter within 80 standard
+" set textwidth=72                                                " enough for line numbers + gutter within 80 standard
 set tabstop=2                                                     " number of spaces that a <Tab> has
 set shiftwidth=2                                                  " number of spaces on indentation
 set softtabstop=2                                                 " read :help 😂
@@ -27,12 +28,13 @@ set shortmess=aoOtTI                                              " avoid most o
 
 set hidden                                                        " stop complaints about switching buffer with changes
 set history=100                                                   " command history
-set updatetime=300
+set updatetime=100
 
 " highlight search hits
 set hlsearch
 set incsearch
 set linebreak
+set nowrap " wrap is for psychopaths
 nnoremap <C-l> :nohl<CR><C-l>
 
 " more risky, but cleaner
@@ -40,13 +42,8 @@ set nobackup
 set noswapfile
 set nowritebackup
 
-set completeopt=menuone,noinsert,noselect													" config of vim autocomplete panel
 set complete+=kspell                                              " spelling on autocomplete
 set shortmess+=c                                                  " remove the autocomplete status bar
-
-" not bracket matching or folding
-" let g:loaded_matchparen=1
-" set noshowmatch
 
 " add portuguese dictionary
 set spelllang+=pt_pt
@@ -64,9 +61,6 @@ au BufReadPost *
       \   exe "normal! g`\"" |
       \ endif
 
-" Set off the other paren
-" ( )
-
 " ============================================================
 " Path (Files to Ignore)
 " ============================================================
@@ -76,6 +70,7 @@ set wildmenu
 " Ignore this files
 set wildignore+=**/node_modules/**
 set wildignore+=*_build/*
+set wildignore+=*formatting*/*
 set wildignore+=**/coverage/*
 set wildignore+=**/node_modules/*
 set wildignore+=**/android/*
@@ -87,8 +82,8 @@ set wildignore+=**/.supabase/*
 " Custom Settings per FileType
 " ============================================================
 
-au FileType markdown setlocal conceallevel=2 spell nonumber noautoindent
-au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+au FileType markdown setl conceallevel=2 spell norelativenumber noautoindent textwidth=72
+au FileType yaml setl ts=2 sts=2 sw=2 expandtab
 
 " ============================================================
 " Commands (Useful for file managing, etc)
@@ -106,7 +101,7 @@ nnoremap \ :Explore<CR>
 let g:netrw_browsex_viewer="cmd.exe /C start"
 let g:netrw_banner = 0
 let g:netrw_liststyle = 3
-let g:netrw_keepdir = 0
+let g:netrw_keepdir = 1
 let g:netrw_list_hide = &wildignore
 let g:netrw_localrmdir='rm -r'
 
@@ -124,25 +119,19 @@ autocmd FileType netrw call NetrwMappings()
 
 let mapleader = ","
 
-nnoremap <leader>vu :so $HOME/.config/nvim/init.vim<CR>
-nnoremap <leader>ve :e $HOME/.config/nvim/init.vim<CR>
-
-" Tab on visual selected
-vmap <Tab> >gv
-vmap <S-Tab> <gv
+nnoremap <leader>vu :so ~/.vimrc<CR>
+nnoremap <leader>ve :e ~/.vimrc<CR>
 
 " Navigation
-nnoremap <silent> <leader>b :Buffers<CR>
-nnoremap <silent> <leader>hi :History<CR>
+nnoremap <silent> <leader>ls :Buffers<CR>
 nnoremap <silent> <leader>hc :History:<CR>
 nnoremap <silent> <C-p> :FZF<CR>
 nnoremap <silent> <C-j> :cnext<CR>
 nnoremap <silent> <C-k> :cprev<CR>
 
-" <F NUM> Mappings
+" <leader> Mappings (like f1, f2,...)
 nnoremap <F1> :set spell!<CR>
 nnoremap <leader>2 :set paste<CR>i
-
 " ==========================================================
 " Vimdiff
 " =========================================================
@@ -156,70 +145,55 @@ if &diff
 endif
 
 " ==========================================================
-" Remove whitespace
-" =========================================================
-autocmd FileWritePre * %s/\s\+$//e | nohl
-autocmd FileAppendPre * %s/\s\+$//e | nohl
-autocmd FilterWritePre * %s/\s\+$//e | nohl
-autocmd BufWritePre * %s/\s\+$//e | nohl
-
-" ============================================================
-" Formatters
-" ============================================================
-fun! s:Format()
-  let search = @/
-  let cursor_position = getpos('.')
-  normal! H
-  let window_position = getpos('.')
-  call setpos('.', cursor_position)
-  silent execute 'normal gg=G'
-  let @/ = search
-  call setpos('.', window_position)
-  normal! zt
-  call setpos('.', cursor_position)
-endfun
-
-augroup default_formatter
-  autocmd!
-  autocmd FileType vim,sql au BufWritePre <buffer> call s:Format()
-augroup end
-
-" ============================================================
-" Lint/Checkers <F3>
-" ============================================================
-
-au FileType bash,sh nnoremap <buffer> <F3> :w<CR>:!clear && shellcheck %<CR>
-au FileType yaml nnoremap <buffer> <F3> :w<CR>:!clear && yamllint %<CR>
-au FileType sql nnoremap <buffer> <F3> :w<CR>:!clear && squawk %<CR>
-
-" ==========================================================
-" Run Code <F4>
-" ==========================================================
-
-au FileType sh nnoremap <buffer> <F4> :w<CR>:!clear && sh %<CR>
-au FileType bash nnoremap <buffer> <F4> :w<CR>:!clear && bash %<CR>
-
-" ==========================================================
 " Plugins
 " ==========================================================
 
 call plug#begin()
 
-Plug 'navarasu/onedark.nvim'
+" Syntax, Highlighting
+Plug 'gruvbox-community/gruvbox'
 Plug 'sheerun/vim-polyglot'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-Plug 'tpope/vim-commentary'
-Plug 'vitalk/vim-simple-todo'
+Plug 'lifepillar/pgsql.vim'
+Plug 'ap/vim-css-color'
+
+" Find, Fuzzy
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+
+" Util
+Plug 'tpope/vim-commentary'
 Plug 'hoob3rt/lualine.nvim'
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'lifepillar/pgsql.vim'
 Plug 'vim-scripts/dbext.vim'
+
+" Lsp, Completion Engine
+Plug 'neovim/nvim-lspconfig'
+Plug 'nvim-lua/completion-nvim'
+Plug 'aca/completion-tabnine', { 'do': './install.sh' }
+
+" Formatter
+Plug 'lukas-reineke/format.nvim'
+
+" Snippet Engine
+Plug 'sirver/UltiSnips'
+
+" Writing
+Plug 'vim-pandoc/vim-pandoc'
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 
 call plug#end()
 
-" psql.vim
+" ==========================================================
+" Pandoc: Writing
+" ==========================================================
+  let g:pandoc#formatting#mode = 'h'
+  let g:pandoc#formatting#textwidth = 72
+  let g:pandoc#toc#position = "bottom"
+  autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
+
+" ==========================================================
+" PSQL w/ dbext plugin
+" ==========================================================
 let g:sql_type_default = 'pgsql'
 
 " dbext -- :h dbext-tutorial
@@ -242,38 +216,46 @@ augroup end
 " ==========================================================
 " Colorscheme
 " ==========================================================
-let g:onedark_style = 'cool'
-colorscheme onedark
+" let g:gruvbox_contrast_dark = 'dark'
+if exists('+termguicolors')
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+endif
+let g:gruvbox_invert_selection='0'
+let g:gruvbox_termcolors=16
+let g:gruvbox_italic=1
+set background=dark
+colorscheme gruvbox
 
 lua << EOF
-require('lualine').setup {
+require("lualine").setup({
   options = {
-    theme = 'onedark'
-    },
+    theme = "gruvbox",
+  },
   sections = {
-    lualine_a = {'mode'},
-    lualine_b = {'branch'},
-    lualine_c = {'filename'},
-    lualine_x = {'encoding', 'filetype'},
-    lualine_y = {'progress'},
-    lualine_z = {'location'}
-    },
+    lualine_a = { "mode" },
+    lualine_b = { "branch" },
+    lualine_c = { "filename" },
+    lualine_x = { "encoding", "filetype" },
+    lualine_y = { "progress" },
+    lualine_z = { "location" },
+  },
   inactive_sections = {
     lualine_a = {},
     lualine_b = {},
-    lualine_c = {'filename'},
-    lualine_x = {'location'},
+    lualine_c = { "filename" },
+    lualine_x = { "location" },
     lualine_y = {},
-    lualine_z = {}
-    },
-  }
+    lualine_z = {},
+  },
+})
 EOF
 
 " ==========================================================
 " FZF
 " ==========================================================
-let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.8 } }
 
+let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.9 } }
 
 let g:fzf_preview_window = ['right:70%']
 function! RipgrepFzf(query, fullscreen)
@@ -289,83 +271,142 @@ command! -nargs=* -bang Grep call RipgrepFzf(<q-args>, <bang>0)
 " ==========================================================
 " Color Overrides
 " ==========================================================
-au FileType * hi SpellBad guifg=white guibg=lightred
-au FileType * hi Error guifg=white guibg=lightred
-au FileType * hi ErrorMsg guifg=white guibg=lightred
 
-au FileType markdown,pandoc hi Title cterm=bold guifg=#56B6C2 ctermbg=NONE
-au FileType markdown,pandoc hi htmlBold cterm=bold guifg=#5AB0F6 ctermbg=NONE
-au FileType markdown,pandoc hi htmlItalic cterm=italic guifg=#E5C07B ctermbg=NONE
-au FileType markdown,pandoc hi htmlLink guifg=#56B6C2 cterm=underline gui=underline ctermbg=NONE
+au FileType * hi SpellBad ctermbg=NONE ctermfg=Red cterm=underline
+au FileType * hi Error ctermbg=NONE ctermfg=Red
+au FileType * hi ErrorMsg ctermbg=NONE ctermfg=Red
+
+au FileType markdown hi Title cterm=bold ctermbg=none ctermfg=Yellow
+au FileType markdown hi htmlBold cterm=bold ctermbg=none ctermfg=Cyan
+au FileType markdown hi htmlItalic cterm=italic ctermbg=none ctermfg=Magenta
 
 " vimdiff
-hi DiffText cterm=none gui=none guifg=lightgreen guibg=#242B38
-hi DiffChange cterm=none gui=none guifg=#8B96A9 guibg=#242B38
-hi DiffAdd cterm=none gui=none guifg=#8B96A9 guibg=#242B38
-hi DiffDelete cterm=none gui=none guifg=lightred guibg=#242B38
+hi DiffText cterm=none ctermfg=lightgreen guibg=none
+hi DiffChange cterm=none ctermfg=Green guibg=none
+hi DiffAdd cterm=none ctermfg=Green guibg=none
+hi DiffDelete cterm=none ctermfg=lightred guibg=none
 
 " background transparent
-hi Normal ctermbg=NONE guibg=NONE
-hi NonText ctermbg=NONE guibg=NONE
-hi EndOfBuffer guibg=NONE ctermbg=NONE
+hi Normal guibg=none ctermbg=none
+hi NonText guibg=none ctermbg=none
+hi EndOfBuffer guibg=none ctermbg=none
+hi SignColumn guibg=none ctermbg=none
+hi LineNr guibg=none ctermbg=none
 
 " Color matching parenthesis
 hi MatchParen guibg=lightgray
 
-" highlight the symbol and its references when holding the cursor.
-autocmd CursorHold * silent call CocActionAsync('highlight')
-
 " ==========================================================
-" CoC Configs
+" Completion & LSP
 " ==========================================================
 
-" Merge signcolumn and number into one
-if has("nvim-0.5.0") || has("patch-8.1.1564")
-  " Recently vim can merge signcolumn and number column into one
-  set signcolumn=number
-else
-  set signcolumn=yes
-endif
+set completeopt=menuone,noinsert,noselect
 
-" Use tab for trigger completion, and UltiSnips triggering
-imap <silent><expr> <Tab>
-      \ pumvisible() ? coc#_select_confirm() :
-      \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ coc#refresh()
+autocmd BufEnter * lua require'completion'.on_attach()
 
-function! s:check_back_space() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
+let g:UltinipsExpandTrigger="<tab>"
+let g:UltiSnipsEditSplit="vertical"
+let g:UltiSnipsSnippetDirectories=["~/snippets/ultisnips"]
+let g:UltiSnipsJumpForwardTrigger='<c-j>'
+let g:UltiSnipsJumpBackwardTrigger='<c-k>'
 
-" Get snippets from here: https://github.com/honza/vim-snippets
-" You don't need to install 'SirVer/ultisnips' because of coc-snippets
-let g:coc_snippet_next = '<c-j>'
-let g:coc_snippet_prev = '<c-k>'
-nnoremap <leader>se :CocCommand snippets.editSnippets<CR>
+let g:completion_enable_snippet = 'UltiSnips'
+let g:completion_matching_strategy_list=['exact', 'substring', 'fuzzy']
+let g:completion_tabnine_sort_by_details=1
+let g:completion_chain_complete_list = {
+      \ 'default': [
+        \    {'complete_items': ['lsp', 'snippet', 'tabnine' ]},
+        \    {'mode': '<c-p>'},
+        \    {'mode': '<c-n>'}
+        \]
+        \}
 
-" Diagnostics
-nnoremap <silent><nowait> <leader>d  :CocDiagnostics<cr>
+" Use tab to navigate through the popup menu
+inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
-" Actions
-nmap <leader>rn <Plug>(coc-rename)
-nmap <leader>f  <Plug>(coc-codeaction-line)
+" Lsp
+lua require("lsp")
 
-" GoTo code navigation.
-nmap <silent> gd <Plug>(coc-definition)
-nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
+" ==========================================================
+" Tree-sitter
+" ==========================================================
 
-" Use gh to show documentation in preview window.
-nnoremap <silent> gh :call <SID>show_documentation()<CR>
-function! s:show_documentation()
-  if (index(['vim','help'], &filetype) >= 0)
-    execute 'h '.expand('<cword>')
-  elseif (coc#rpc#ready())
-    call CocActionAsync('doHover')
-  else
-    execute '!' . &keywordprg . " " . expand('<cword>')
-  endif
-endfunction
+lua << EOF
+require("nvim-treesitter.configs").setup({
+  ensure_installed = "maintained",
+  indent = { enable = true },
+  highlight = {
+    enable = true,
+    disable = { "vim", "markdown" },
+  },
+  incremental_selection = { enable = true },
+  textobjects = { enable = true },
+})
+EOF
+
+
+" ==========================================================
+" Formatters
+" ==========================================================
+
+augroup Format
+  autocmd!
+  autocmd BufWritePost * FormatWrite
+augroup END
+
+lua << EOF
+require("format").setup({
+  ["*"] = {
+    { cmd = { "sed -i 's/[ \t]*$//'" }, tmpfile_dir = "/tmp/" }, -- remove trailing whitespace
+  },
+  vim = {
+    {
+      cmd = { "stylua --indent-type Spaces --indent-width 2" },
+      start_pattern = "^lua << EOF$",
+      end_pattern = "^EOF$",
+      tmpfile_dir = "/tmp/",
+    },
+  },
+  lua = {
+    {
+      cmd = { "stylua --indent-type Spaces --indent-width 2" },
+      tmpfile_dir = "/tmp/",
+    },
+  },
+  go = {
+    {
+      cmd = { "gofmt -w", "goimports -w" },
+      tempfile_postfix = ".tmp",
+      tmpfile_dir = "/tmp/",
+    },
+  },
+  json = {
+    { cmd = { "prettier -w" }, tmpfile_dir = "/tmp/" },
+  },
+  javascript = {
+    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" }, tmpfile_dir = "/tmp/" },
+  },
+  javascriptreact = {
+    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" }, tmpfile_dir = "/tmp/" },
+  },
+  typescript = {
+    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" }, tmpfile_dir = "/tmp/" },
+  },
+  typescriptreact = {
+    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" }, tmpfile_dir = "/tmp/" },
+  },
+  sh = {
+    { cmd = { "shfmt -i 2 -w" }, tmpfile_dir = "/tmp/" },
+  },
+  markdown = {
+    {
+      cmd = { "shfmt -i 2 -w" },
+      start_pattern = "^```bash$",
+      end_pattern = "^```$",
+      target = "current",
+      tmpfile_dir = "/tmp/",
+    },
+  },
+})
+EOF

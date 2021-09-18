@@ -16,8 +16,8 @@ files=$(
     fzf --disabled --multi --ansi --nth 2..,.. \
       --header 'Ctrl + e: Edit on vim, Ctrl + /: select all' \
       --bind 'ctrl-/:toggle-all' \
-      --bind 'ctrl-e:execute(vim {2} &>/dev/tty)+reload(git -c color.status=always status --short)' \
-      --preview '(git diff --color=always -- {-1} | sed 1,4d | bat --theme="OneHalfDark" --color=always --style=numbers)' |
+      --bind 'ctrl-e:execute(vim -c "GitGutterEnable | GitGutterLineHighlightsEnable" {2} &>/dev/tty)+reload(git -c color.status=always status --short)' \
+      --preview '(git diff --color=always -- {-1} | sed 1,4d | bat --theme='gruvbox-dark'   --color=always --style=numbers)' |
     cut -c4- |
     sed 's/.* -> //'
 )

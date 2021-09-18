@@ -3,6 +3,15 @@
 set -e
 
 file=$(
-  fzf --preview 'bat --theme="OneHalfDark" --color=always --style=numbers {}'
+  fzf --preview 'bat --theme='gruvbox-dark'   --color=always --style=numbers {}'
 )
-[ -n "$file" ] && exec vim "$file"
+
+if [[ -f "$file" ]]; then
+  if [[ "${file: -4}" =~ (.png|jpeg|gif) ]]; then
+    cd "$(dirname "$file")"
+    open "$(basename "$file")"
+    exit 0
+  else
+    vim "$file"
+  fi
+fi

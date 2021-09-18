@@ -24,6 +24,14 @@ endsnippet
 # Common
 #
 
+snippet td "Add a todo"
+* [ ] $0
+endsnippet
+
+snippet ts "Add a schedule todo"
+[ ] ${1:00}:${2:00} - $0
+endsnippet
+
 snippet link "Link to something"
 [${1:${VISUAL:Text}}](${2:${VISUAL:www.url.com}})$0
 endsnippet

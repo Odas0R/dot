@@ -25,11 +25,12 @@ It is organized by inbox & permanent notes.
 Commands:
   --help | -h           Show help commands
   q  | query            Queries the zettels with Regex, you can filter by tags
+  o  | orpahns          Query ophan notes
   l  | link             Links two zettels
   nb | new-book         Creates a new file for book anotations
-  r  | routine          Opens the current routine
+  r  | rename           Renames the current zet from the '# title'
+  ro | routine          Opens the current routine
   fr | find-routine     Opens a panel w/ preview to fuzzy-find a routine
-  rn | rename           Renames the current zet from the '# title'
 
 "
 }
@@ -43,6 +44,9 @@ zet_new() {
 # $@
 
 # Bibliography
+
+# Links
+
 EOF
 
   vim +2 "$file"
@@ -70,10 +74,10 @@ zet_newroutine() {
   # if there's no args opens the last routine
   if [[ -z "$fileName" ]]; then
     cd "$ROUTINES"
-    lastFile="$(ls -lat | head -2 | tail -1 | awk '{print $9}')"
-    echo "$lastFile"
+    lastFile="$(ls -lat | head -4 | tail -1 | awk '{print $9}')"
     vim "$lastFile"
   else
+
     # Creates a new routine
     touch "$file"
     vim "$file"
@@ -83,7 +87,7 @@ zet_newroutine() {
 zet_find_routine() {
   # Opens a fzf panel with preview
   cd "$ROUTINES"
-  file="$(fzf --preview 'bat --style=numbers --color=always {}')"
+  file="$(fzf --preview 'bat --theme='gruvbox-dark'   --color=always {}')"
   [[ -f "$file" ]] && vim "$file"
 }
 
@@ -104,9 +108,40 @@ zet_query() {
       --bind "ctrl-f:unbind(change,ctrl-f)+change-prompt(2. fzf> )+enable-search+clear-query" \
       --prompt '1. ripgrep> ' \
       --delimiter : \
-      --preview 'bat --theme="OneHalfDark" --color=always {1} --highlight-line {2}'
+      --preview 'bat --theme='gruvbox-dark'   --color=always {1} --highlight-line {2}'
   )
   [ -n "${selected[0]}" ] && vim "${selected[0]}" "+${selected[1]}"
+}
+
+zet_orphans() {
+  cd "$INBOX"
+
+  # copy all orphans into .orphans
+  mkdir -p .orphans
+  grep -iHnL "# Links" ./*.md* | cut -d: -f-1 | xargs -I{} cp {} .orphans
+  cd .orphans
+
+  RG_PREFIX="rg --column --line-number --no-heading --color=always --ignore-case -m 3 -w "
+  INITIAL_QUERY="${*:-}"
+  IFS=: read -ra selected < <(
+    FZF_DEFAULT_COMMAND="$RG_PREFIX $(printf %q "$INITIAL_QUERY")" \
+      fzf --ansi \
+      --disabled --query "$INITIAL_QUERY" \
+      --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+      --bind "ctrl-f:unbind(change,ctrl-f)+change-prompt(2. fzf> )+enable-search+clear-query" \
+      --prompt '1. ripgrep> ' \
+      --delimiter : \
+      --preview 'bat --theme='gruvbox-dark'   --color=always {1} --highlight-line {2}'
+  )
+
+  # go back
+  cd - >/dev/null
+
+  # open the file on the highlighted line
+  [[ -n "${selected[0]}" ]] && vim "${selected[0]}" "+${selected[1]}"
+
+  # clean-up
+  rm -rf .orphans
 }
 
 zet_rename() {
@@ -127,7 +162,7 @@ zet_rename() {
   file="${title}.${fileID}.md"
 
   # create the new file, and delete the old one
-  oldFilePath="$(realpath "$(dirname "$1")")/${1}"
+  oldFilePath="$(realpath "$(dirname "$1")")/$(basename "$1")"
   newFilePath="$(realpath "$(dirname "$1")")/${file}"
 
   cat "$oldFilePath" >"$newFilePath"
@@ -137,19 +172,54 @@ zet_rename() {
 }
 
 zet_link() {
+  # if there's args,
+
   # If no args open two fzf panels to select the files, and append the file1
   # url into the file2
   cd "$INBOX"
-  file1="$(fzf --preview 'bat --style=numbers --color=always {}')"
-  [[ -z "$file1" ]] && exit 1
-  file2="$(fzf --preview 'bat --style=numbers --color=always {}')"
-  [[ -z "$file2" ]] && exit 1
 
-  echo "$file1"
-  echo "$file2"
+  fileOne="$(fzf --preview 'bat --theme='gruvbox-dark'   --color=always {}')"
+  fileTwo="$(fzf --preview 'bat --theme='gruvbox-dark'   --color=always {}')"
 
-  # if there's args, they must be a valid zet id
+  if [[ "$fileOne" == "$fileTwo" ]]; then
+    echo "You can't link the same file." >&2
+    exit 1
+  fi
 
+  fileOneTitle="$(head -n 1 "$fileOne")"
+  fileTwoTitle="$(head -n 1 "$fileTwo")"
+
+  fileOneLink="* [${fileOneTitle### }](./${fileOne})"
+  fileTwoLink="* [${fileTwoTitle### }](./${fileTwo})"
+
+  # Add '# Links' to each file to the bottom of the note if it doesn't
+  # exist
+  if [[ -z "$(grep -n "# Links" "$fileOne")" ]]; then
+    if [[ -z "$(tail -1 "$fileOne")" ]]; then
+      printf "# Links\n\n" >>"$fileOne"
+    else
+      printf "\n# Links\n\n" >>"$fileOne"
+    fi
+  fi
+  if [[ -z "$(grep -n "# Links" "$fileTwo")" ]]; then
+    if [[ -z "$(tail -1 "$fileTwo")" ]]; then
+      printf "# Links\n\n" >>"$fileTwo"
+    else
+      printf "\n# Links\n\n" >>"$fileTwo"
+    fi
+  fi
+
+  # add a \n to both files if '# Links' is in the last line
+  if [[ "$(tail -1 "$fileOne")" == "# Links" ]]; then
+    echo >>"$fileOne"
+  fi
+  if [[ "$(tail -1 "$fileTwo")" == "# Links" ]]; then
+    echo >>"$fileTwo" # add a \n
+  fi
+
+  # Add the links on each file
+  echo "$fileTwoLink" >>"$fileOne"
+  echo "$fileOneLink" >>"$fileTwo"
 }
 
 #
@@ -172,20 +242,24 @@ l | link)
   zet_link "${@:2}"
   exit 0
   ;;
+o | orphans)
+  zet_orphans "${@:2}"
+  exit 0
+  ;;
 nb | new-book)
   zet_newbook "${@:2}"
   exit 0
   ;;
-r | routine)
+r | rename)
+  zet_rename "${@:2}"
+  exit 0
+  ;;
+ro | routine)
   zet_newroutine "${@:2}"
   exit 0
   ;;
 fr | find-routine)
   zet_find_routine
-  exit 0
-  ;;
-rn | rename)
-  zet_rename "${@:2}"
   exit 0
   ;;
 esac
