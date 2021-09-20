@@ -81,9 +81,10 @@ set wildignore+=**/.supabase/*
 " ============================================================
 " Custom Settings per FileType
 " ============================================================
-
-au FileType markdown setl conceallevel=2 spell norelativenumber noautoindent textwidth=72
-au FileType yaml setl ts=2 sts=2 sw=2 expandtab
+augroup init_settings
+  au FileType markdown setl conceallevel=2 spell norelativenumber noautoindent textwidth=72
+  au FileType yaml setl ts=2 sts=2 sw=2 expandtab
+augroup end
 
 " ============================================================
 " Commands (Useful for file managing, etc)
@@ -186,10 +187,10 @@ call plug#end()
 " ==========================================================
 " Pandoc: Writing
 " ==========================================================
-  let g:pandoc#formatting#mode = 'h'
-  let g:pandoc#formatting#textwidth = 72
-  let g:pandoc#toc#position = "bottom"
-  autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
+let g:pandoc#formatting#mode = 'ha'
+let g:pandoc#formatting#textwidth = 72
+let g:pandoc#toc#position = "bottom"
+autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
 
 " ==========================================================
 " PSQL w/ dbext plugin
@@ -216,7 +217,7 @@ augroup end
 " ==========================================================
 " Colorscheme
 " ==========================================================
-" let g:gruvbox_contrast_dark = 'dark'
+let g:gruvbox_contrast_dark = 'dark'
 if exists('+termguicolors')
   let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
   let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
@@ -227,6 +228,9 @@ let g:gruvbox_italic=1
 set background=dark
 colorscheme gruvbox
 
+" ==========================================================
+" StatusLine
+" ==========================================================
 lua << EOF
 require("lualine").setup({
   options = {
@@ -255,7 +259,7 @@ EOF
 " FZF
 " ==========================================================
 
-let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.9 } }
+let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.8 } }
 
 let g:fzf_preview_window = ['right:70%']
 function! RipgrepFzf(query, fullscreen)
@@ -325,7 +329,7 @@ let g:completion_chain_complete_list = {
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
-" Lsp
+" Lsp -- configs
 lua require("lsp")
 
 " ==========================================================
@@ -365,7 +369,6 @@ require("format").setup({
       cmd = { "stylua --indent-type Spaces --indent-width 2" },
       start_pattern = "^lua << EOF$",
       end_pattern = "^EOF$",
-      tmpfile_dir = "/tmp/",
     },
   },
   lua = {
@@ -378,26 +381,25 @@ require("format").setup({
     {
       cmd = { "gofmt -w", "goimports -w" },
       tempfile_postfix = ".tmp",
-      tmpfile_dir = "/tmp/",
     },
   },
   json = {
-    { cmd = { "prettier -w" }, tmpfile_dir = "/tmp/" },
+    { cmd = { "prettier -w" } },
   },
   javascript = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" }, tmpfile_dir = "/tmp/" },
+    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
   },
   javascriptreact = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" }, tmpfile_dir = "/tmp/" },
+    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
   },
   typescript = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" }, tmpfile_dir = "/tmp/" },
+    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
   },
   typescriptreact = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" }, tmpfile_dir = "/tmp/" },
+    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
   },
   sh = {
-    { cmd = { "shfmt -i 2 -w" }, tmpfile_dir = "/tmp/" },
+    { cmd = { "shfmt -i 2 -w" } },
   },
   markdown = {
     {
@@ -405,7 +407,6 @@ require("format").setup({
       start_pattern = "^```bash$",
       end_pattern = "^```$",
       target = "current",
-      tmpfile_dir = "/tmp/",
     },
   },
 })
