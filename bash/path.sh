@@ -6,6 +6,7 @@ export SNIPPETS="$HOME/snippets"
 export LOCAL_SCRIPTS="$HOME/.local/bin/scripts" # $HOME/.local/bin is the PATH for global scripts
 export DESKTOP="/mnt/c/Users/guilh/Desktop"
 export BROWSER="/mnt/c/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
+export TOOLS="$HOME/tools"
 
 #NVM (Node Version Manager) (OLD)
 export NVM_DIR="$HOME/.nvm"
@@ -28,5 +29,8 @@ export PERL_LOCAL_LIB_ROOT="/home/odas0r/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOC
 export PERL_MB_OPT="--install_base \"/home/odas0r/perl5\""
 export PERL_MM_OPT="INSTALL_BASE=/home/odas0r/perl5"
 
+# Tools
+export LUA_LSP="$TOOLS/lua-language-server"
+
 # Global Path
-export PATH="$PATH:$GOROOT/bin:$GOPATH/bin:$CARGOPATH/bin:$PERLPATH/bin:$LOCAL_SCRIPTS"
+export PATH="$PATH:$GOROOT/bin:$GOPATH/bin:$CARGOPATH/bin:$PERLPATH/bin:$LOCAL_SCRIPTS:$LUA_LSP/bin/Linux"
