@@ -2,6 +2,12 @@
 
 priority -50
 
+snippet /** "Description" A
+/**
+ * $0
+ */
+endsnippet
+
 # when to abbriviate and when not?
 # b doesn't work here, because it ignores whitespace
 # optional local name?
@@ -104,8 +110,6 @@ endsnippet
 snippet json "JSON field"
 \`json:"${1:displayName}"\`
 endsnippet
-
-# vim:ft=snippets:
 
 # error handling
 snippet err "Basic error handling" b

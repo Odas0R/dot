@@ -166,6 +166,7 @@ Plug 'junegunn/fzf.vim'
 Plug 'tpope/vim-commentary'
 Plug 'hoob3rt/lualine.nvim'
 Plug 'vim-scripts/dbext.vim'
+Plug 'tpope/vim-fugitive'
 
 " Lsp, Completion Engine
 Plug 'neovim/nvim-lspconfig'
