@@ -22,7 +22,8 @@ mkdir -p "$HOME/snippets"
 ln -sf "$HOME/dot/nvim/ultisnips" "$HOME/snippets/ultisnips"
 
 # setup lua scripts
-ln -sf "$HOME/dot/nvim/lua" "$NVIM/lua"
+mkdir -p "$NVIM/lua"
+ln -sf "$HOME/dot/nvim/lua/lsp.lua" "$NVIM/lua/lsp.lua"
 
 # installing plug
 if [[ ! -f "$NVIM/autoload/plug.vim" ]]; then

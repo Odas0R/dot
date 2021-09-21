@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Docs: https://github.com/sumneko/lua-language-server/wiki/Build-and-Run-(Standalone)
 
-# Do this operations on nvim folder
-cd $HOME/.config/nvim
+mkdir -p $HOME/tools/
+cd $HOME/tools
+git clone --depth=1 https://hub.fastgit.org/sumneko/lua-language-server
 
-# clone project
-git clone https://github.com/sumneko/lua-language-server
 cd lua-language-server
 git submodule update --init --recursive
 
-# build
+# build on Linux
 cd 3rd/luamake
-./compile/install.sh
+compile/install.sh
 cd ../..
 ./3rd/luamake/luamake rebuild
