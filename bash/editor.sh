@@ -2,7 +2,8 @@
 
 # remap capslock for whole system to ESC (X only)
 if [ -n "${DISPLAY}" ]; then
-  setxkbmap -option caps:escape
+  setxkbmap -option caps:swapescape
+  # setxkbmap -option caps:escape
   setxkbmap -layout pt
 fi
 

@@ -13,3 +13,5 @@ done
 for file in $HOME/.bash/autocomplete/*.sh; do
   . $file
 done
+
+alias luamake=/home/odas0r/.config/nvim/lua-language-server/3rd/luamake/luamake

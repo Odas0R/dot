@@ -7,7 +7,7 @@ if [ ! -x "$(command -v nvim)" ]; then
   exit 1
 fi
 
-NVIM="$HOME/.config/nvim/"
+NVIM="$HOME/.config/nvim"
 
 # creates the nvim config directory
 mkdir -p "$NVIM"
@@ -20,6 +20,9 @@ ln -sf "$HOME/dot/nvim/spell" "$NVIM/spell"
 # setup snippets
 mkdir -p "$HOME/snippets"
 ln -sf "$HOME/dot/nvim/ultisnips" "$HOME/snippets/ultisnips"
+
+# setup lua scripts
+ln -sf "$HOME/dot/nvim/lua" "$NVIM/lua"
 
 # installing plug
 if [[ ! -f "$NVIM/autoload/plug.vim" ]]; then
