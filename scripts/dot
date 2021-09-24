@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
-if [[ -n "$1" ]]; then
+if [[ -n $1 ]]; then
   # find the files by regex & open them w/ vim
   find "$HOME/dot" -type f -name "*$1*" -exec vim '{}' +
   exit 0
@@ -11,8 +11,8 @@ fi
 cd "$HOME/dot"
 file="$(fzf --preview 'bat --theme='gruvbox-dark'  --style=numbers --color=always {}')"
 
-if [[ -f "$file" ]]; then
-  if [[ "${file: -4}" =~ (.png|jpeg|gif) ]]; then
+if [[ -f $file ]]; then
+  if [[ ${file: -4} =~ (.png|jpeg|gif) ]]; then
     cd "$(dirname "$file")"
     open "$(basename "$file")"
     exit 0

@@ -12,6 +12,6 @@ if [[ -e "$path" ]]; then
   exit 0
 fi
 
-printf "#!/bin/bash\n\n" >"$path"
+printf "#!/usr/bin/env bash\n\n" >"$path"
 chmod +x "$path"
 exec vim +2 "$path"

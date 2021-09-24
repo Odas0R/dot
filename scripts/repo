@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [[ -n "$1" ]]; then
+if [ -n "${1}" ]; then
   # open issue instead
-  gh issue view "#$1" --web
+  gh issue view "$1" --web
 else
   gh repo view --web
 fi

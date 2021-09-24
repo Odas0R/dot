@@ -12,17 +12,17 @@ rootPath=$(git rev-parse --show-toplevel)
 cd "$rootPath"
 
 files=$(
-  git -c color.status=always status --short |
-    fzf --disabled --multi --ansi --nth 2..,.. \
+  git -c color.status=always status --short \
+    | fzf --multi --ansi --nth 2..,.. \
       --header 'Ctrl + e: Edit on vim, Ctrl + /: select all' \
       --bind 'ctrl-/:toggle-all' \
       --bind 'ctrl-e:execute(vim -c "GitGutterEnable | GitGutterLineHighlightsEnable" {2} &>/dev/tty)+reload(git -c color.status=always status --short)' \
-      --preview '(git diff --color=always -- {-1} | sed 1,4d | bat --theme='gruvbox-dark'   --color=always --style=numbers)' |
-    cut -c4- |
-    sed 's/.* -> //'
+      --preview '(git diff --color=always -- {-1} | sed 1,4d | bat --theme='gruvbox-dark' --color=always --style=numbers)' \
+    | cut -c4- \
+    | sed 's/.* -> //'
 )
 
-[[ -z "$files" ]] && exit 1
+[[ -z $files ]] && exit 1
 
 untrackedFiles="$(git diff --name-only)"
 cachedFiles="$(git diff --cached --name-only)"
@@ -31,13 +31,13 @@ readarray -t <<<"$files"
 
 for file in "${MAPFILE[@]}"; do
   # if it's not on cache add the file
-  if [[ "$untrackedFiles" == *"$file"* ]]; then
+  if [[ $untrackedFiles == *"$file"* ]]; then
     git add "$file"
     continue
   fi
 
   # if the files are cached, reset them
-  if [[ "$cachedFiles" == *"$file"* ]]; then
+  if [[ $cachedFiles == *"$file"* ]]; then
     git reset -- "$file" >/dev/null
   else
     # add new untracked files

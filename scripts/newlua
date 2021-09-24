@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+NVIM="$HOME/.config/nvim"
+FILE_PATH="$HOME/dot/nvim/lua/odas0r/${1}.lua"
+
+[[ -z ${1} ]] && echo "usage: newlua <name>" && exit 1
+
+if [[ -e $FILE_PATH ]]; then
+  read -r -p "${1} already exists. Edit?" yes
+  case "$yes" in
+    y | yes | ok | okay) vim "$FILE_PATH" ;;
+  esac
+  exit 0
+fi
+
+# create the file & create a symlink to the nvim dir
+touch "$FILE_PATH"
+ln -sf "$FILE_PATH" "$NVIM/lua/odas0r"
+
+vim "$FILE_PATH"
