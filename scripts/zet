@@ -43,13 +43,9 @@ zet_new() {
   tee "$file" <<EOF >/dev/null
 # $@
 
-# Bibliography
-
-# Links
 
 EOF
-
-  vim +2 "$file"
+  vim +3 "$file"
 }
 
 # Creates a new file on the /books w/ a template.
@@ -57,13 +53,12 @@ zet_newbook() {
   fileName=$(echo "$@" | sed "s/[?|!]//g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
   file="${BOOKS}/${fileName}.md"
 
-  # Create the note with the $fileName
   tee "$file" <<EOF >/dev/null
 # $@
 
-EOF
 
-  vim +2 "$file"
+EOF
+  vim +3 "$file"
 }
 
 # Creates a new file on the /books w/ a template.

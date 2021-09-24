@@ -2,6 +2,7 @@
 
 if [ -n "$1" ]; then
   exec gh issue edit "$@"
+  exit
 fi
 
 exec gh issue create

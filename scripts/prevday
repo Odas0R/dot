@@ -3,4 +3,4 @@
 currentDate=$(date --date="yesterday" "+%Y-%m-%d")
 file="${HOME}/zet/journal/${currentDate}.md"
 
-vi $file
+tmux popup -h80% -w50% -E vim "$file"
