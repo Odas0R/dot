@@ -17,20 +17,25 @@ local on_attach = function(_, bufnr)
   buf_set_keymap("n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
   buf_set_keymap("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
   buf_set_keymap("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
-  buf_set_keymap("n", "gj", "<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>", opts)
-  buf_set_keymap("n", "gk", "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", opts)
+  buf_set_keymap("n", "J", "<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>", opts)
+  buf_set_keymap("n", "K", "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", opts)
 
   buf_set_keymap("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
   buf_set_keymap("n", "<leader>a", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
-  buf_set_keymap("n", "<space>e", "<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>", opts)
 end
 
+-- npm install -g typescript typescript-language-server
 require("lspconfig").tsserver.setup({
   on_attach = on_attach,
 })
 
+-- npm i -g vscode-langservers-extracted
+require("lspconfig").cssls.setup({})
+
+-- npm i -g yaml-language-server
 require("lspconfig").yamlls.setup({})
 
+-- ./dot/installs/golang
 require("lspconfig").gopls.setup({
   on_attach = on_attach,
   cmd = { "gopls", "serve" },
@@ -44,6 +49,12 @@ require("lspconfig").gopls.setup({
   },
 })
 
+-- npm i -g stylelint-lsp
+require("lspconfig").stylelint_lsp.setup({
+  on_attach = on_attach,
+})
+
+-- LSP for lua
 -- https://github.com/sumneko/lua-language-server/wiki/Build-and-Run-(Standalone)
 -- https://github.com/neovim/nvim-lspconfig/blob/master/CONFIG.md#sumneko_lua
 local sumneko_binary_path = vim.fn.exepath("lua-language-server")
@@ -54,6 +65,7 @@ table.insert(runtime_path, "lua/?.lua")
 table.insert(runtime_path, "lua/?/init.lua")
 
 require("lspconfig").sumneko_lua.setup({
+  on_attach = on_attach,
   cmd = { sumneko_binary_path, "-E", sumneko_root_path .. "/main.lua" },
   settings = {
     Lua = {

@@ -1,33 +1,34 @@
 set nocompatible
 
-syntax on                                                         " syntax for plugins etc
-filetype plugin on                                                " allow sensing the file type
-set ttyfast                                                       " faster scrolling
+syntax on
+filetype plugin on
+filetype indent on
+set ttyfast
 
-set autowrite                                                     " automatically write files when changing when multiple files open
+set autowrite
 set relativenumber
-set ruler                                                         " turn col and row position on in bottom right
-set showmode                                                      " show command and insert mode
-set showcmd                                                       " show command on the right side (leader key)
-" set textwidth=72                                                " enough for line numbers + gutter within 80 standard
-set tabstop=2                                                     " number of spaces that a <Tab> has
-set shiftwidth=2                                                  " number of spaces on indentation
-set softtabstop=2                                                 " read :help 😂
+set ruler
+set showmode
+set showcmd
+" set textwidth=72
+set tabstop=2
+set shiftwidth=2
+set softtabstop=2
 set numberwidth=2
 set smartindent
-set autoindent                                                    " automatically indent new lines
+set autoindent
 set smarttab
-set expandtab                                                     " replace tabs /w spaces
-set nofixendofline                                                " stop vim from adding \n to files
-set foldmethod=manual                                             " no folding
-set nofoldenable                                                  " no folding
+set expandtab
+set nofixendofline
+set foldmethod=manual
+set nofoldenable
 set laststatus=2
 
-match ErrorMsg '\s\+$'                                            " mark trailing spaces as errors
-set shortmess=aoOtTI                                              " avoid most of the 'Hit Enter ...' messages
+match ErrorMsg '\s\+$'
+set shortmess=aoOtTI
 
-set hidden                                                        " stop complaints about switching buffer with changes
-set history=100                                                   " command history
+set hidden
+set history=100
 set updatetime=100
 
 " highlight search hits
@@ -42,8 +43,8 @@ set nobackup
 set noswapfile
 set nowritebackup
 
-set complete+=kspell                                              " spelling on autocomplete
-set shortmess+=c                                                  " remove the autocomplete status bar
+set complete+=kspell
+set shortmess+=c
 
 " add portuguese dictionary
 set spelllang+=pt_pt
@@ -95,6 +96,17 @@ augroup end
 command! -complete=file -nargs=1 -bar Remove :call delete(expand(<f-args>)) | bd #
 command! -complete=file -nargs=1 Rename try | saveas <args> | call delete(expand('#')) | bd # | endtry
 
+" run own bash programs
+command! Daily :silent !daily
+command! Prevday :silent !prevday
+command! Todos :silent !todos
+command! Habits :silent !habits
+command! Goals :silent !goals
+command! Workflow :silent !workflow
+command! Tech :silent !tech
+
+command! -nargs=1 Cmd :silent !cmd <args>
+
 " ============================================================
 " Netrw (file explorer)
 " ============================================================
@@ -125,14 +137,23 @@ nnoremap <leader>ve :e ~/.vimrc<CR>
 
 " Navigation
 nnoremap <silent> <leader>ls :Buffers<CR>
-nnoremap <silent> <leader>hc :History:<CR>
-nnoremap <silent> <C-p> :FZF<CR>
+nnoremap <silent> <C-p> :FzfBat<CR>
 nnoremap <silent> <C-j> :cnext<CR>
 nnoremap <silent> <C-k> :cprev<CR>
 
 " <leader> Mappings (like f1, f2,...)
 nnoremap <F1> :set spell!<CR>
 nnoremap <leader>2 :set paste<CR>i
+
+" ==========================================================
+" Run Code...
+" =========================================================
+augroup run_code
+  au!
+  au FileType sh xnoremap <leader>r yPgv:!bash<CR>
+  au FileType sh nnoremap <leader>rp vapyPgv:!bash<CR>
+augroup end
+
 " ==========================================================
 " Vimdiff
 " =========================================================
@@ -162,9 +183,12 @@ Plug 'ap/vim-css-color'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 
+" Status line
+Plug 'hoob3rt/lualine.nvim'
+Plug 'nvim-lua/lsp-status.nvim'
+
 " Util
 Plug 'tpope/vim-commentary'
-Plug 'hoob3rt/lualine.nvim'
 Plug 'vim-scripts/dbext.vim'
 Plug 'tpope/vim-fugitive'
 
@@ -186,7 +210,7 @@ Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': 
 call plug#end()
 
 " ==========================================================
-" Pandoc: Writing
+" Markdown Writing, Formatting
 " ==========================================================
 let g:pandoc#formatting#mode = 'ha'
 let g:pandoc#formatting#textwidth = 72
@@ -233,14 +257,25 @@ colorscheme gruvbox
 " StatusLine
 " ==========================================================
 lua << EOF
+local lsp_status = require("lsp-status")
+lsp_status.register_progress()
+
+lsp_status.config({
+  status_symbol = "",
+  indicator_errors = "E",
+  indicator_warnings = "W",
+  indicator_info = "I",
+  indicator_hint = "?",
+  indicator_ok = "OK",
+})
+
 require("lualine").setup({
-  options = {
-    theme = "gruvbox",
-  },
+  options = { theme = "gruvbox", section_separators = "", component_separators = "" },
+  section_separators = {},
   sections = {
     lualine_a = { "mode" },
     lualine_b = { "branch" },
-    lualine_c = { "filename" },
+    lualine_c = { "filename", lsp_status.status },
     lualine_x = { "encoding", "filetype" },
     lualine_y = { "progress" },
     lualine_z = { "location" },
@@ -253,6 +288,7 @@ require("lualine").setup({
     lualine_y = {},
     lualine_z = {},
   },
+  extensions = { "quickfix", "fzf" },
 })
 EOF
 
@@ -261,8 +297,12 @@ EOF
 " ==========================================================
 
 let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.8 } }
-
 let g:fzf_preview_window = ['right:70%']
+
+" Better FZF
+command! -bang -nargs=? -complete=dir FzfBat
+      \ call fzf#vim#files(<q-args>, {'options': ['--layout=reverse', '--info=inline', '--preview', 'bat --theme="gruvbox-dark" --color=always --style=numbers {}']}, <bang>0)
+
 function! RipgrepFzf(query, fullscreen)
   let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -w -- %s || true'
   let initial_command = printf(command_fmt, shellescape(a:query))
@@ -297,6 +337,7 @@ hi NonText guibg=none ctermbg=none
 hi EndOfBuffer guibg=none ctermbg=none
 hi SignColumn guibg=none ctermbg=none
 hi LineNr guibg=none ctermbg=none
+hi CursorLineNr guibg=none ctermbg=none
 
 " Color matching parenthesis
 hi MatchParen guibg=lightgray
@@ -331,7 +372,8 @@ inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
 " Lsp -- configs
-lua require("lsp")
+lua require("odas0r/lsp")
+lua require("odas0r/efm")
 
 " ==========================================================
 " Tree-sitter
@@ -360,6 +402,12 @@ augroup Format
   autocmd BufWritePost * FormatWrite
 augroup END
 
+" can't make it work with format.nvim
+augroup pgFormatter
+  au!
+  au BufWritePost *.sql if bufname('%')[-8:] != 'test.sql' | :%!pg_format -u 1 -s 2 -C -L
+augroup end
+
 lua << EOF
 require("format").setup({
   ["*"] = {
@@ -384,8 +432,8 @@ require("format").setup({
       tempfile_postfix = ".tmp",
     },
   },
-  json = {
-    { cmd = { "prettier -w" } },
+  sh = {
+    { cmd = { "shfmt -ci -s -bn -i 2 -w" } },
   },
   javascript = {
     { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
@@ -399,12 +447,24 @@ require("format").setup({
   typescriptreact = {
     { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
   },
-  sh = {
-    { cmd = { "shfmt -i 2 -w" } },
+  json = {
+    { cmd = { "fixjson -w", "prettier -w" } },
+  },
+  jsonc = {
+    { cmd = { "fixjson -w", "prettier -w" } },
+  },
+  html = {
+    { cmd = { "prettier -w" } },
+  },
+  css = {
+    { cmd = { "prettier -w" } },
+  },
+  scss = {
+    { cmd = { "prettier -w" } },
   },
   markdown = {
     {
-      cmd = { "shfmt -i 2 -w" },
+      cmd = { "shfmt -ci -s -bn -i 2 -w" },
       start_pattern = "^```bash$",
       end_pattern = "^```$",
       target = "current",
@@ -412,3 +472,4 @@ require("format").setup({
   },
 })
 EOF
+
