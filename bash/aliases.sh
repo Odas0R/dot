@@ -1,14 +1,6 @@
 #!/bin/bash
 
-# Shortcuts
-alias tech="vim ~/zet/tech.md"
-alias habits="vim ~/zet/habits.md"
-alias goals="vim ~/zet/goals.md"
-alias workflow="vim ~/zet/workflow.md"
-alias todos="vim ~/zet/todos.md"
-alias luamake=/home/odas0r/.config/nvim/lua-language-server/3rd/luamake/luamake
-
-# NeoVim
+# Vi
 alias vim="nvim"
 alias vi="nvim"
 alias v="nvim"
@@ -22,7 +14,7 @@ alias la="ls -la"
 alias ls="ls --format=single-column --classify --color --group-directories-first"
 alias ..="cd .."
 
-# cd doesn't work on shell scripts
+# you can't cd on the current shell process by "cd-ing" on a shell script
 # https://stackoverflow.com/questions/255414/why-cant-i-change-directories-using-cd-in-a-script
 jump() {
   [ -h "$MARKPATH/$1" ] && cd "$(readlink "${MARKPATH}/${1}")" || exit 1
