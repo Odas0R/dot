@@ -1,11 +1,9 @@
 #!/bin/bash
 
-set -e
-
 if [[ ! -x "$(command -v pip3)" ]]; then
   echo "You need to install pip3" >&2
   exit 1
 fi
 
 # install with pip
-pip install gitlint
+exec pip install gitlint
