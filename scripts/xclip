@@ -1,13 +1,23 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+# "xclip" is beeing used to clipboard-copy from nvim yanks, so this
+# script is to simulate xclip from different systems
 
 # Use clip.exe instead of xclip on windows
 if [ -n "$WSL_DISTRO_NAME" ]; then
-  clip.exe "$1"
+  clip.exe "$@"
   exit 0
 fi
 
+# Use pbcopy on macos
+if [[ $OSTYPE == "darwin"* ]]; then
+  pbcopy "$@"
+  exit 0
+fi
+
+# Other systems
 if [ ! -x "$(command -v xclip)" ]; then
   echo 'Need to install xclip: sudo apt install xclip'
   exit 1
 fi
-xclip "$1"
+xclip "$@"

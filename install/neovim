@@ -1,13 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
 curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
 mv nvim.appimage nvim
 chmod u+x ./nvim
-
-# Remove the old nvim app image
-sudo rm /usr/bin/nvim
 
 # Put the new app image on the /usr/bin to be globally available
 sudo mv ./nvim /usr/bin

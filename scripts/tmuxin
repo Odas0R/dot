@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -11,25 +11,6 @@ wallServer=$(markpath wall-server)
 # -n: window name
 # -d: "detach"
 # send-keys: C-m -> Enter Key
-
-# =============
-# Daily Session
-# =============
-#
-# Manage your daily tasks, todos & zet
-
-session="daily"
-if tmux has-session -t $session &>/dev/null; then
-  tmux kill-session -t "$session"
-fi
-
-tmux new-session -c "$zetPath" -s "$session" -n daily -d
-tmux send-keys -t "$session" "daily" C-m
-
-tmux split-window -c "$zetPath" -t "$session" -h
-tmux send-keys -t "$session" "todos" C-m
-
-tmux select-window -t :+1 \; last-pane
 
 # =====================
 # Wallstreeters Session
