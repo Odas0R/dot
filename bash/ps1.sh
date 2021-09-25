@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 parse_git_branch() {
   if ! git rev-parse HEAD -- >/dev/null 2>&1; then
@@ -9,7 +9,7 @@ parse_git_branch() {
 }
 
 # Prints 👻 if invalid command,🚀 if valid.
-PS1="\`if [ \$? = 0 ]; then echo "🚀"; else echo "👻"; fi\` "
+PS1='`if [ $? = 0 ]; then echo '🚀"; else echo "👻"; fi\` "
 PS1+="$start_print$cyan_bold$end_print/\W$start_print$end_theme$end_print"
 PS1+=" $start_print$purple_bold$end_print\$(parse_git_branch)$start_print$end_theme$end_print"
 PS1+="$ "

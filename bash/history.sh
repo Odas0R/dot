@@ -1,6 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# vi or die
 set -o vi
 
 # export HISTCONTROL=ignoreboth

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -10,20 +10,20 @@ is_in_git_repo || (echo "You're not in a git repo" && exit 1)
 
 # select the wanted branch
 branch=$(
-  git branch -a --color=always | grep -v '/HEAD\s' | sort |
-    fzf --ansi --multi --tac \
+  git branch -a --color=always | grep -v '/HEAD\s' | sort \
+    | fzf --ansi --multi --tac \
       --header 'Ctrl+d: Delete a local branch' \
       --bind 'ctrl-d:execute(tmux confirm -p "Do you want to remove branch {1}? [y/Y]" "neww git branch -D {1}")+reload(git branch -a --color=always | grep -v "/HEAD\s" | sort)' \
-      --preview 'git log --oneline --graph --date=short --color=always --pretty="format:%C(auto)%cd %h%d %s" $(sed s/^..// <<< {} | cut -d" " -f1)' |
-    sed 's/^..//' | cut -d' ' -f1 |
-    sed 's#^remotes/##'
+      --preview 'git log --oneline --graph --date=short --color=always --pretty="format:%C(auto)%cd %h%d %s" $(sed s/^..// <<< {} | cut -d" " -f1)' \
+    | sed 's/^..//' | cut -d' ' -f1 \
+    | sed 's#^remotes/##'
 )
 
 # exit if a branch wasn't selected
-[[ -z "$branch" ]] && exit 1
+[[ -z $branch ]] && exit 1
 
 # exit if you're already on the selected branch
-[[ "$branch" == "$(git rev-parse --abbrev-ref HEAD)" ]] && exit 1
+[[ $branch == "$(git rev-parse --abbrev-ref HEAD)" ]] && exit 1
 
 # checkout to selected branch
 # 1. Update all the branches/tags from all remotes

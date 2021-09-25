@@ -26,11 +26,11 @@ export CARGOPATH="/home/odas0r/.cargo"
 export PERLPATH="/home/odas0r/perl5"
 export PERL5LIB="/home/odas0r/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"
 export PERL_LOCAL_LIB_ROOT="/home/odas0r/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LIB_ROOT}}"
-export PERL_MB_OPT="--install_base \"/home/odas0r/perl5\""
+export PERL_MB_OPT='--install_base "/home/odas0r/perl5"'
 export PERL_MM_OPT="INSTALL_BASE=/home/odas0r/perl5"
 
 # Tools
 export LUA_LSP="$TOOLS/lua-language-server"
 
 # Global Path
-export PATH="$PATH:$GOROOT/bin:$GOPATH/bin:$CARGOPATH/bin:$PERLPATH/bin:$LOCAL_SCRIPTS:$LUA_LSP/bin/Linux"
+export PATH="$PATH:/bin:/usr/local/bin:$GOROOT/bin:$GOPATH/bin:$CARGOPATH/bin:$PERLPATH/bin:$LOCAL_SCRIPTS:$LUA_LSP/bin/Linux"

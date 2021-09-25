@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -6,12 +6,12 @@ file=$(
   fzf --preview 'bat --theme='gruvbox-dark'   --color=always --style=numbers {}'
 )
 
-if [[ -f "$file" ]]; then
-  if [[ "${file: -4}" =~ (.png|jpeg|gif) ]]; then
+if [[ -f $file ]]; then
+  if [[ ${file: -4} =~ (.png|jpeg|gif) ]]; then
     cd "$(dirname "$file")"
     open "$(basename "$file")"
     exit 0
   else
-    vim "$file"
+    nvim "$file"
   fi
 fi

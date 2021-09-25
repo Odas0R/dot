@@ -45,7 +45,7 @@ zet_new() {
 
 
 EOF
-  vim +3 "$file"
+  nvim +3 "$file"
 }
 
 # Creates a new file on the /books w/ a template.
@@ -58,7 +58,7 @@ zet_newbook() {
 
 
 EOF
-  vim +3 "$file"
+  nvim +3 "$file"
 }
 
 # Creates a new file on the /books w/ a template.
@@ -70,12 +70,12 @@ zet_newroutine() {
   if [[ -z "$fileName" ]]; then
     cd "$ROUTINES"
     lastFile="$(ls -lat | head -4 | tail -1 | awk '{print $9}')"
-    vim "$lastFile"
+    nvim "$lastFile"
   else
 
     # Creates a new routine
     touch "$file"
-    vim "$file"
+    nvim "$file"
   fi
 }
 
@@ -83,7 +83,7 @@ zet_find_routine() {
   # Opens a fzf panel with preview
   cd "$ROUTINES"
   file="$(fzf --preview 'bat --theme='gruvbox-dark'   --color=always {}')"
-  [[ -f "$file" ]] && vim "$file"
+  [[ -f "$file" ]] && nvim "$file"
 }
 
 zet_query() {
@@ -105,7 +105,7 @@ zet_query() {
       --delimiter : \
       --preview 'bat --theme='gruvbox-dark'   --color=always {1} --highlight-line {2}'
   )
-  [ -n "${selected[0]}" ] && vim "${selected[0]}" "+${selected[1]}"
+  [ -n "${selected[0]}" ] && nvim "${selected[0]}" "+${selected[1]}"
 }
 
 zet_orphans() {
@@ -133,7 +133,7 @@ zet_orphans() {
   cd - >/dev/null
 
   # open the file on the highlighted line
-  [[ -n "${selected[0]}" ]] && vim "${selected[0]}" "+${selected[1]}"
+  [[ -n "${selected[0]}" ]] && nvim "${selected[0]}" "+${selected[1]}"
 
   # clean-up
   rm -rf .orphans
@@ -263,7 +263,7 @@ esac
 # If it is a zet file, it will open it, otherwise creates a new file
 firstArg="$(find "$INBOX" -name "*.${1}.md")"
 if [ -n "$firstArg" ]; then
-  vim "$firstArg"
+  nvim "$firstArg"
 else
   zet_new "$@"
 fi
