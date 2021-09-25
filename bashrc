@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ -e /etc/bashrc ]; then
   source /etc/bashrc
@@ -9,9 +9,8 @@ for file in $HOME/.bash/*.sh; do
   . $file
 done
 
-# source all autocomplete
 for file in $HOME/.bash/autocomplete/*.sh; do
   . $file
 done
 
-alias luamake=/home/odas0r/.config/nvim/lua-language-server/3rd/luamake/luamake
+alias luamake=/Users/odas0r/tools/lua-language-server/3rd/luamake/luamake
