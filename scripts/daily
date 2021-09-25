@@ -6,7 +6,7 @@ currentDate=$(date +"%Y-%m-%d")
 file="${HOME}/zet/journal/${currentDate}.md"
 
 if [ -f "$file" ]; then
-  tmux popup -h80% -w50% -E nvim "$file"
+  popup nvim "$file"
 else
 
   # Append the daily template on the file
@@ -20,5 +20,5 @@ else
 EOF
 
   # Open the daily file
-  tmux popup -E nvim +6 "$file"
+  popup nvim +6 "$file"
 fi

@@ -4,5 +4,5 @@ set -e
 
 cmd="$(command -v "$1")"
 if [ -n "$cmd" ]; then
-  tmux popup -h80% -w50% -E nvim "$cmd"
+  popup nvim "$cmd"
 fi

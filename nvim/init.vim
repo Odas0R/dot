@@ -252,6 +252,7 @@ let g:gruvbox_termcolors=16
 let g:gruvbox_italic=1
 set background=dark
 colorscheme gruvbox
+set t_Co=256 " iterm shit
 
 " ==========================================================
 " StatusLine

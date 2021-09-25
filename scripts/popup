@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if [[ $OSTYPE == "darwin"* ]]; then
+  # On my apple machine make the popup bigger
+  tmux popup -h80% -w70% -E "$@"
+else
+  tmux popup -h80% -w50% -E "$@"
+fi

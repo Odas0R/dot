@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Vi
 alias vim="nvim"
@@ -11,7 +11,14 @@ alias sb="source ~/.bashrc"
 
 # Utils
 alias la="ls -la"
-alias ls="ls --format=single-column --classify --color --group-directories-first"
+
+if [[ $OSTYPE == "darwin"* ]]; then
+  alias ls="ls"
+  alias find="/usr/local/bin/gfind"
+else
+  alias ls="ls --format=single-column --classify --color --group-directories-first"
+fi
+
 alias ..="cd .."
 
 # you can't cd on the current shell process by "cd-ing" on a shell script
