@@ -1,25 +1,19 @@
 #!/usr/bin/env bash
 
 # Vi
-alias vim="nvim"
-alias vi="nvim"
-alias v="nvim"
 alias vimdiff="nvim -d"
 
-# Source bash
+# Utils
+alias ..="cd .."
+alias ls="ls --format=single-column --classify --color --group-directories-first"
+alias la="ls -la"
 alias sb="source ~/.bashrc"
 
-# Utils
-alias la="ls -la"
-
 if [[ $OSTYPE == "darwin"* ]]; then
-  alias ls="ls"
+  alias ls="/usr/local/bin/gls --format=single-column --classify --color --group-directories-first"
+  alias la="/usr/local/bin/gls --format=single-column --classify --color --group-directories-first -la"
   alias find="/usr/local/bin/gfind"
-else
-  alias ls="ls --format=single-column --classify --color --group-directories-first"
 fi
-
-alias ..="cd .."
 
 # you can't cd on the current shell process by "cd-ing" on a shell script
 # https://stackoverflow.com/questions/255414/why-cant-i-change-directories-using-cd-in-a-script

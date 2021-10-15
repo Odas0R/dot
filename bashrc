@@ -12,5 +12,3 @@ done
 for file in $HOME/.bash/autocomplete/*.sh; do
   . $file
 done
-
-alias luamake=/Users/odas0r/tools/lua-language-server/3rd/luamake/luamake
