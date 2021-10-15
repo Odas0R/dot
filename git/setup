@@ -1,11 +1,15 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 DOT_GIT="$HOME/dot/git"
 
-# Run this to
+# TODO: Understand more about this -- Add git templates?
 # git config --global init.templatedir '~/.git_templates'
-
 # ln -sf "$PWD/git_templates" "$HOME/.git_templates"
-ln -sf "$DOT_GIT/gitconfig" "$HOME/.gitconfig"
+
+if [[ $OSTYPE == "darwin"* ]]; then
+  ln -sf "$DOT_GIT/gitconfig_darwin" "$HOME/.gitconfig"
+else
+  ln -sf "$DOT_GIT/gitconfig" "$HOME/.gitconfig"
+fi
 
 printf "Git setup done! 🌟\n"

@@ -5,7 +5,7 @@
   followTags = true
 	default = current
 [core]
-  editor = vi
+  editor = nvim
 [init]
 	defaultBranch = main
 [alias]
@@ -14,7 +14,7 @@
 [credential "https://github.com"]
   helper = ! auth git-credential
 [merge]
-	tool = nvimdiff
+	tool = "nvim -d"
 	conflictstyle = diff3
 [mergetool]
 	prompt = false

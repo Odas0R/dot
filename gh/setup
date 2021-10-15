@@ -13,7 +13,11 @@ DOT_GH="$HOME/dot/gh"
 mkdir -p "$HOME/.config/gh"
 
 # create the symlink to the config
-ln -sf "$DOT_GH/config.yml" "$HOME/.config/gh/config.yml"
+if [[ $OSTYPE == "darwin"* ]]; then
+  ln -sf "$DOT_GH/config.darwin.yml" "$HOME/.config/gh/config.yml"
+else
+  ln -sf "$DOT_GH/config.yml" "$HOME/.config/gh/config.yml"
+fi
 
 echo "Don't forget to: gh auth login"
 
