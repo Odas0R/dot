@@ -1,0 +1,21 @@
+[user]
+  name = odas0R
+  email = g.rosado@campus.fct.unl.pt
+[push]
+  followTags = true
+	default = current
+[core]
+  editor = nvim
+[init]
+	defaultBranch = main
+[alias]
+  co = checkout
+  br = branch
+[credential]
+	helper = osxkeychain
+[merge]
+	tool = nvimdiff
+	conflictstyle = diff3
+[mergetool]
+	prompt = false
+	keepBackup = false
