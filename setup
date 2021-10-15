@@ -10,6 +10,12 @@ ln -sf "$HOME/dot/bashrc" "$HOME/.bashrc"
 ln -sf "$HOME/dot/inputrc" "$HOME/.inputrc"
 ln -sf "$HOME/dot/bash" "$HOME/.bash"
 
+# MacOS shit
+if [[ $OSTYPE == "darwin"* ]]; then
+  ln -sf "karabiner.json" "$HOME/.config/karabiner/karabiner.json"
+  ln -sf "tabnine_config.json" "/Users/odas0r/Library/Preferences/TabNine/tabnine_config.json"
+fi
+
 printf "Executing all setup scripts ✨...\n"
 
 readarray -d '' folders < <(
