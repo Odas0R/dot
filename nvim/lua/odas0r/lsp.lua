@@ -17,8 +17,8 @@ local on_attach = function(_, bufnr)
   buf_set_keymap("n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
   buf_set_keymap("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
   buf_set_keymap("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
-  buf_set_keymap("n", "J", "<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>", opts)
-  buf_set_keymap("n", "K", "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", opts)
+  buf_set_keymap("n", "K", "<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>", opts)
+  buf_set_keymap("n", "J", "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", opts)
 
   buf_set_keymap("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
   buf_set_keymap("n", "<leader>a", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
@@ -28,6 +28,25 @@ end
 require("lspconfig").tsserver.setup({
   on_attach = on_attach,
 })
+
+-- https://github.com/neovim/nvim-lspconfig/blob/master/CONFIG.md#java_language_server
+-- https://github.com/georgewfraser/java-language-server
+local home = os.getenv("HOME")
+require("lspconfig").java_language_server.setup({
+  on_attach = on_attach,
+  cmd = { home .. "/tools/javalsp/dist/lang_server_mac.sh" },
+  root_dir = function(fname)
+    return require("lspconfig").util.root_pattern("pom.xml", "gradle.build", ".git")(fname) or vim.fn.getcwd()
+  end,
+})
+
+-- require("lspconfig").jdtls.setup({
+--   on_attach = on_attach,
+--   cmd = { "jdtls" },
+--   root_dir = function(fname)
+--     return require("lspconfig").util.root_pattern("pom.xml", "gradle.build", ".git")(fname) or vim.fn.getcwd()
+--   end,
+-- })
 
 -- npm i -g vscode-langservers-extracted
 require("lspconfig").cssls.setup({})
