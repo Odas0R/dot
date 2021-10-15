@@ -1,8 +1,7 @@
 git_protocol: ssh
-editor: vim
+editor: nvim
 prompt: enabled
 pager: less
 aliases:
-  co: pr checkout
-browser: "'/mnt/c/Program
-Files/BraveSoftware/Brave-Browser/Application/brave.exe'"
+    co: pr checkout
+browser: "'/mnt/c/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe'"
