@@ -8,8 +8,7 @@ parse_git_branch() {
   fi
 }
 
-# Prints 👻 if invalid command,🚀 if valid.
-PS1='`if [ $? = 0 ]; then echo '🚀"; else echo "👻"; fi\` "
+PS1=$([[ $? = 0 ]] && echo "👋 " || echo "🐞 ")
 PS1+="$start_print$cyan_bold$end_print/\W$start_print$end_theme$end_print"
 PS1+=" $start_print$purple_bold$end_print\$(parse_git_branch)$start_print$end_theme$end_print"
 PS1+="$ "
