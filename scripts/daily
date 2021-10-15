@@ -13,12 +13,14 @@ else
   tee "$file" <<EOF >/dev/null
 # Journal Entry, ${currentDate}
 
-*Work so hard you want to quit every day.*
-*Be so hard you never fucking quit.*
+[Horário](~/zet/assets/horario.png)
 
+
+
+## Don't forget
 
 EOF
 
   # Open the daily file
-  popup nvim +6 "$file"
+  popup nvim +3 "$file"
 fi

@@ -2,7 +2,6 @@
 
 set -e
 
-zetPath=$(markpath zet)
 wallServer=$(markpath wall-server)
 
 # Tags Explanation
@@ -13,10 +12,10 @@ wallServer=$(markpath wall-server)
 # send-keys: C-m -> Enter Key
 
 # =====================
-# Wallstreeters Session
+# wallstreeters session
 # =====================
 #
-# Manage the project wallstreeters
+# manage the project wallstreeters
 
 session="wallstreeters"
 if tmux has-session -t $session &>/dev/null; then
@@ -24,17 +23,47 @@ if tmux has-session -t $session &>/dev/null; then
 fi
 
 tmux new-session -c "$wallServer" -s "$session" -n sql -d
-tmux send-keys -t "$session" "vf" C-m
+tmux send-keys -t "$session" "source ~/.bashrc && vf" C-m
 
 tmux split-window -c "$wallServer" -t "$session" -h
-tmux send-keys -t "$session" "vf" C-m
+tmux send-keys -t "$session" "source ~/.bashrc && vf" C-m
 
 tmux new-window -c "$wallServer" -t "$session"
-tmux split-window -c "$wallServer" -t "$session" -h
+# tmux split-window -c "$wallServer" -t "$session" -h
 
 tmux select-window -t :+1 \; last-pane
+
+# ======================================
+# ES class section
+# ======================================
+session="fct-es"
+if tmux has-session -t $session &>/dev/null; then
+  tmux kill-session -t "$session"
+fi
+
+tmux new-session -s "$session" -d
+
+# ======================================
+# IA class session
+# ======================================
+session="fct-ia"
+if tmux has-session -t $session &>/dev/null; then
+  tmux kill-session -t "$session"
+fi
+
+tmux new-session -s "$session" -d
+
+# ======================================
+# CGI class session
+# ======================================
+session="fct-cgi"
+if tmux has-session -t $session &>/dev/null; then
+  tmux kill-session -t "$session"
+fi
+
+tmux new-session -s "$session" -d
 
 # =================
 # Session to Attach
 # =================
-tmux attach-session -t "daily"
+# tmux attach-session -t "wallstreeters"

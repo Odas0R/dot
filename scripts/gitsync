@@ -1,32 +1,28 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-# This is a very simple automated add, commit, push that is run when you
-# open/cd a mark by using `ws`, and `jump`, if there's local changes that weren't
-# committed yet
+set -e
 
-syncRepos="dot zet"
+if [[ ! -d "$1" ]]; then
+  echo "the given path isn't a directory"
+  exit 1
+fi
 
-# Iterate through the repos to be sync
-sync() {
-  for repo in $syncRepos; do
-    # Check if repo exists
-    if [ ! -h "$MARKPATH/$repo" ]; then
-      echo "repo ${repo} does not exist, fix it."
-      exit 1
-    fi
+cd "$1"
 
-    # CD into the repo from the symlink
-    cd -P "$MARKPATH/$repo" || return
+if ! git rev-parse HEAD >/dev/null 2>&1; then
+  echo "the given path isn't a github repo"
+  exit 1
+fi
 
-    # Check if there are uncommitted changes
-    if [ -n "$(git status --porcelain)" ]; then
-      git add . && git commit -m "automated from gitsync... 🎉" -q &&
-        git pull -q && git push -q
-      # Go back
-      # cd -
-    fi
-  done
+function sync() {
+  # Check if there are uncommitted changes
+  if [ -n "$(git status --porcelain)" ]; then
+    git add .
+    git commit -m "automated/scripted commit and push " -q
+    git pull -q
+    git push -q
+  fi
 }
 
-# Run the command on the background, always
+# run the command on the background
 (sync &) &>/dev/null
