@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -e
+
+currentDate=""
+
+if [[ $OSTYPE == "darwin"* ]]; then
+  currentDate=$(gdate --date="next day" "+%Y-%m-%d")
+else
+  currentDate=$(date --date="next day" "+%Y-%m-%d")
+fi
+
+file="${HOME}/zet/journal/${currentDate}.md"
+
+if [ ! -f "$file" ]; then
+  # Append the daily template on the file
+  tee "$file" <<EOF >/dev/null
+# Journal Entry, ${currentDate}
+
+[Horário](~/zet/assets/horario.png)
+
+
+
+## Don't forget
+
+EOF
+fi
+
+# Open the daily file
+popup nvim +3 "$file"

@@ -2,20 +2,9 @@
 
 set -e
 
-# Opens the current routine. Your zet workflow:
-#
-# format: this-is-a-note.isotime.md
-#
-# [ ] Linking:          Link two zets w/ the $isotime (copy it w/ tmux selection)
-# [ ] Progress:         Tells you how much time you've worked in the past
-#                       week, month, year. Metrics for pomodoro
-# [ ] Orphans:          Finds all the notes that are orphans, notes that are
-#                       orphans don't contain "# Links" at the bottom of the file
-
-ZET="${HOME}/zet"
-INBOX="${ZET}/inbox"
-BOOKS="${ZET}/books"
-ROUTINES="${ZET}/routines"
+ZET=${HOME}/zet
+INBOX=${ZET}/inbox
+PROJECTS=${ZET}/projects
 
 print_help() {
   printf "
@@ -23,152 +12,160 @@ Zettelkasten program
 It is organized by inbox & permanent notes.
 
 Commands:
-  --help | -h           Show help commands
-  q  | query            Queries the zettels with Regex, you can filter by tags
-  o  | orpahns          Query ophan notes
-  l  | link             Links two zettels
-  nb | new-book         Creates a new file for book anotations
-  r  | rename           Renames the current zet from the '# title'
-  ro | routine          Opens the current routine
-  fr | find-routine     Opens a panel w/ preview to fuzzy-find a routine
+  help             Show help commands
+  query            Queries the zettels with Regex, you can filter by tags
+  orpahns          Query ophan notes
+  link             Links two zettels
+  new-book         Creates a new file for book anotations
+  books            Finds all books with fzf
+  proj             Finds, and create projects automatically for you
+  rename           Renames the current zet from the '# title'
 
 "
 }
 
-# Creates a new file on the /inbox w/ a template.
-zet_new() {
-  fileName=$(echo "$@" | sed "s/[?|!]//g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
-  file="${INBOX}/${fileName}.$(isosec).md"
+# Creates a new note with the given file and title
+create_note() {
+  file="$1"
+  title="$2"
 
-  tee "$file" <<EOF >/dev/null
-# $@
-
-
-EOF
-  nvim +3 "$file"
-}
-
-# Creates a new file on the /books w/ a template.
-zet_newbook() {
-  fileName=$(echo "$@" | sed "s/[?|!]//g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
-  file="${BOOKS}/${fileName}.md"
-
-  tee "$file" <<EOF >/dev/null
-# $@
-
-
-EOF
-  nvim +3 "$file"
-}
-
-# Creates a new file on the /books w/ a template.
-zet_newroutine() {
-  fileName=$(echo "$@" | sed "s/[?|!]//g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
-  file="${ROUTINES}/${fileName}.$(isosec).md"
-
-  # if there's no args opens the last routine
-  if [[ -z "$fileName" ]]; then
-    cd "$ROUTINES"
-    lastFile="$(ls -lat | head -4 | tail -1 | awk '{print $9}')"
-    nvim "$lastFile"
-  else
-
-    # Creates a new routine
-    touch "$file"
-    nvim "$file"
+  if [[ -z "$file" ]] || [[ -z "$title" ]]; then
+    echo "failed to create a note: invalid arguments"
+    exit 1
   fi
+
+  tee "$file" <<EOF >/dev/null
+# $title
+
+
+EOF
+  nvim +3 "$file"
 }
 
-zet_find_routine() {
-  # Opens a fzf panel with preview
-  cd "$ROUTINES"
-  file="$(fzf --preview 'bat --theme='gruvbox-dark'   --color=always {}')"
-  [[ -f "$file" ]] && nvim "$file"
-}
-
-zet_query() {
-  # -m NUM	: Stops reading a file after NUM matching lines
-  # w				: exact matches in a file
-  # Ctrl+f	: change to fzf for more precise findings
-
-  # example: https://github.com/junegunn/fzf/blob/master/ADVANCED.md#using-fzf-as-interative-ripgrep-launcher
-  cd "$INBOX"
-  RG_PREFIX="rg --column --line-number --no-heading --color=always --ignore-case -m 3 -w "
+# Querying workflow:
+#
+# 1. Query for specific words to get all files that contain that word
+# 2. Fuzzy find till you get what you want
+#
+# https://github.com/junegunn/fzf/blob/master/ADVANCED.md#using-fzf-as-interative-ripgrep-launcher
+# TODO: Remove the ```$query from the fzf search (ANNOYING ASF)
+query() {
   INITIAL_QUERY="${*:-}"
+
+  if [[ -z $INITIAL_QUERY ]]; then
+    echo "the query can't be empty"
+    exit 1
+  fi
+
+  # remove all the codeblocks -- bad for querying
+  #
+  # 1. remove codeblocks from all the files and put them into a
+  # /tmp/zet_query directory
+  # 2. query that directory
+  # 3. open the file on the previous directory
+  dir="/tmp/.zet_query"
+  [[ -d "$dir" ]] && rm -rf "$dir"
+
+  # clean up query files
+  mkdir -p "$dir"
+
+  # copy all files to the temporary directory
+  rg -l "$INITIAL_QUERY" | xargs -I{} cp {} "$dir"
+
+  cd "$dir"
+
+  # remove codeblocks
+  rg -l "$INITIAL_QUERY" | xargs -I{} sed -i -e '/^```/,/^```/d' {}
+
+  # clean up backup files
+  rm ./*.md-e
+
+  # query
+  FIRST_SEARCH="rg --column --line-number --no-heading --color=always --ignore-case "
   IFS=: read -ra selected < <(
-    FZF_DEFAULT_COMMAND="$RG_PREFIX $(printf %q "$INITIAL_QUERY")" \
+    eval "$FIRST_SEARCH $(printf %q "$INITIAL_QUERY")" |
       fzf --ansi \
-      --disabled --query "$INITIAL_QUERY" \
-      --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
-      --bind "ctrl-f:unbind(change,ctrl-f)+change-prompt(2. fzf> )+enable-search+clear-query" \
-      --prompt '1. ripgrep> ' \
-      --delimiter : \
-      --preview 'bat --theme='gruvbox-dark'   --color=always {1} --highlight-line {2}'
+        --multi \
+        --query "" \
+        --delimiter : \
+        --preview 'bat --theme='gruvbox-dark' --color=always {1} --highlight-line {2}'
   )
-  [ -n "${selected[0]}" ] && nvim "${selected[0]}" "+${selected[1]}"
+  [ -n "${selected[0]}" ] && nvim "${INBOX}/${selected[0]}" "+${selected[1]}"
 }
 
+# Creates a new file on the inbox/ with a default template
+#
+# It parses the given title so that it generates a nice filename for
+# easier access when querying.
+zet_new() {
+  fileName=$(echo "$@" | sed "s/[^a-zA-Z0-9]/ /g" | sed "s/[ ][ ]*/ /g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
+  file="${INBOX}/${fileName}.$(isosec).md"
+  create_note "$file" "$@"
+}
+
+# Queries all the files under the inbox/
+zet_query() {
+  cd "$INBOX"
+  query "$*"
+}
+
+# Queries all the files under the inbox/ that doesn't contain links
 zet_orphans() {
   cd "$INBOX"
 
   # copy all orphans into .orphans
   mkdir -p .orphans
   grep -iHnL "# Links" ./*.md* | cut -d: -f-1 | xargs -I{} cp {} .orphans
+
+  # go to the folder where the orphans are
   cd .orphans
 
-  RG_PREFIX="rg --column --line-number --no-heading --color=always --ignore-case -m 3 -w "
-  INITIAL_QUERY="${*:-}"
-  IFS=: read -ra selected < <(
-    FZF_DEFAULT_COMMAND="$RG_PREFIX $(printf %q "$INITIAL_QUERY")" \
-      fzf --ansi \
-      --disabled --query "$INITIAL_QUERY" \
-      --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
-      --bind "ctrl-f:unbind(change,ctrl-f)+change-prompt(2. fzf> )+enable-search+clear-query" \
-      --prompt '1. ripgrep> ' \
-      --delimiter : \
-      --preview 'bat --theme='gruvbox-dark'   --color=always {1} --highlight-line {2}'
-  )
-
-  # go back
-  cd - >/dev/null
-
-  # open the file on the highlighted line
-  [[ -n "${selected[0]}" ]] && nvim "${selected[0]}" "+${selected[1]}"
+  query "$*"
 
   # clean-up
+  cd - >/dev/null
   rm -rf .orphans
 }
 
+# Renames a given file with the title that is written on the first line
+# of the file.
 zet_rename() {
   if [[ ! -f "$1" ]]; then
     echo "The given file was not valid."
     exit 1
   fi
 
-  title="$(
+  title=$(
     head -n 1 "$1" |
-      sed 's/# //g' |
-      sed "s/[?|!|,]//g" |
+      sed "s/# //" |
+      sed "s/[^a-zA-Z0-9]/ /g" |
+      sed "s/[ ][ ]*/ /g" |
       sed "s/ /-/g" |
-      tr "[:upper:]" "[:lower:])"
-  )"
+      tr "[:upper:]" "[:lower:]"
+  )
   fileID="$(echo "$1" | cut -d '.' -f 2)"
+  file=""
 
-  file="${title}.${fileID}.md"
+  if [[ $fileID == "md" ]]; then
+    file="${title}.md"
+  else
+    file="${title}.${fileID}.md"
+  fi
 
   # create the new file, and delete the old one
-  oldFilePath="$(realpath "$(dirname "$1")")/$(basename "$1")"
-  newFilePath="$(realpath "$(dirname "$1")")/${file}"
+  oldFilePath=$(realpath "$(dirname "$1")")/$(basename "$1")
+  newFilePath=$(realpath "$(dirname "$1")")/${file}
 
   cat "$oldFilePath" >"$newFilePath"
+  echo "$oldFilePath"
   rm "$oldFilePath"
 
   echo "Note renamed to $newFilePath"
 }
 
+# TODO: Don't show the files on fzf that are already linked to the first
+# chosen file
 zet_link() {
-  # if there's args,
-
   # If no args open two fzf panels to select the files, and append the file1
   # url into the file2
   cd "$INBOX"
@@ -181,14 +178,10 @@ zet_link() {
     exit 1
   fi
 
-  fileOneTitle="$(head -n 1 "$fileOne")"
   fileTwoTitle="$(head -n 1 "$fileTwo")"
-
-  fileOneLink="* [${fileOneTitle### }](./${fileOne})"
   fileTwoLink="* [${fileTwoTitle### }](./${fileTwo})"
 
-  # Add '# Links' to each file to the bottom of the note if it doesn't
-  # exist
+  # Add '# Links' to the bottom of the note if it doesn't exist
   if [[ -z "$(grep -n "# Links" "$fileOne")" ]]; then
     if [[ -z "$(tail -1 "$fileOne")" ]]; then
       printf "# Links\n\n" >>"$fileOne"
@@ -196,32 +189,71 @@ zet_link() {
       printf "\n# Links\n\n" >>"$fileOne"
     fi
   fi
-  if [[ -z "$(grep -n "# Links" "$fileTwo")" ]]; then
-    if [[ -z "$(tail -1 "$fileTwo")" ]]; then
-      printf "# Links\n\n" >>"$fileTwo"
-    else
-      printf "\n# Links\n\n" >>"$fileTwo"
-    fi
-  fi
 
-  # add a \n to both files if '# Links' is in the last line
+  # add a \n if '# Links' is in the last line
   if [[ "$(tail -1 "$fileOne")" == "# Links" ]]; then
     echo >>"$fileOne"
-  fi
-  if [[ "$(tail -1 "$fileTwo")" == "# Links" ]]; then
-    echo >>"$fileTwo" # add a \n
   fi
 
   # Add the links on each file
   echo "$fileTwoLink" >>"$fileOne"
-  echo "$fileOneLink" >>"$fileTwo"
 }
 
-#
-# Zet Commands
-#
+zet_project() {
+  cd "$PROJECTS"
+
+  # if no args query all projects
+  if [[ -z "$1" ]]; then
+    file="$(fd -e md | fzf --preview 'bat --theme='gruvbox-dark' --color=always {}')"
+    nvim "$file"
+  fi
+
+  project="$1"
+  args="$2"
+
+  # if project exists and there's no title args, open fzf on that folder
+  if [[ -d "$project" ]] && [[ -z "$args" ]]; then
+    cd "$project"
+    file=$(fzf --preview 'bat --theme='gruvbox-dark' --color=always {}')
+    nvim "$file"
+    exit 0
+  fi
+
+  # if there's no project and there's no title args, create project
+  if [[ ! -d "$project" ]] && [[ -z "$args" ]]; then
+    read -r -p "${project} doesn't exists, want to create it?" yes
+    case "$yes" in
+    y | yes | ok | okay) exec mkdir "$project" ;;
+    *) exit 0 ;;
+    esac
+    echo "$project created"
+    exit 0
+  fi
+
+  # if there's no project and there's title args, create project and
+  # note
+  if [[ ! -d "$project" ]] && [[ -n "$args" ]]; then
+    read -r -p "project /$1 doesn't exist, should I create it? [y/Y]" yes
+    case "$yes" in
+    y | yes | ok | okay) mkdir "$project" ;;
+    *) exit 0 ;;
+    esac
+  fi
+
+  # if project exists and there's args create a new note
+  fileName=$(echo "${@:2}" | sed "s/[?|!]//g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
+  file="${project}/${fileName}.md"
+
+  tee "$file" <<EOF >/dev/null
+# ${@:2}
+
+
+EOF
+  nvim +3 "$file"
+}
+
 case $1 in
--h | --help)
+help)
   print_help
   exit 0
   ;;
@@ -233,28 +265,20 @@ q | query)
   zet_query "${@:2}"
   exit 0
   ;;
-l | link)
+link)
   zet_link "${@:2}"
   exit 0
   ;;
-o | orphans)
+orphans)
   zet_orphans "${@:2}"
   exit 0
   ;;
-nb | new-book)
-  zet_newbook "${@:2}"
+proj)
+  zet_project "${@:2}"
   exit 0
   ;;
-r | rename)
+rename)
   zet_rename "${@:2}"
-  exit 0
-  ;;
-ro | routine)
-  zet_newroutine "${@:2}"
-  exit 0
-  ;;
-fr | find-routine)
-  zet_find_routine
   exit 0
   ;;
 esac

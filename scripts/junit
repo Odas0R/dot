@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+junit="$HOME/.local/jars/junit-platform-console-standalone-1.8.1.jar"
+
+java -jar "$junit" "$@"

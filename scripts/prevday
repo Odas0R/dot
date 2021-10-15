@@ -1,6 +1,13 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-currentDate=$(date --date="yesterday" "+%Y-%m-%d")
+currentDate=""
+
+if [[ $OSTYPE == "darwin"* ]]; then
+  currentDate=$(gdate --date="yesterday" "+%Y-%m-%d")
+else
+  currentDate=$(date --date="yesterday" "+%Y-%m-%d")
+fi
+
 file="${HOME}/zet/journal/${currentDate}.md"
 
 popup nvim "$file"

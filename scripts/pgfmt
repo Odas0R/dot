@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if [[ ! -x "$(command -v pg_format)" ]]; then
+  echo "You need to install pg_format"
+  exit 1
+fi
+
+LANG=C pg_format -u 1 -s 2 -C -L
