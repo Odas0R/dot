@@ -26,7 +26,7 @@ snippet #! "#!/usr/bin/env (!env)" b
 `!p snip.rv = '#!/usr/bin/env ' + getShell() + "\n" `
 endsnippet
 
-snippet sbash "safe bash options" b
+snippet safe "safe bash options" b
 #!/usr/bin/env bash
 set -euo pipefail
 IFS=$'\n\t'
@@ -67,6 +67,18 @@ snippet f "function() {...}" b
 ${1:function} () {
 	${0:${VISUAL}}
 }
+endsnippet
+
+snippet [[ "if args" A
+[[ $0 ]]
+endsnippet
+
+
+snippet cmd "check if command exists" b
+if [[ ! -x "$(command -v ${1})" ]]; then
+	echo "You need to install ${0}"
+	exit 1
+fi
 endsnippet
 
 snippet setup "Setup bats test" b

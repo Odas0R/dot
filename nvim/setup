@@ -14,7 +14,6 @@ mkdir -p "$NVIM"
 
 # setups
 ln -sf "$HOME/dot/nvim/init.vim" "$NVIM/init.vim"
-ln -sf "$HOME/dot/nvim/init.vim" "$HOME/.vimrc"
 ln -sf "$HOME/dot/nvim/spell" "$NVIM/spell"
 
 # setup snippets

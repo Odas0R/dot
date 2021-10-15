@@ -10,7 +10,7 @@ set relativenumber
 set ruler
 set showmode
 set showcmd
-" set textwidth=72
+set tw=72 fo=cq wm=0 " no automatic wrapping, rewrapping will wrap to 72
 set tabstop=2
 set shiftwidth=2
 set softtabstop=2
@@ -23,6 +23,9 @@ set nofixendofline
 set foldmethod=manual
 set nofoldenable
 set laststatus=2
+" make :mkview ignore local bidings
+set viewoptions-=options
+
 
 match ErrorMsg '\s\+$'
 set shortmess=aoOtTI
@@ -82,9 +85,10 @@ set wildignore+=**/.supabase/*
 " ============================================================
 " Custom Settings per FileType
 " ============================================================
-augroup init_settings
-  au FileType markdown setl conceallevel=2 spell norelativenumber noautoindent textwidth=72
-  au FileType yaml setl ts=2 sts=2 sw=2 expandtab
+augroup custom_settings
+  au!
+  au FileType markdown setl conceallevel=2 spell norelativenumber tw=76
+  au BufRead *.env setl ft=config
 augroup end
 
 " ============================================================
@@ -98,12 +102,13 @@ command! -complete=file -nargs=1 Rename try | saveas <args> | call delete(expand
 
 " run own bash programs
 command! Daily :silent !daily
-command! Prevday :silent !prevday
+command! PrevDay :silent !prevday
 command! Todos :silent !todos
 command! Habits :silent !habits
 command! Goals :silent !goals
 command! Workflow :silent !workflow
 command! Tech :silent !tech
+command! NextDay :silent !nextday
 
 command! -nargs=1 Cmd :silent !cmd <args>
 
@@ -132,14 +137,21 @@ autocmd FileType netrw call NetrwMappings()
 
 let mapleader = ","
 
-nnoremap <leader>vu :so ~/.vimrc<CR>
-nnoremap <leader>ve :e ~/.vimrc<CR>
+nnoremap <leader>vu :so ~/.config/nvim/init.vim<CR>
+nnoremap <leader>ve :e ~/.config/nvim/init.vim<CR>
 
 " Navigation
 nnoremap <silent> <leader>ls :Buffers<CR>
+nnoremap <silent> <leader>hi :History:<CR>
 nnoremap <silent> <C-p> :FzfBat<CR>
+
+" Move through errors on qf panel
 nnoremap <silent> <C-j> :cnext<CR>
 nnoremap <silent> <C-k> :cprev<CR>
+
+" Move through buffers
+nnoremap <silent> L :bnext<CR>
+nnoremap <silent> H :bprev<CR>
 
 " <leader> Mappings (like f1, f2,...)
 nnoremap <F1> :set spell!<CR>
@@ -161,7 +173,7 @@ augroup end
 if &diff
   noremap <leader>1 :diffget LOCAL<CR>
   noremap <leader>2 :diffget BASE<CR>
-  noremap <leader>3 :diffget REMOTE<CR>:q
+  noremap <leader>3 :diffget REMOTE<CR>
   noremap <C-k> ]c
   noremap <C-j> [c
 endif
@@ -190,12 +202,13 @@ Plug 'nvim-lua/lsp-status.nvim'
 " Util
 Plug 'tpope/vim-commentary'
 Plug 'vim-scripts/dbext.vim'
-Plug 'tpope/vim-fugitive'
+" Plug 'tpope/vim-fugitive'
+Plug 'sindrets/diffview.nvim'
 
 " Lsp, Completion Engine
 Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-lua/completion-nvim'
-Plug 'aca/completion-tabnine', { 'do': './install.sh' }
+Plug 'aca/completion-tabnine', { 'do': 'version=3.1.9 ./install.sh' }
 
 " Formatter
 Plug 'lukas-reineke/format.nvim'
@@ -216,6 +229,12 @@ let g:pandoc#formatting#mode = 'ha'
 let g:pandoc#formatting#textwidth = 72
 let g:pandoc#toc#position = "bottom"
 autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
+
+augroup remember_folds
+  autocmd!
+  autocmd BufWinLeave *.* mkview
+  autocmd BufWinEnter *.* silent! loadview
+augroup END
 
 " ==========================================================
 " PSQL w/ dbext plugin
@@ -253,6 +272,15 @@ let g:gruvbox_italic=1
 set background=dark
 colorscheme gruvbox
 set t_Co=256 " iterm shit
+
+" ==========================================================
+" Git
+" ==========================================================
+lua << EOF
+require("diffview").setup({
+  use_icons = false,
+})
+EOF
 
 " ==========================================================
 " StatusLine
@@ -344,7 +372,7 @@ hi CursorLineNr guibg=none ctermbg=none
 hi MatchParen guibg=lightgray
 
 " ==========================================================
-" Completion & LSP
+" Completion, UltiSnips
 " ==========================================================
 
 set completeopt=menuone,noinsert,noselect
@@ -362,7 +390,7 @@ let g:completion_matching_strategy_list=['exact', 'substring', 'fuzzy']
 let g:completion_tabnine_sort_by_details=1
 let g:completion_chain_complete_list = {
       \ 'default': [
-        \    {'complete_items': ['lsp', 'snippet', 'tabnine' ]},
+        \    {'complete_items': ['lsp', 'tabnine', 'snippet']},
         \    {'mode': '<c-p>'},
         \    {'mode': '<c-n>'}
         \]
@@ -371,10 +399,6 @@ let g:completion_chain_complete_list = {
 " Use tab to navigate through the popup menu
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-
-" Lsp -- configs
-lua require("odas0r/lsp")
-lua require("odas0r/efm")
 
 " ==========================================================
 " Tree-sitter
@@ -406,10 +430,13 @@ augroup END
 " can't make it work with format.nvim
 augroup pgFormatter
   au!
-  au BufWritePost *.sql if bufname('%')[-8:] != 'test.sql' | :%!pg_format -u 1 -s 2 -C -L
+  au BufWritePost *.sql nnoremap <leader>f :%!LANG=C pg_format -u 1 -s 2 -C -L<cr>
 augroup end
 
+" let g:format_debug = v:true
+
 lua << EOF
+local home = os.getenv("HOME")
 require("format").setup({
   ["*"] = {
     { cmd = { "sed -i 's/[ \t]*$//'" }, tmpfile_dir = "/tmp/" }, -- remove trailing whitespace
@@ -427,6 +454,9 @@ require("format").setup({
       tmpfile_dir = "/tmp/",
     },
   },
+  java = {
+    { cmd = { "javafmt --skip-javadoc-formatting -r" }, tmpfile_dir = "/tmp/" },
+  },
   go = {
     {
       cmd = { "gofmt -w", "goimports -w" },
@@ -434,7 +464,7 @@ require("format").setup({
     },
   },
   sh = {
-    { cmd = { "shfmt -ci -s -bn -i 2 -w" } },
+    { cmd = { "shfmt -i 2 -w" } },
   },
   javascript = {
     { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
@@ -458,14 +488,14 @@ require("format").setup({
     { cmd = { "prettier -w" } },
   },
   css = {
-    { cmd = { "prettier -w" } },
+    { cmd = { "prettier -w", "stylelint --fix" } },
   },
   scss = {
-    { cmd = { "prettier -w" } },
+    { cmd = { "prettier -w", "stylelint --fix" } },
   },
   markdown = {
     {
-      cmd = { "shfmt -ci -s -bn -i 2 -w" },
+      { cmd = { "shfmt -i 2 -w" } },
       start_pattern = "^```bash$",
       end_pattern = "^```$",
       target = "current",
@@ -473,4 +503,3 @@ require("format").setup({
   },
 })
 EOF
-
