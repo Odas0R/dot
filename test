@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-if [ ! -x "$(command -v bats)" ]; then
-  echo 'Need to install bats' >&2
-  exit 1
-fi
-
-bats "./tests"
