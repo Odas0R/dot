@@ -1,7 +1,6 @@
 # Personal Dotfiles and Scripts
 
-Still under development -- install on any Debian/Ubuntu system.
+**WARNING**: Try at your own risk.
 
-* `./setup` to install
-* `./test` to test
+* go fearless mode: `./setup`
 
