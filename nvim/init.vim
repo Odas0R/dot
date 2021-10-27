@@ -21,17 +21,15 @@ set smarttab
 set expandtab
 set nofixendofline
 set foldmethod=manual
-set nofoldenable
 set laststatus=2
 " make :mkview ignore local bidings
 set viewoptions-=options
-
 
 match ErrorMsg '\s\+$'
 set shortmess=aoOtTI
 
 set hidden
-set history=100
+set history=1000
 set updatetime=100
 
 " highlight search hits
@@ -97,19 +95,6 @@ augroup end
 "* Useful: https://dev.to/dlains/create-your-own-vim-commands-415b
 " ============================================================
 
-command! -complete=file -nargs=1 -bar Remove :call delete(expand(<f-args>)) | bd #
-command! -complete=file -nargs=1 Rename try | saveas <args> | call delete(expand('#')) | bd # | endtry
-
-" run own bash programs
-command! Daily :silent !daily
-command! PrevDay :silent !prevday
-command! Todos :silent !todos
-command! Habits :silent !habits
-command! Goals :silent !goals
-command! Workflow :silent !workflow
-command! Tech :silent !tech
-command! NextDay :silent !nextday
-
 " ============================================================
 " File Explorer
 " ============================================================
@@ -128,6 +113,7 @@ command! NextDay :silent !nextday
 "   nmap <buffer> P <C-w>z
 "   nmap <buffer> <tab> mf
 " endfunction
+
 " autocmd FileType netrw call NetrwMappings()
 nnoremap \ :Defx `escape(expand('%:p:h'), ' :')` -search=`expand('%:p')`<CR>
 function! DefxMappings()
@@ -143,15 +129,15 @@ function! DefxMappings()
         \ defx#do_action('open')
   nnoremap <silent><buffer><expr> P
         \ defx#do_action('preview')
-  nnoremap <silent><buffer><expr> K
+  nnoremap <silent><buffer><expr> d
         \ defx#do_action('new_directory')
   nnoremap <silent><buffer><expr> N
         \ defx#do_action('new_file')
   nnoremap <silent><buffer><expr> M
         \ defx#do_action('new_multiple_files')
-  nnoremap <silent><buffer><expr> d
+  nnoremap <silent><buffer><expr> D
         \ defx#do_action('remove')
-  nnoremap <silent><buffer><expr> r
+  nnoremap <silent><buffer><expr> R
         \ defx#do_action('rename')
   nnoremap <silent><buffer><expr> !
         \ defx#do_action('execute_command')
@@ -199,14 +185,12 @@ endfunction
 " Bindings
 " ============================================================
 
-let mapleader = ","
+let g:mapleader = ","
 
 nnoremap <leader>vu :so ~/.config/nvim/init.vim<CR>
 nnoremap <leader>ve :e ~/.config/nvim/init.vim<CR>
 
 " Navigation
-nnoremap <silent> <leader>ls :Buffers<CR>
-nnoremap <silent> <leader>hi :History:<CR>
 nnoremap <silent> <C-p> :FzfBat<CR>
 
 " Move through errors on qf panel
@@ -218,8 +202,22 @@ nnoremap <silent> L :bnext<CR>
 nnoremap <silent> H :bprev<CR>
 
 " <leader> Mappings (like f1, f2,...)
-nnoremap <silent> <F1> :set spell!<CR>
+nnoremap <silent> <leader>1 :set spell!<CR>
 nnoremap <silent> <leader>p :set paste!<CR>
+
+" Open a control-version diff viewer
+nnoremap <leader>diff :DiffviewOpen<CR>
+nnoremap <leader>q :DiffviewClose<CR>
+
+" Move thorough vimdiff
+if &diff
+  nnoremap <leader>1 :diffget LOCAL<CR>
+  nnoremap <leader>2 :diffget BASE<CR>
+  nnoremap <leader>3 :diffget REMOTE<CR>
+  map <C-k> ]x
+  map <C-j> [x
+  nnoremap <leader>q :wqa<CR>
+endif
 
 " ==========================================================
 " Run Code...
@@ -238,9 +236,7 @@ call plug#begin()
 
 " Syntax, Highlighting
 Plug 'gruvbox-community/gruvbox'
-Plug 'sheerun/vim-polyglot'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-Plug 'lifepillar/pgsql.vim'
 Plug 'ap/vim-css-color'
 
 " Find, Fuzzy
@@ -248,20 +244,34 @@ Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 
 " Status line
-Plug 'hoob3rt/lualine.nvim'
+Plug 'nvim-lualine/lualine.nvim'
 Plug 'nvim-lua/lsp-status.nvim'
 
-" Util
+" Utils
 Plug 'tpope/vim-commentary'
-Plug 'vim-scripts/dbext.vim'
+Plug 'suy/vim-context-commentstring'
+Plug 'maxmellon/vim-jsx-pretty'
+Plug 'nvim-lua/plenary.nvim'
+
+" Git
 Plug 'sindrets/diffview.nvim'
-Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'rhysd/conflict-marker.vim'
+
+" newtr replacement because newtr sucks
+Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
 
 " Lsp, Completion Engine
 Plug 'neovim/nvim-lspconfig'
-Plug 'nvim-lua/completion-nvim'
-Plug 'aca/completion-tabnine', { 'do': 'version=3.1.9 ./install.sh' }
+Plug 'onsails/lspkind-nvim'
+
+" Completion
+Plug 'hrsh7th/nvim-cmp'
+Plug 'hrsh7th/cmp-buffer'
+Plug 'hrsh7th/cmp-path'
+Plug 'hrsh7th/cmp-nvim-lua'
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'tzachar/cmp-tabnine', { 'do': './install.sh' }
+Plug 'quangnguyen30192/cmp-nvim-ultisnips'
 
 " Formatter
 Plug 'lukas-reineke/format.nvim'
@@ -271,7 +281,6 @@ Plug 'sirver/UltiSnips'
 
 " Writing
 Plug 'vim-pandoc/vim-pandoc'
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 
 call plug#end()
 
@@ -288,28 +297,6 @@ augroup remember_folds
   autocmd BufWinLeave *.* mkview
   autocmd BufWinEnter *.* silent! loadview
 augroup END
-
-" ==========================================================
-" PSQL w/ dbext plugin
-" ==========================================================
-let g:sql_type_default = 'pgsql'
-
-" dbext -- :h dbext-tutorial
-" <leader>sbp - select db conn
-" <leader>se - execute
-" <leader>sel - execute line
-" <leader>st - display contents of table
-" <leader>sT - display contents of table (prompts the nr of rows)
-"
-" <leader>stw - display contents of table (prompts to write the where clause)
-" <leader>sta - display contents of table (prompts to write tb name)
-" <leader>sdt - describe a object
-" <leader>sdt+ - describe a object w/ more info (index on the table etc)
-let g:dbext_default_profile_wallstreeters = 'type=PGSQL:user=postgres:dbname=postgres:host=localhost:port=5432'
-augroup wallstreeters
-  au!
-  autocmd BufRead */wallstreeters/server/* DBSetOption profile=wallstreeters
-augroup end
 
 " ==========================================================
 " Colorscheme
@@ -353,53 +340,6 @@ highlight ConflictMarkerOurs guibg=#2e5049
 highlight ConflictMarkerTheirs guibg=#344f69
 highlight ConflictMarkerEnd guibg=#2f628e
 highlight ConflictMarkerCommonAncestorsHunk guibg=#754a81
-
-if &diff
-  noremap <leader>1 :diffget LOCAL<CR>
-  noremap <leader>2 :diffget BASE<CR>
-  noremap <leader>3 :diffget REMOTE<CR>
-  noremap <C-k> ]x
-  noremap <C-j> [x
-endif
-
-" ==========================================================
-" StatusLine
-" ==========================================================
-lua << EOF
-local lsp_status = require("lsp-status")
-lsp_status.register_progress()
-
-lsp_status.config({
-  status_symbol = "",
-  indicator_errors = "E",
-  indicator_warnings = "W",
-  indicator_info = "I",
-  indicator_hint = "?",
-  indicator_ok = "OK",
-})
-
-require("lualine").setup({
-  options = { theme = "gruvbox", section_separators = "", component_separators = "" },
-  section_separators = {},
-  sections = {
-    lualine_a = { "mode" },
-    lualine_b = { "branch" },
-    lualine_c = { "filename", lsp_status.status },
-    lualine_x = { "encoding", "filetype" },
-    lualine_y = { "progress" },
-    lualine_z = { "location" },
-  },
-  inactive_sections = {
-    lualine_a = {},
-    lualine_b = {},
-    lualine_c = { "filename" },
-    lualine_x = { "location" },
-    lualine_y = {},
-    lualine_z = {},
-  },
-  extensions = { "quickfix", "fzf" },
-})
-EOF
 
 " ==========================================================
 " FZF
@@ -455,30 +395,16 @@ hi MatchParen guibg=lightgray
 " Completion, UltiSnips
 " ==========================================================
 
+" Please read `:help ins-completion`.
+
 set completeopt=menuone,noinsert,noselect
 
-autocmd BufEnter * lua require'completion'.on_attach()
-
+" UltiSnips
 let g:UltinipsExpandTrigger="<tab>"
 let g:UltiSnipsEditSplit="vertical"
 let g:UltiSnipsSnippetDirectories=["~/snippets/ultisnips"]
 let g:UltiSnipsJumpForwardTrigger='<c-j>'
 let g:UltiSnipsJumpBackwardTrigger='<c-k>'
-
-let g:completion_enable_snippet = 'UltiSnips'
-let g:completion_matching_strategy_list=['exact', 'substring', 'fuzzy']
-let g:completion_tabnine_sort_by_details=1
-let g:completion_chain_complete_list = {
-      \ 'default': [
-        \    {'complete_items': ['lsp', 'tabnine', 'snippet']},
-        \    {'mode': '<c-p>'},
-        \    {'mode': '<c-n>'}
-        \]
-        \}
-
-" Use tab to navigate through the popup menu
-inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
-inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
 " ==========================================================
 " Tree-sitter
@@ -497,89 +423,8 @@ require("nvim-treesitter.configs").setup({
 })
 EOF
 
-
-" ==========================================================
-" Formatters
-" ==========================================================
-
+" let g:format_debug = v:true
 augroup Format
   autocmd!
   autocmd BufWritePost * FormatWrite
 augroup END
-
-" can't make it work with format.nvim
-augroup pgFormatter
-  au!
-  au BufWritePost *.sql nnoremap <leader>f :%!LANG=C pg_format -u 1 -s 2 -C -L<cr>
-augroup end
-
-" let g:format_debug = v:true
-
-lua << EOF
-local home = os.getenv("HOME")
-require("format").setup({
-  ["*"] = {
-    { cmd = { "sed -i 's/[ \t]*$//'" }, tmpfile_dir = "/tmp/" }, -- remove trailing whitespace
-  },
-  vim = {
-    {
-      cmd = { "stylua --indent-type Spaces --indent-width 2" },
-      start_pattern = "^lua << EOF$",
-      end_pattern = "^EOF$",
-    },
-  },
-  lua = {
-    {
-      cmd = { "stylua --indent-type Spaces --indent-width 2" },
-      tmpfile_dir = "/tmp/",
-    },
-  },
-  java = {
-    { cmd = { "javafmt --skip-javadoc-formatting -r" }, tmpfile_dir = "/tmp/" },
-  },
-  go = {
-    {
-      cmd = { "gofmt -w", "goimports -w" },
-      tempfile_postfix = ".tmp",
-    },
-  },
-  sh = {
-    { cmd = { "shfmt -i 2 -w" } },
-  },
-  javascript = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
-  },
-  javascriptreact = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
-  },
-  typescript = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
-  },
-  typescriptreact = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
-  },
-  json = {
-    { cmd = { "fixjson -w", "prettier -w" } },
-  },
-  jsonc = {
-    { cmd = { "fixjson -w", "prettier -w" } },
-  },
-  html = {
-    { cmd = { "prettier -w" } },
-  },
-  css = {
-    { cmd = { "prettier -w", "stylelint --fix" } },
-  },
-  scss = {
-    { cmd = { "prettier -w", "stylelint --fix" } },
-  },
-  markdown = {
-    {
-      { cmd = { "shfmt -i 2 -w" } },
-      start_pattern = "^```bash$",
-      end_pattern = "^```$",
-      target = "current",
-    },
-  },
-})
-EOF
