@@ -2,9 +2,18 @@
 
 set -e
 
+# install nvim on osx
+
+if [[ $OSTYPE == "darwin"* ]]; then
+  brew install --HEAD luajit
+  brew install --HEAD neovim
+  exit 0
+fi
+
+# install nvim on debian
+
 curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
 mv nvim.appimage nvim
 chmod u+x ./nvim
 
-# Put the new app image on the /usr/bin to be globally available
 sudo mv ./nvim /usr/bin

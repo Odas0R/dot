@@ -110,26 +110,90 @@ command! Workflow :silent !workflow
 command! Tech :silent !tech
 command! NextDay :silent !nextday
 
-command! -nargs=1 Cmd :silent !cmd <args>
-
 " ============================================================
-" Netrw (file explorer)
+" File Explorer
 " ============================================================
-nnoremap \ :Explore<CR>
-let g:netrw_browsex_viewer="cmd.exe /C start"
-let g:netrw_banner = 0
-let g:netrw_liststyle = 3
-let g:netrw_keepdir = 1
-let g:netrw_list_hide = &wildignore
-let g:netrw_localrmdir='rm -r'
+" nnoremap \ :Explore<CR>
+" let g:netrw_browsex_viewer="cmd.exe /C start"
+" let g:netrw_banner = 0
+" let g:netrw_liststyle = 3
+" let g:netrw_keepdir = 1
+" let g:netrw_list_hide = &wildignore
+" " this shit does not work
+" let g:netrw_localrmdir='rm -rf'
 
-function! NetrwMappings()
-  nmap <buffer> . gh
-  nmap <buffer> l <CR>
-  nmap <buffer> P <C-w>z
-  nmap <buffer> <tab> mf
+" function! NetrwMappings()
+"   nmap <buffer> . gh
+"   nmap <buffer> l <CR>
+"   nmap <buffer> P <C-w>z
+"   nmap <buffer> <tab> mf
+" endfunction
+" autocmd FileType netrw call NetrwMappings()
+nnoremap \ :Defx `escape(expand('%:p:h'), ' :')` -search=`expand('%:p')`<CR>
+function! DefxMappings()
+  nnoremap <silent><buffer><expr> c
+        \ defx#do_action('copy')
+  nnoremap <silent><buffer><expr> m
+        \ defx#do_action('move')
+  nnoremap <silent><buffer><expr> p
+        \ defx#do_action('paste')
+  nnoremap <silent><buffer><expr> l
+        \ defx#do_action('open_tree', 'toggle')
+  nnoremap <silent><buffer><expr> <CR>
+        \ defx#do_action('open')
+  nnoremap <silent><buffer><expr> P
+        \ defx#do_action('preview')
+  nnoremap <silent><buffer><expr> K
+        \ defx#do_action('new_directory')
+  nnoremap <silent><buffer><expr> N
+        \ defx#do_action('new_file')
+  nnoremap <silent><buffer><expr> M
+        \ defx#do_action('new_multiple_files')
+  nnoremap <silent><buffer><expr> d
+        \ defx#do_action('remove')
+  nnoremap <silent><buffer><expr> r
+        \ defx#do_action('rename')
+  nnoremap <silent><buffer><expr> !
+        \ defx#do_action('execute_command')
+  " open directory on finder
+  nnoremap <silent><buffer><expr> o
+        \ defx#do_action('execute_system')
+  nnoremap <silent><buffer><expr> yy
+        \ defx#do_action('yank_path')
+  nnoremap <silent><buffer><expr> .
+        \ defx#do_action('toggle_ignored_files')
+  nnoremap <silent><buffer><expr> h
+        \ defx#do_action('cd', ['..'])
+  nnoremap <silent><buffer><expr> q
+        \ defx#do_action('quit')
+  nnoremap <silent><buffer><expr> <Tab>
+        \ defx#do_action('toggle_select') . 'j'
+  nnoremap <silent><buffer><expr> <C-7>
+        \ defx#do_action('toggle_select_all')
+  nnoremap <silent><buffer><expr> j
+        \ line('.') == line('$') ? 'gg' : 'j'
+  nnoremap <silent><buffer><expr> k
+        \ line('.') == 1 ? 'G' : 'k'
+  nnoremap <silent><buffer><expr> <C-l>
+        \ defx#do_action('redraw')
 endfunction
-autocmd FileType netrw call NetrwMappings()
+autocmd FileType defx call DefxMappings()
+
+" open defx automatically when :edit a directory
+autocmd BufEnter,VimEnter,BufNew,BufWinEnter,BufRead,BufCreate
+      \ * if isdirectory(expand('<amatch>'))
+      \   | call s:browse_check(expand('<amatch>')) | endif
+
+function! s:browse_check(path) abort
+  if bufnr('%') != expand('<abuf>')
+    return
+  endif
+  " Disable netrw.
+  augroup FileExplorer
+    autocmd!
+  augroup END
+  execute 'Defx' a:path
+endfunction
 
 " ============================================================
 " Bindings
@@ -154,8 +218,8 @@ nnoremap <silent> L :bnext<CR>
 nnoremap <silent> H :bprev<CR>
 
 " <leader> Mappings (like f1, f2,...)
-nnoremap <F1> :set spell!<CR>
-nnoremap <leader>2 :set paste<CR>i
+nnoremap <silent> <F1> :set spell!<CR>
+nnoremap <silent> <leader>p :set paste!<CR>
 
 " ==========================================================
 " Run Code...
@@ -165,18 +229,6 @@ augroup run_code
   au FileType sh xnoremap <leader>r yPgv:!bash<CR>
   au FileType sh nnoremap <leader>rp vapyPgv:!bash<CR>
 augroup end
-
-" ==========================================================
-" Vimdiff
-" =========================================================
-
-if &diff
-  noremap <leader>1 :diffget LOCAL<CR>
-  noremap <leader>2 :diffget BASE<CR>
-  noremap <leader>3 :diffget REMOTE<CR>
-  noremap <C-k> ]c
-  noremap <C-j> [c
-endif
 
 " ==========================================================
 " Plugins
@@ -202,8 +254,9 @@ Plug 'nvim-lua/lsp-status.nvim'
 " Util
 Plug 'tpope/vim-commentary'
 Plug 'vim-scripts/dbext.vim'
-" Plug 'tpope/vim-fugitive'
 Plug 'sindrets/diffview.nvim'
+Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'rhysd/conflict-marker.vim'
 
 " Lsp, Completion Engine
 Plug 'neovim/nvim-lspconfig'
@@ -281,6 +334,33 @@ require("diffview").setup({
   use_icons = false,
 })
 EOF
+
+" Conflict Marker
+let g:conflict_marker_begin = '^<<<<<<< \@='
+let g:conflict_marker_common_ancestors = '^||||||| .*$'
+let g:conflict_marker_separator = '^=======$'
+let g:conflict_marker_end   = '^>>>>>>> \@='
+let g:conflict_marker_enable_highlight = 1
+let g:conflict_marker_highlight_group = 'Error'
+
+
+" Include text after begin and end markers
+let g:conflict_marker_begin = '^<<<<<<< .*$'
+let g:conflict_marker_end   = '^>>>>>>> .*$'
+
+highlight ConflictMarkerBegin guibg=#2f7366
+highlight ConflictMarkerOurs guibg=#2e5049
+highlight ConflictMarkerTheirs guibg=#344f69
+highlight ConflictMarkerEnd guibg=#2f628e
+highlight ConflictMarkerCommonAncestorsHunk guibg=#754a81
+
+if &diff
+  noremap <leader>1 :diffget LOCAL<CR>
+  noremap <leader>2 :diffget BASE<CR>
+  noremap <leader>3 :diffget REMOTE<CR>
+  noremap <C-k> ]x
+  noremap <C-j> [x
+endif
 
 " ==========================================================
 " StatusLine

@@ -42,6 +42,11 @@ EOF
   nvim +3 "$file"
 }
 
+query_fzf() {
+  file=$(fd -e md | fzf --preview 'bat --theme='gruvbox-dark' --color=always {}')
+  [[ -n "$file" ]] && nvim "$file"
+}
+
 # Querying workflow:
 #
 # 1. Query for specific words to get all files that contain that word
@@ -100,7 +105,9 @@ query() {
 zet_new() {
   fileName=$(echo "$@" | sed "s/[^a-zA-Z0-9]/ /g" | sed "s/[ ][ ]*/ /g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
   file="${INBOX}/${fileName}.$(isosec).md"
-  create_note "$file" "$@"
+  title="${*}"
+
+  create_note "$file" "$title"
 }
 
 # Queries all the files under the inbox/
@@ -157,10 +164,10 @@ zet_rename() {
   newFilePath=$(realpath "$(dirname "$1")")/${file}
 
   cat "$oldFilePath" >"$newFilePath"
-  echo "$oldFilePath"
+  # echo "$oldFilePath"
   rm "$oldFilePath"
 
-  echo "Note renamed to $newFilePath"
+  # echo "Note renamed to $newFilePath"
 }
 
 # TODO: Don't show the files on fzf that are already linked to the first
@@ -204,23 +211,15 @@ zet_project() {
 
   # if no args query all projects
   if [[ -z "$1" ]]; then
-    file="$(fd -e md | fzf --preview 'bat --theme='gruvbox-dark' --color=always {}')"
-    nvim "$file"
+    echo "cannot recieve empty arguments"
+    exit 1
   fi
 
   project="$1"
-  args="$2"
+  title="$2"
 
-  # if project exists and there's no title args, open fzf on that folder
-  if [[ -d "$project" ]] && [[ -z "$args" ]]; then
-    cd "$project"
-    file=$(fzf --preview 'bat --theme='gruvbox-dark' --color=always {}')
-    nvim "$file"
-    exit 0
-  fi
-
-  # if there's no project and there's no title args, create project
-  if [[ ! -d "$project" ]] && [[ -z "$args" ]]; then
+  # if there's no project and there's no title , create project
+  if [[ ! -d "$project" ]] && [[ -z "$title" ]]; then
     read -r -p "${project} doesn't exists, want to create it?" yes
     case "$yes" in
     y | yes | ok | okay) exec mkdir "$project" ;;
@@ -228,6 +227,12 @@ zet_project() {
     esac
     echo "$project created"
     exit 0
+  fi
+
+  # if project exists and there's no title , open fzf on that folder
+  if [[ -d "$project" ]] && [[ -z "$title" ]]; then
+    echo "note title cannot be empty"
+    exit 1
   fi
 
   # if there's no project and there's title args, create project and
@@ -241,18 +246,29 @@ zet_project() {
   fi
 
   # if project exists and there's args create a new note
-  fileName=$(echo "${@:2}" | sed "s/[?|!]//g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
-  file="${project}/${fileName}.md"
+  fileName=$(echo "${@:2}" | sed "s/[^a-zA-Z0-9]/ /g" | sed "s/[ ][ ]*/ /g" | sed "s/ /-/g" | tr "[:upper:]" "[:lower:]")
+  file="${project}/${fileName}.$(isosec).md"
+  title="${*:2}"
 
-  tee "$file" <<EOF >/dev/null
-# ${@:2}
-
-
-EOF
-  nvim +3 "$file"
+  create_note "$file" "$title"
 }
 
-case $1 in
+zet_query_project() {
+  local project="$HOME/zet/projects/$1"
+
+  # if project does not exist exit
+  if [[ ! -d "$project" ]]; then
+    echo "project does not exist"
+    exit 1
+  fi
+
+  # query the project
+  cd "$project"
+  query_fzf
+  # query "${*:2}"
+}
+
+case "$1" in
 help)
   print_help
   exit 0
@@ -265,6 +281,10 @@ q | query)
   zet_query "${@:2}"
   exit 0
   ;;
+qp | query-project)
+  zet_query_project "${@:2}"
+  exit 0
+  ;;
 link)
   zet_link "${@:2}"
   exit 0
@@ -273,7 +293,7 @@ orphans)
   zet_orphans "${@:2}"
   exit 0
   ;;
-proj)
+p | project)
   zet_project "${@:2}"
   exit 0
   ;;

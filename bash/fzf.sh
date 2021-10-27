@@ -15,6 +15,7 @@ export FZF_ALT_C_COMMAND="fd --type d ${FD_OPTIONS}"
 
 # Bindings
 bind -x '"\C-p": vf'
+bind -x '"\\": nvim .'
 
 # To install fd
 # sudo apt install fd-find
