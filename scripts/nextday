@@ -17,14 +17,8 @@ if [ ! -f "$file" ]; then
   tee "$file" <<EOF >/dev/null
 # Journal Entry, ${currentDate}
 
-[Horário](~/zet/assets/horario.png)
-
-
-
-## Don't forget
-
 EOF
 fi
 
 # Open the daily file
-popup nvim +3 "$file"
+popup nvim +2 "$file"

@@ -13,14 +13,8 @@ else
   tee "$file" <<EOF >/dev/null
 # Journal Entry, ${currentDate}
 
-[Horário](~/zet/assets/horario.png)
-
-
-
-## Don't forget
-
 EOF
 
   # Open the daily file
-  popup nvim +3 "$file"
+  popup nvim +2 "$file"
 fi

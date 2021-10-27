@@ -41,7 +41,7 @@ if tmux has-session -t $session &>/dev/null; then
   tmux kill-session -t "$session"
 fi
 
-tmux new-session -s "$session" -d
+tmux new-session -c "$(markpath es)" -s "$session" -d
 
 # ======================================
 # IA class session
@@ -51,7 +51,7 @@ if tmux has-session -t $session &>/dev/null; then
   tmux kill-session -t "$session"
 fi
 
-tmux new-session -s "$session" -d
+tmux new-session -c "$(markpath ia)" -s "$session" -d
 
 # ======================================
 # CGI class session
@@ -61,7 +61,17 @@ if tmux has-session -t $session &>/dev/null; then
   tmux kill-session -t "$session"
 fi
 
-tmux new-session -s "$session" -d
+tmux new-session -c "$(markpath cgi)" -s "$session" -d
+
+# ======================================
+# RC class session
+# ======================================
+session="fct-rc"
+if tmux has-session -t $session &>/dev/null; then
+  tmux kill-session -t "$session"
+fi
+
+tmux new-session -c "$(markpath rc)" -s "$session" -d
 
 # =================
 # Session to Attach

@@ -5,4 +5,11 @@ if [[ ! -x "$(command -v pg_format)" ]]; then
   exit 1
 fi
 
-LANG=C pg_format -u 1 -s 2 -C -L
+LANG=C pg_format \
+  --spaces 2 \
+  --comma-start \
+  --keyword-case 1 \
+  --wrap-comment \
+  --wrap-limit 70 \
+  --nogrouping \
+  --no-extra-line

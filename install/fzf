@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
+set -e
+
 if [[ $OSTYPE == "darwin"* ]]; then
   brew install fzf
-
   # To install useful key bindings and fuzzy completion:
   $(brew --prefix)/opt/fzf/install
 else
