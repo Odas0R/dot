@@ -1,5 +1,10 @@
+-- setup lspkind
 local lspkind = require("lspkind")
-lspkind.init()
+
+-- remove all icons from lspkind
+for k, _ in pairs(lspkind.presets["default"]) do
+  lspkind.presets["default"][k] = ""
+end
 
 -- Setup nvim-cmp.
 local cmp = require("cmp")
