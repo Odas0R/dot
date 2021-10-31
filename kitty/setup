@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -e
+
+KITTY="$HOME/.config/kitty"
+
+mkdir -p "$KITTY"
+
+# create symlinks for the config & theme files
+ln -sf "$HOME/dot/kitty/kitty.conf" "$KITTY/kitty.conf"
+ln -sf "$HOME/dot/kitty/theme.conf" "$KITTY/theme.conf"
+
+echo "Kitty setup done! ⭐"
