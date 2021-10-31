@@ -3,6 +3,11 @@
 # Vi
 alias vimdiff="nvim -d"
 
+# Shortcuts
+alias fonts="open ~/.local/share/fonts"
+alias horario="open ~/zet/assets/horario.png"
+alias kitty="nvim ~/.config/kitty/kitty.conf"
+
 # Utils
 alias ..="cd .."
 alias ls="ls --format=single-column --classify --color --group-directories-first"

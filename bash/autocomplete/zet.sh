@@ -17,20 +17,23 @@ _zet() {
     help\
     q\
     query\
+    qp\
+    query-project\
     link\
     orphans\
     rename\
-    proj"
+    p\
+    project"
 
   # Un-comment this for debug purposes:
   # echo -e "\nprev = $prev, cur = $cur, firstword = $firstword, lastword = $lastword\n"
 
   case "${firstword}" in
-  proj)
+  p | project | qp | query-project)
     PROJECTS="$HOME/zet/projects"
 
     # get all projects from $ZET/projects
-    complete_words=$(find "$PROJECTS" -maxdepth 1 -type d -printf '%f\n')
+    complete_words=$(find "$PROJECTS" -mindepth 1 -maxdepth 1 -type d -printf '%f\n')
     ;;
   *)
     complete_words="$GLOBAL_COMMANDS"
