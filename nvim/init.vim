@@ -5,6 +5,9 @@ filetype plugin on
 filetype indent on
 set ttyfast
 
+" somehow performance increases
+set lazyredraw
+
 set autowrite
 set relativenumber
 set ruler
@@ -238,6 +241,8 @@ call plug#begin()
 Plug 'gruvbox-community/gruvbox'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'ap/vim-css-color'
+Plug 'fladson/vim-kitty'
+Plug 'sheerun/vim-polyglot'
 
 " Find, Fuzzy
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
