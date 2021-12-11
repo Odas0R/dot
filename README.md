@@ -4,3 +4,5 @@
 
 * go fearless mode: `./setup`
 
+"this is a text"
+
