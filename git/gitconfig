@@ -8,9 +8,6 @@
   editor = nvim
 [init]
 	defaultBranch = main
-[alias]
-  co = checkout
-  br = branch
 [credential "https://github.com"]
   helper = ! auth git-credential
 [merge]

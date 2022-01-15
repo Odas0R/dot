@@ -3,15 +3,16 @@
 
 priority -49
 
-snippet id
-id="$1"$2
+snippet id "class global attribute"
+id="$1"
 endsnippet
 
-snippet idn
-id="$1" name="${2:$1}"
+snippet class "class global attribute"
+class="$1"
 endsnippet
 
-snippet label_and_input
+
+snippet input:label
 <label for="${2:$1}">$1</label>
 <input type="${3:text}" name="${4:$2}"${5: id="${6:$2}"} value="$7" />$8
 endsnippet

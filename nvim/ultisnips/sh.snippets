@@ -1,36 +1,15 @@
 priority -50
 
-global !p
-import vim
-
-# Tests for the existence of a variable declared by Vim's filetype detection
-# suggesting the type of shell script of the current file
-def testShell(scope, shell):
-	return vim.eval("exists('" + scope + ":is_" + shell + "')")
-
-# Loops over the possible variables, checking for global variables
-# first since they indicate an override by the user.
-def getShell():
-	for scope in ["g", "b"]:
-		for shell in ["bash", "posix", "sh", "kornshell"]:
-			if testShell(scope, shell) == "1":
-				if shell == "kornshell":
-					return "ksh"
-				if shell == "posix":
-					return "sh"
-				return shell
-	return "sh"
-endglobal
-
-snippet #! "#!/usr/bin/env (!env)" b
-`!p snip.rv = '#!/usr/bin/env ' + getShell() + "\n" `
+snippet #! "#!/bin/bash" b
+#!/bin/bash
+$0
 endsnippet
 
 snippet safe "safe bash options" b
-#!/usr/bin/env bash
 set -euo pipefail
-IFS=$'\n\t'
-`!p snip.rv ='\n\n' `
+
+# set -x
+`!p snip.rv ='\n' `
 endsnippet
 
 snippet /case|sw(itch)?/ "case .. esac (case)" rb
@@ -63,7 +42,7 @@ if [[ ${1:condition} ]]; then
 fi
 endsnippet
 
-snippet f "function() {...}" b
+snippet fn "function() {...}" b
 ${1:function} () {
 	${0:${VISUAL}}
 }
@@ -73,27 +52,85 @@ snippet [[ "if args" A
 [[ $0 ]]
 endsnippet
 
-
 snippet cmd "check if command exists" b
-if [[ ! -x "$(command -v ${1})" ]]; then
-	echo "You need to install ${0}"
+if [[ ! -x "$(command -v $1)" ]]; then
+	echo "You need to install $1"
 	exit 1
 fi
 endsnippet
 
-snippet setup "Setup bats test" b
-# Check docs for help:
-# https://bats-core.readthedocs.io/en/stable/tutorial.html
-setup() {
-	load 'test_helper/bats-support/load'
-	load 'test_helper/bats-assert/load'
-}
+snippet os "check if command exists" b
+declare DISTRO
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  DISTRO=$(awk -F= '/^NAME/{print \${2}}' /etc/os-release)
+
+  if [[ ${DISTRO} = "Ubuntu"* ]]; then
+    if uname -a | grep -q '^Linux.*Microsoft'; then
+      # ubuntu via WSL Windows Subsystem for Linux
+      echo "NOT IMPLEMENTED"
+    else
+      # native ubuntu
+      echo "NOT IMPLEMENTED"
+    fi
+  elif [[ ${DISTRO} = "Debian"* ]]; then
+    # debian
+    echo "NOT IMPLEMENTED"
+  fi
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS OSX
+  echo "NOT IMPLEMENTED"
+fi
 endsnippet
 
-snippet test "Create a new unit test" b
-@test "${1:description}" {
-	${0:${VISUAL}}
+snippet cli "boilerplate when creating a CLI" b
+firstCommand="\${1:-help}"
+
+_help() {
+  printf "
+This is an example of a help command
+
+Commands:
+  help             Show help commands
+
+"
 }
+
+case "$firstCommand" in
+help)
+  _help
+  exit 0
+  ;;
+e | example)
+  shift
+  echo "$@"
+  exit 0
+  ;;
+esac
+endsnippet
+
+snippet color "variables for setting colors on echo -e" b
+declare black="\e[30m"
+declare red="\e[31m"
+declare green="\e[32m"
+declare yellow="\e[33m"
+declare blue="\e[34m"
+declare magenta="\e[35m"
+declare cyan="\e[36m"
+declare white="\e[37m"
+declare reset="\e[0m"
+endsnippet
+
+snippet color:bold "variables for setting bold colors on echo -e" b
+declare black="\e[1;30m"
+declare red="\e[1;31m"
+declare green="\e[1;32m"
+declare yellow="\e[1;33m"
+declare blue="\e[1;34m"
+declare magenta="\e[1;35m"
+declare cyan="\e[1;36m"
+declare white="\e[1;37m"
+declare reset="\e[0m"
 endsnippet
 
 # vim:ft=snippets:

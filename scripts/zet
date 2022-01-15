@@ -8,11 +8,11 @@ PROJECTS=${ZET}/projects
 
 print_help() {
   printf "
-Zettelkasten program
-It is organized by inbox & permanent notes.
+A personal zettelkasten program
 
 Commands:
   help             Show help commands
+  new              Create a new zettel by giving it a title
   query            Queries the zettels with Regex, you can filter by tags
   orpahns          Query ophan notes
   link             Links two zettels
@@ -25,7 +25,7 @@ Commands:
 }
 
 # Creates a new note with the given file and title
-create_note() {
+new_note() {
   file="$1"
   title="$2"
 
@@ -75,12 +75,12 @@ query() {
   mkdir -p "$dir"
 
   # copy all files to the temporary directory
-  rg -l "$INITIAL_QUERY" | xargs -I{} cp {} "$dir"
+  rg -li "$INITIAL_QUERY" | xargs -I{} cp {} "$dir"
 
   cd "$dir"
 
   # remove codeblocks
-  rg -l "$INITIAL_QUERY" | xargs -I{} sed -i -e '/^```/,/^```/d' {}
+  rg -li "$INITIAL_QUERY" | xargs -I{} sed -i -e '/^```/,/^```/d' {}
 
   # clean up backup files
   rm ./*.md-e
@@ -107,7 +107,7 @@ zet_new() {
   file="${INBOX}/${fileName}.$(isosec).md"
   title="${*}"
 
-  create_note "$file" "$title"
+  new_note "$file" "$title"
 }
 
 # Queries all the files under the inbox/
@@ -250,7 +250,7 @@ zet_project() {
   file="${project}/${fileName}.$(isosec).md"
   title="${*:2}"
 
-  create_note "$file" "$title"
+  new_note "$file" "$title"
 }
 
 zet_query_project() {
@@ -275,6 +275,10 @@ help)
   ;;
 "")
   print_help
+  exit 0
+  ;;
+n | new)
+  zet_new "${@:2}"
   exit 0
   ;;
 q | query)
@@ -308,6 +312,4 @@ esac
 firstArg="$(find "$INBOX" -name "*.${1}.md")"
 if [ -n "$firstArg" ]; then
   nvim "$firstArg"
-else
-  zet_new "$@"
 fi

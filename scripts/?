@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
-# Opens up the browser to check shit (wsl2 version)
-
 query=$(echo "$@" | sed 's/ /+/g')
 
-exec "${BROWSER}" "https://duckduckgo.com/?q=${query}&atb=v236-1&ia=web"
+open "https://duckduckgo.com/?q=${query}&atb=v236-1&ia=web"

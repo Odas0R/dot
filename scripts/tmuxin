@@ -73,6 +73,16 @@ fi
 
 tmux new-session -c "$(markpath rc)" -s "$session" -d
 
+# ======================================
+# Paleontology class session
+# ======================================
+session="paleo"
+if tmux has-session -t $session &>/dev/null; then
+  tmux kill-session -t "$session"
+fi
+
+tmux new-session -c "$(markpath paleo)" -s "$session" -d
+
 # =================
 # Session to Attach
 # =================

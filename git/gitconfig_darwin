@@ -6,11 +6,9 @@
 	default = current
 [core]
   editor = nvim
+	autocrlf = false
 [init]
 	defaultBranch = main
-[alias]
-  co = checkout
-  br = branch
 [credential]
 	helper = osxkeychain
 [merge]
@@ -19,3 +17,5 @@
 [mergetool]
 	prompt = false
 	keepBackup = false
+[pull]
+	rebase = false

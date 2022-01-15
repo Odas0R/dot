@@ -14,8 +14,9 @@ snippet doctype "HTML - 5.0 (doctype)" b
 endsnippet
 
 #############
-# Shortcuts #
+#  	Codes   #
 #############
+
 snippet down "Down (down)"
 &#x2193;
 endsnippet
@@ -52,9 +53,10 @@ snippet up "Up (up)"
 &#x2191;
 endsnippet
 
-#############
-# HTML TAGS #
-#############
+#####################
+# HTML TAGS (VALUE) #
+#####################
+
 snippet a "Link" w
 <a href="${1:http://www.${2:url.com}}"${3: target="_blank"}>${4:Anchor Text}</a>
 endsnippet
@@ -109,16 +111,18 @@ snippet button "<button>"
 <button>$1</button>
 endsnippet
 
+snippet section "<section>"
+<section>
+	${0:${VISUAL}}
+</section>
+endsnippet
+
 snippet caption "<caption>"
 <caption>$1</caption>
 endsnippet
 
 snippet cite "<cite>" w
 <cite>$1</cite>
-endsnippet
-
-snippet c "class global attribute"
-class="$1"
 endsnippet
 
 snippet code "<code>" w
@@ -147,14 +151,8 @@ snippet dfn "<dfn>" w
 <dfn>$1</dfn>
 endsnippet
 
-snippet div "<div>" w
-<div>
-	${0:${VISUAL}}
-</div>
-endsnippet
-
 snippet div. "<div> with class" w
-<div`!p snip.rv=' class="' if t[1] else ""`${1:name}`!p snip.rv = '"' if t[1] else ""`>
+<div class="$1">
 	${0:${VISUAL}}
 </div>
 endsnippet
@@ -265,9 +263,6 @@ snippet i "<i>" w
 <i>$1</i>
 endsnippet
 
-snippet id "id global attribute"
-id="$1"
-endsnippet
 
 snippet img "<img>"
 <img src="$1" alt="$2">
@@ -398,7 +393,7 @@ ${0:${VISUAL}}
 endsnippet
 
 snippet scriptsrc "HTML <script src...>" w
-<script src="$1" charset="${3:utf-8}"></script>
+<script src="$1"></script>
 endsnippet
 
 snippet select "Select Box" w

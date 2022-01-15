@@ -12,7 +12,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
 # Java
-export JAVA_HOME=$(/usr/libexec/java_home)
+export JAVA_HOME=$(/usr/libexec/java_home -v 16)
 export JUNIT_HOME="$HOME/java"
 export CLASSPATH="$CLASSPATH:$JUNIT_HOME/junit-4.13.2.jar:$JUNIT_HOME/hamcrest-core-1.3.jar"
 
@@ -44,15 +44,13 @@ fi
 
 # MacOS Shit
 if [[ $OSTYPE == "darwin"* ]]; then
-  # Browser
-  export BROWSER="/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser"
-
   # CoreUtils for macos
   # brew install coreutils
   export GNU_UTILS="/usr/local/opt/coreutils/libexec/gnubin"
 
   # Tools
   export LUA_LSP="$TOOLS/lua-language-server/bin/macOS"
+
 fi
 
 # Global Path

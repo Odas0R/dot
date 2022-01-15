@@ -27,6 +27,9 @@ require("format").setup({
   sh = {
     { cmd = { "shfmt -i 2 -w" } },
   },
+  python = {
+    { cmd = { "autopep8 -i" } },
+  },
   javascript = {
     { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
   },

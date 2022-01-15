@@ -1,11 +1,9 @@
 set nocompatible
+set ttyfast
 
 syntax on
 filetype plugin on
-filetype indent on
-set ttyfast
 
-" somehow performance increases
 set lazyredraw
 
 set autowrite
@@ -13,20 +11,32 @@ set relativenumber
 set ruler
 set showmode
 set showcmd
+
 set tw=72 fo=cq wm=0 " no automatic wrapping, rewrapping will wrap to 72
+
 set tabstop=2
-set shiftwidth=2
-set softtabstop=2
-set numberwidth=2
-set smartindent
-set autoindent
-set smarttab
+" length to use when editing text (eg. TAB and BS keys)
+" (0 for ‘tabstop’, -1 for ‘shiftwidth’):
+set softtabstop=-1
+" length to use when shifting text (eg. <<, >> and == commands)
+" (0 for ‘tabstop’):
+set shiftwidth=0
+" round indentation to multiples of 'shiftwidth' when shifting text
+" (so that it behaves like Ctrl-D / Ctrl-T):
+set shiftround
+" if set, only insert spaces; otherwise insert \t and complete with spaces:
 set expandtab
+" reproduce the indentation of the previous line:
+" set autoindent
+" use language‐specific plugins for indenting (better):
+filetype plugin indent on
+
+
+set numberwidth=2
+set laststatus=2
 set nofixendofline
 set foldmethod=manual
-set laststatus=2
-" make :mkview ignore local bidings
-set viewoptions-=options
+set noshowmatch
 
 match ErrorMsg '\s\+$'
 set shortmess=aoOtTI
@@ -49,6 +59,11 @@ set nowritebackup
 
 set complete+=kspell
 set shortmess+=c
+set mouse=a
+
+" stop the automatic folding madness
+set foldmethod=manual
+set nofoldenable
 
 " add portuguese dictionary
 set spelllang+=pt_pt
@@ -65,6 +80,17 @@ au BufReadPost *
       \ if line("'\"") > 0 && line("'\"") <= line("$") |
       \   exe "normal! g`\"" |
       \ endif
+
+" Triger `autoread` when files changes on disk
+" https://unix.stackexchange.com/questions/149209/refresh-changed-content-of-file-opened-in-vim/383044#383044
+" https://vi.stackexchange.com/questions/13692/prevent-focusgained-autocmd-running-in-command-line-editing-mode
+autocmd FocusGained,BufEnter,CursorHold,CursorHoldI *
+      \ if mode() !~ '\v(c|r.?|!|t)' && getcmdwintype() == '' | checktime | endif
+
+" Notification after file change
+" https://vi.stackexchange.com/questions/13091/autocmd-event-for-autoread
+autocmd FileChangedShellPost *
+      \ echohl WarningMsg | echo "File changed on disk. Buffer reloaded." | echohl None
 
 " ============================================================
 " Path (Files to Ignore)
@@ -89,14 +115,9 @@ set wildignore+=**/.supabase/*
 augroup custom_settings
   au!
   au FileType markdown setl conceallevel=2 spell norelativenumber tw=76
+  au FileType text setl conceallevel=2 spell norelativenumber tw=76
   au BufRead *.env setl ft=config
 augroup end
-
-" ============================================================
-" Commands (Useful for file managing, etc)
-"
-"* Useful: https://dev.to/dlains/create-your-own-vim-commands-415b
-" ============================================================
 
 " ============================================================
 " File Explorer
@@ -118,7 +139,7 @@ augroup end
 " endfunction
 
 " autocmd FileType netrw call NetrwMappings()
-nnoremap \ :Defx `escape(expand('%:p:h'), ' :')` -search=`expand('%:p')`<CR>
+nnoremap \ :Defx -search=`expand('%:p')` `expand('%:p:h')`<CR>
 function! DefxMappings()
   nnoremap <silent><buffer><expr> c
         \ defx#do_action('copy')
@@ -208,27 +229,18 @@ nnoremap <silent> H :bprev<CR>
 nnoremap <silent> <leader>1 :set spell!<CR>
 nnoremap <silent> <leader>p :set paste!<CR>
 
-" Open a control-version diff viewer
-nnoremap <leader>diff :DiffviewOpen<CR>
-nnoremap <leader>q :DiffviewClose<CR>
-
-" Move thorough vimdiff
-if &diff
-  nnoremap <leader>1 :diffget LOCAL<CR>
-  nnoremap <leader>2 :diffget BASE<CR>
-  nnoremap <leader>3 :diffget REMOTE<CR>
-  map <C-k> ]x
-  map <C-j> [x
-  nnoremap <leader>q :wqa<CR>
-endif
-
 " ==========================================================
 " Run Code...
 " =========================================================
 augroup run_code
   au!
+  " bash
   au FileType sh xnoremap <leader>r yPgv:!bash<CR>
   au FileType sh nnoremap <leader>rp vapyPgv:!bash<CR>
+
+  " sql
+  au FileType sql xnoremap <leader>r :DB<CR>
+  au FileType sql nnoremap <leader>rp vap:DB<CR>
 augroup end
 
 " ==========================================================
@@ -253,17 +265,16 @@ Plug 'nvim-lualine/lualine.nvim'
 Plug 'nvim-lua/lsp-status.nvim'
 
 " Utils
-Plug 'tpope/vim-commentary'
-Plug 'suy/vim-context-commentstring'
-Plug 'maxmellon/vim-jsx-pretty'
+Plug 'numToStr/Comment.nvim'
+Plug 'JoosepAlviste/nvim-ts-context-commentstring'
 Plug 'nvim-lua/plenary.nvim'
-
-" Git
-Plug 'sindrets/diffview.nvim'
-Plug 'rhysd/conflict-marker.vim'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
+
+" Database
+Plug 'tpope/vim-dadbod'
+Plug 'kristijanhusak/vim-dadbod-completion'
 
 " Lsp, Completion Engine
 Plug 'neovim/nvim-lspconfig'
@@ -271,11 +282,10 @@ Plug 'onsails/lspkind-nvim'
 
 " Completion
 Plug 'hrsh7th/nvim-cmp'
-Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-nvim-lua'
 Plug 'hrsh7th/cmp-nvim-lsp'
-Plug 'tzachar/cmp-tabnine', { 'do': './install.sh' }
+Plug 'hrsh7th/cmp-buffer'
 Plug 'quangnguyen30192/cmp-nvim-ultisnips'
 
 " Formatter
@@ -297,12 +307,6 @@ let g:pandoc#formatting#textwidth = 72
 let g:pandoc#toc#position = "bottom"
 autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
 
-augroup remember_folds
-  autocmd!
-  autocmd BufWinLeave *.* mkview
-  autocmd BufWinEnter *.* silent! loadview
-augroup END
-
 " ==========================================================
 " Colorscheme
 " ==========================================================
@@ -319,34 +323,6 @@ colorscheme gruvbox
 set t_Co=256 " iterm shit
 
 " ==========================================================
-" Git
-" ==========================================================
-lua << EOF
-require("diffview").setup({
-  use_icons = false,
-})
-EOF
-
-" Conflict Marker
-let g:conflict_marker_begin = '^<<<<<<< \@='
-let g:conflict_marker_common_ancestors = '^||||||| .*$'
-let g:conflict_marker_separator = '^=======$'
-let g:conflict_marker_end   = '^>>>>>>> \@='
-let g:conflict_marker_enable_highlight = 1
-let g:conflict_marker_highlight_group = 'Error'
-
-
-" Include text after begin and end markers
-let g:conflict_marker_begin = '^<<<<<<< .*$'
-let g:conflict_marker_end   = '^>>>>>>> .*$'
-
-highlight ConflictMarkerBegin guibg=#2f7366
-highlight ConflictMarkerOurs guibg=#2e5049
-highlight ConflictMarkerTheirs guibg=#344f69
-highlight ConflictMarkerEnd guibg=#2f628e
-highlight ConflictMarkerCommonAncestorsHunk guibg=#754a81
-
-" ==========================================================
 " FZF
 " ==========================================================
 
@@ -358,7 +334,7 @@ command! -bang -nargs=? -complete=dir FzfBat
       \ call fzf#vim#files(<q-args>, {'options': ['--layout=reverse', '--info=inline', '--preview', 'bat --theme="gruvbox-dark" --color=always --style=numbers {}']}, <bang>0)
 
 function! RipgrepFzf(query, fullscreen)
-  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -w -- %s || true'
+  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -- %s || true'
   let initial_command = printf(command_fmt, shellescape(a:query))
   let reload_command = printf(command_fmt, '{q}')
   let spec = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}
@@ -421,12 +397,23 @@ require("nvim-treesitter.configs").setup({
   indent = { enable = true },
   highlight = {
     enable = true,
-    disable = { "vim", "markdown" },
+    disable = { "vim" },
   },
   incremental_selection = { enable = true },
   textobjects = { enable = true },
 })
 EOF
+
+" ==========================================================
+" Autocomplete Postgresql
+" ==========================================================
+let g:db="postgres://postgres:postgres@localhost:5432/postgres"
+let g:vim_dadbod_completion_mark = 'SQL'
+let g:completion_matching_ignore_case = 1
+
+" ==========================================================
+" Formatter
+" ==========================================================
 
 " let g:format_debug = v:true
 augroup Format

@@ -65,8 +65,15 @@ cmp.setup({
 
     { name = "nvim_lsp" },
     { name = "path" },
+    {
+      name = "buffer",
+      option = {
+        keyword_pattern = [[\k\+]],
+      },
+    },
+    { name = "vim-dadbod-completion" },
 
-    { name = "cmp_tabnine" },
+    -- { name = "cmp_tabnine" },
     { name = "ultisnips" },
   }),
 
@@ -80,12 +87,12 @@ cmp.setup({
     format = lspkind.cmp_format({
       with_text = true,
       menu = {
-        nvim_lua = "[api]",
+        nvim_lua = "[API]",
         nvim_lsp = "[LSP]",
-        path = "[path]",
-        cmp_tabnine = "[TN]",
-        ultisnips = "[snip]",
-        gh_issues = "[issues]",
+        path = "[PATH]",
+        buffer = "[BF]",
+        ultisnips = "[SNIP]",
+        gh_issues = "[ISSUE]",
       },
     }),
   },
