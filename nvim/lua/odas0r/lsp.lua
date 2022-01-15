@@ -17,10 +17,10 @@ local on_attach = function(_, bufnr)
   buf_set_keymap("n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
   buf_set_keymap("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
   buf_set_keymap("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
-  buf_set_keymap("n", "K", "<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>", opts)
-  buf_set_keymap("n", "J", "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", opts)
+  buf_set_keymap("n", "K", "<cmd>lua vim.diagnostic.goto_prev()<CR>", opts)
+  buf_set_keymap("n", "J", "<cmd>lua vim.diagnostic.goto_next()<CR>", opts)
 
-  buf_set_keymap("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
+  buf_set_keymap("n", "<leader>r", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
   buf_set_keymap("n", "<leader>a", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
 end
 
@@ -30,6 +30,9 @@ local capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protoco
 require("lspconfig").tsserver.setup({
   on_attach = on_attach,
   capabilities = capabilities,
+  flags = {
+    debounce_text_changes = 150,
+  },
 })
 
 -- https://github.com/neovim/nvim-lspconfig/blob/master/CONFIG.md#java_language_server
@@ -38,9 +41,13 @@ local home = os.getenv("HOME")
 require("lspconfig").java_language_server.setup({
   on_attach = on_attach,
   capabilities = capabilities,
+  flags = {
+    debounce_text_changes = 150,
+  },
   cmd = { home .. "/tools/javalsp/dist/lang_server_mac.sh" },
   root_dir = function(fname)
-    return require("lspconfig").util.root_pattern("pom.xml", "gradle.build", ".git")(fname) or vim.fn.getcwd()
+    return require("lspconfig").util.root_pattern("pom.xml", "gradle.build", ".classpath", ".git")(fname)
+      or vim.fn.getcwd()
   end,
 })
 
@@ -56,18 +63,48 @@ require("lspconfig").java_language_server.setup({
 require("lspconfig").cssls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
+  flags = {
+    debounce_text_changes = 150,
+  },
 })
 
 -- npm i -g yaml-language-server
 require("lspconfig").yamlls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
+  flags = {
+    debounce_text_changes = 150,
+  },
+})
+
+-- npm i -g bash-language-server
+require("lspconfig").bashls.setup({})
+
+--  npm install -g @tailwindcss/language-server
+require("lspconfig").tailwindcss.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  flags = {
+    debounce_text_changes = 150,
+  },
+})
+
+-- pip install 'python-lsp-server[all]'
+require("lspconfig").pylsp.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  flags = {
+    debounce_text_changes = 150,
+  },
 })
 
 -- ./dot/installs/golang
 require("lspconfig").gopls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
+  flags = {
+    debounce_text_changes = 150,
+  },
   cmd = { "gopls", "serve" },
   settings = {
     gopls = {
@@ -80,10 +117,10 @@ require("lspconfig").gopls.setup({
 })
 
 -- npm i -g stylelint-lsp
-require("lspconfig").stylelint_lsp.setup({
-  on_attach = on_attach,
-  capabilities = capabilities,
-})
+-- require("lspconfig").stylelint_lsp.setup({
+--   on_attach = on_attach,
+--   capabilities = capabilities,
+-- })
 
 -- LSP for lua
 -- https://github.com/sumneko/lua-language-server/wiki/Build-and-Run-(Standalone)
@@ -98,6 +135,9 @@ table.insert(runtime_path, "lua/?/init.lua")
 require("lspconfig").sumneko_lua.setup({
   on_attach = on_attach,
   capabilities = capabilities,
+  flags = {
+    debounce_text_changes = 150,
+  },
   cmd = { sumneko_binary_path, "-E", sumneko_root_path .. "/main.lua" },
   settings = {
     Lua = {

@@ -12,6 +12,7 @@ if [[ -f $file ]]; then
     open "$(basename "$file")"
     exit 0
   else
-    nvim "$file"
+    # set the working directory before opening the file
+    nvim -c ":cd $(pwd)" "$file"
   fi
 fi

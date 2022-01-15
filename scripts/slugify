@@ -2,8 +2,7 @@
 
 set -euo pipefail
 
-declare DISTRO
-declare -r GIT_PATH="$HOME/dot/git"
+DISTRO=:
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   DISTRO=$(awk -F= '/^NAME/{print ${2}}' /etc/os-release)
@@ -11,18 +10,16 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   if [[ ${DISTRO} = "Ubuntu"* ]]; then
     if uname -a | grep -q '^Linux.*Microsoft'; then
       # ubuntu via WSL Windows Subsystem for Linux
-      ln -sf "$GIT_PATH/gitconfig" "$HOME/.gitconfig"
+      iconv -t ascii//TRANSLIT | sed -r s/[~'^']+//g | sed -r s/[^a-zA-Z0-9]+/-/g | sed -r s/^-+\|-+$//g | tr "[:upper:]" "[:lower:]"
     else
       # native ubuntu
-      ln -sf "$GIT_PATH/gitconfig" "$HOME/.gitconfig"
+      echo "NOT IMPLEMENTED"
     fi
   elif [[ ${DISTRO} = "Debian"* ]]; then
     # debian
-    ln -sf "$GIT_PATH/gitconfig" "$HOME/.gitconfig"
+    echo "NOT IMPLEMENTED"
   fi
 elif [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS OSX
-  ln -sf "$GIT_PATH/gitconfig_darwin" "$HOME/.gitconfig"
+  iconv -t ascii//TRANSLIT | sed -E s/[~'^']+//g | sed -E s/[^a-zA-Z0-9]+/-/g | sed -E s/^-+\|-+$//g | tr "[:upper:]" "[:lower:]"
 fi
-
-printf "Git setup done! 🌟\n"

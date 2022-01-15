@@ -8,6 +8,8 @@ alias fonts="open ~/.local/share/fonts"
 alias horario="open ~/zet/assets/horario.png"
 alias kitty="nvim ~/.config/kitty/kitty.conf"
 
+alias lazydocker="TERM=xterm-kitty lazydocker"
+
 # Utils
 alias ..="cd .."
 alias ls="ls --format=single-column --classify --color --group-directories-first"

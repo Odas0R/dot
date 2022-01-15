@@ -15,6 +15,8 @@ _zet() {
 
   GLOBAL_COMMANDS="\
     help\
+    n\
+    new\
     q\
     query\
     qp\

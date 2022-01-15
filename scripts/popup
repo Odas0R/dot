@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-if [[ $OSTYPE == "darwin"* ]]; then
-  # On my apple machine make the popup bigger
-  tmux popup -h80% -w70% -E "$@"
-else
-  tmux popup -h80% -w50% -E "$@"
+set -e
+
+if [[ ! -x "$(command -v tmux)" ]]; then
+  echo "You need to install tmux"
+  exit 1
 fi
+
+tmux popup -h80% -w80% -E "$@"

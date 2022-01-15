@@ -7,7 +7,7 @@ function ${1:function_name} (${2:argument}) {
 endsnippet
 
 snippet vf "function (assigned to var)"
-${1:var }${2:function_name} = function ($2) {
+${1:const }${2:function_name} = ($3) => {
 	${VISUAL}$0
 };
 endsnippet
@@ -42,12 +42,12 @@ endsnippet
 
 snippet switch
 switch (${VISUAL}${1:expression}) {
-	case '${VISUAL}${3:case}':
-		${4}
+	case '${VISUAL}${2:case}':
+		${3}
 		break
-	${0}
+	${4}
 	default:
-		${2}
+		${5}
 }
 endsnippet
 
@@ -57,11 +57,11 @@ case '${VISUAL}${1:case}':
 	break
 endsnippet
 
-snippet ret "Return statement"
+snippet ret "Return statement" A
 return ${VISUAL}$0;
 endsnippet
 
-snippet imp "import"
+snippet imp "import" A
 import ${2} from ${1};
 endsnippet
 # vim:ft=snippets:

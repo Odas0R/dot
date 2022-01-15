@@ -3,15 +3,27 @@ extends html
 extends javascriptreact
 extends typescript
 
-snippet cn "className global attribute"
-className=$0
+priority -49
+
+snippet fc "React Functional Component"
+export default function ${1:`!p snip.rv = snip.basename or "untitled"`}() {
+	return (
+			<div>$0</div>
+	);
+};
 endsnippet
 
-priority -49
-snippet fc "react functional component"
-import React, { VFC } from "react"
 
-interface ${1:function_name}Props {${4:props_types}}
+snippet fcp "React Functional Component With Props"
+import { ReactNode } from "react";
 
-export const ${1:function_name}: VFC<${1:function_name}Props> = (${2:props}) => ${3:function_body}
+export type ${1:`!p snip.rv = snip.basename or "untitled"`}Props = { children: ReactNode };
+
+export default function $1({ children }:$1Props) {
+	return (
+		<div>
+			$2
+		</div>
+	);
+};
 endsnippet
