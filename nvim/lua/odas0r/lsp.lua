@@ -31,7 +31,7 @@ require("lspconfig").tsserver.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 150,
+    debounce_text_changes = 350,
   },
 })
 
@@ -42,7 +42,7 @@ require("lspconfig").java_language_server.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 150,
+    debounce_text_changes = 350,
   },
   cmd = { home .. "/tools/javalsp/dist/lang_server_mac.sh" },
   root_dir = function(fname)
@@ -64,7 +64,7 @@ require("lspconfig").cssls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 150,
+    debounce_text_changes = 350,
   },
 })
 
@@ -73,7 +73,7 @@ require("lspconfig").yamlls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 150,
+    debounce_text_changes = 350,
   },
 })
 
@@ -85,7 +85,7 @@ require("lspconfig").tailwindcss.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 150,
+    debounce_text_changes = 500,
   },
 })
 
@@ -94,7 +94,7 @@ require("lspconfig").pylsp.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 150,
+    debounce_text_changes = 350,
   },
 })
 
@@ -103,7 +103,7 @@ require("lspconfig").gopls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 150,
+    debounce_text_changes = 350,
   },
   cmd = { "gopls", "serve" },
   settings = {

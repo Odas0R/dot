@@ -40,6 +40,9 @@ local util = require("lspconfig").util
 
 require("lspconfig").efm.setup({
   on_attach = on_attach,
+  flags = {
+    debounce_text_changes = 500,
+  },
   init_options = { documentFormatting = false },
   filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "sh" },
   root_dir = function(fname)

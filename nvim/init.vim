@@ -1,9 +1,8 @@
-set nocompatible
-set ttyfast
-
 syntax on
 filetype plugin on
 
+set nocompatible
+set ttyfast
 set lazyredraw
 
 set autowrite
@@ -119,26 +118,6 @@ augroup custom_settings
   au BufRead *.env setl ft=config
 augroup end
 
-" ============================================================
-" File Explorer
-" ============================================================
-" nnoremap \ :Explore<CR>
-" let g:netrw_browsex_viewer="cmd.exe /C start"
-" let g:netrw_banner = 0
-" let g:netrw_liststyle = 3
-" let g:netrw_keepdir = 1
-" let g:netrw_list_hide = &wildignore
-" " this shit does not work
-" let g:netrw_localrmdir='rm -rf'
-
-" function! NetrwMappings()
-"   nmap <buffer> . gh
-"   nmap <buffer> l <CR>
-"   nmap <buffer> P <C-w>z
-"   nmap <buffer> <tab> mf
-" endfunction
-
-" autocmd FileType netrw call NetrwMappings()
 nnoremap \ :Defx -search=`expand('%:p')` `expand('%:p:h')`<CR>
 function! DefxMappings()
   nnoremap <silent><buffer><expr> c
@@ -249,22 +228,22 @@ augroup end
 
 call plug#begin()
 
-" Syntax, Highlighting
-Plug 'gruvbox-community/gruvbox'
-Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-Plug 'ap/vim-css-color'
-Plug 'fladson/vim-kitty'
-Plug 'sheerun/vim-polyglot'
+" treesitter shit
 
-" Find, Fuzzy
+Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'windwp/nvim-ts-autotag'
+Plug 'nvim-treesitter/nvim-treesitter-refactor'
+
+" find, fuzzy
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 
-" Status line
+" status line
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'nvim-lua/lsp-status.nvim'
 
-" Utils
+" utils
 Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
 Plug 'nvim-lua/plenary.nvim'
@@ -272,15 +251,15 @@ Plug 'nvim-lua/plenary.nvim'
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
 
-" Database
+" database
 Plug 'tpope/vim-dadbod'
 Plug 'kristijanhusak/vim-dadbod-completion'
 
-" Lsp, Completion Engine
+" lsp, Completion Engine
 Plug 'neovim/nvim-lspconfig'
 Plug 'onsails/lspkind-nvim'
 
-" Completion
+" completion
 Plug 'hrsh7th/nvim-cmp'
 Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-nvim-lua'
@@ -288,13 +267,13 @@ Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'quangnguyen30192/cmp-nvim-ultisnips'
 
-" Formatter
+" formatter
 Plug 'lukas-reineke/format.nvim'
 
-" Snippet Engine
+" snippet Engine
 Plug 'sirver/UltiSnips'
 
-" Writing
+" writing
 Plug 'vim-pandoc/vim-pandoc'
 
 call plug#end()
@@ -310,17 +289,17 @@ autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
 " ==========================================================
 " Colorscheme
 " ==========================================================
-let g:gruvbox_contrast_dark = 'dark'
-if exists('+termguicolors')
-  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-endif
-let g:gruvbox_invert_selection='0'
-let g:gruvbox_termcolors=16
-let g:gruvbox_italic=1
-set background=dark
-colorscheme gruvbox
-set t_Co=256 " iterm shit
+
+let g:tokyonight_style = "night"
+let g:tokyonight_italic_functions = 1
+let g:tokyonight_sidebars = [ "qf", "terminal", "plug" ]
+
+let g:tokyonight_colors = {
+  \ 'hint': 'orange',
+  \ 'error': '#ff0000'
+\ }
+
+colorscheme tokyonight
 
 " ==========================================================
 " FZF
@@ -331,7 +310,7 @@ let g:fzf_preview_window = ['right:70%']
 
 " Better FZF
 command! -bang -nargs=? -complete=dir FzfBat
-      \ call fzf#vim#files(<q-args>, {'options': ['--layout=reverse', '--info=inline', '--preview', 'bat --theme="gruvbox-dark" --color=always --style=numbers {}']}, <bang>0)
+      \ call fzf#vim#files(<q-args>, {'options': ['--layout=reverse', '--info=inline', '--preview', 'bat --theme="ansi" --color=always --style=numbers {}']}, <bang>0)
 
 function! RipgrepFzf(query, fullscreen)
   let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -- %s || true'
@@ -355,20 +334,6 @@ au FileType markdown hi Title cterm=bold ctermbg=none ctermfg=Yellow
 au FileType markdown hi htmlBold cterm=bold ctermbg=none ctermfg=Cyan
 au FileType markdown hi htmlItalic cterm=italic ctermbg=none ctermfg=Magenta
 
-" vimdiff
-hi DiffText cterm=none ctermfg=lightgreen guibg=none
-hi DiffChange cterm=none ctermfg=Green guibg=none
-hi DiffAdd cterm=none ctermfg=Green guibg=none
-hi DiffDelete cterm=none ctermfg=lightred guibg=none
-
-" background transparent
-hi Normal guibg=none ctermbg=none
-hi NonText guibg=none ctermbg=none
-hi EndOfBuffer guibg=none ctermbg=none
-hi SignColumn guibg=none ctermbg=none
-hi LineNr guibg=none ctermbg=none
-hi CursorLineNr guibg=none ctermbg=none
-
 " Color matching parenthesis
 hi MatchParen guibg=lightgray
 
@@ -386,23 +351,6 @@ let g:UltiSnipsEditSplit="vertical"
 let g:UltiSnipsSnippetDirectories=["~/snippets/ultisnips"]
 let g:UltiSnipsJumpForwardTrigger='<c-j>'
 let g:UltiSnipsJumpBackwardTrigger='<c-k>'
-
-" ==========================================================
-" Tree-sitter
-" ==========================================================
-
-lua << EOF
-require("nvim-treesitter.configs").setup({
-  ensure_installed = "maintained",
-  indent = { enable = true },
-  highlight = {
-    enable = true,
-    disable = { "vim" },
-  },
-  incremental_selection = { enable = true },
-  textobjects = { enable = true },
-})
-EOF
 
 " ==========================================================
 " Autocomplete Postgresql
