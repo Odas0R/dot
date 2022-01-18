@@ -43,7 +43,7 @@ EOF
 }
 
 query_fzf() {
-  file=$(fd -e md | fzf --preview 'bat --theme='gruvbox-dark' --color=always {}')
+  file=$(fd -e md | fzf --preview 'bat --theme='ansi' --color=always {}')
   [[ -n "$file" ]] && nvim "$file"
 }
 
@@ -93,7 +93,7 @@ query() {
         --multi \
         --query "" \
         --delimiter : \
-        --preview 'bat --theme='gruvbox-dark' --color=always {1} --highlight-line {2}'
+        --preview 'bat --theme='ansi' --color=always {1} --highlight-line {2}'
   )
   [ -n "${selected[0]}" ] && nvim "${INBOX}/${selected[0]}" "+${selected[1]}"
 }
@@ -177,8 +177,8 @@ zet_link() {
   # url into the file2
   cd "$INBOX"
 
-  fileOne="$(fzf --preview 'bat --theme='gruvbox-dark'   --color=always {}')"
-  fileTwo="$(fzf --preview 'bat --theme='gruvbox-dark'   --color=always {}')"
+  fileOne="$(fzf --preview 'bat --theme='ansi'   --color=always {}')"
+  fileTwo="$(fzf --preview 'bat --theme='ansi'   --color=always {}')"
 
   if [[ "$fileOne" == "$fileTwo" ]]; then
     echo "You can't link the same file." >&2

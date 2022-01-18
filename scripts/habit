@@ -1,0 +1,276 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# set -x
+
+# colors
+declare black="\e[1;30m"
+declare red="\e[1;31m"
+declare green="\e[1;32m"
+declare yellow="\e[1;33m"
+declare blue="\e[1;34m"
+declare magenta="\e[1;35m"
+declare cyan="\e[1;36m"
+declare white="\e[1;37m"
+declare reset="\e[0m"
+
+# constants
+declare -r HABIT_CONFIG_DIR="$HOME/.habit"
+declare -r HABIT_CONFIG_LOG="$HOME/.habit/log"
+declare -r HABIT_CONFIG_GOALS="$HOME/.habit/goals"
+
+x.help() {
+  printf '
+habit is a program that functions as a journal of your
+habits/doings. You can visualize the weekly, monthly or
+total progress of those habits/doings.
+
+They are written to a file under $HOME/.habit/log which you
+can access by doing `habit edit`.
+
+Commands:
+  help             Show help commands
+  add              Adds an habit/doing entry
+  edit             Opens the log file in the default $EDITOR
+  goal             Adds an goal entry of an habit/doing
+  list             Display the progress of the current week,
+                   month or in total
+
+'
+}
+
+x.add() {
+  local date slug habit="${1}" time="${2}"
+
+  if [[ -z $habit ]] || [[ -z $time ]]; then
+    echo "Invalid arguments."
+    exit 1
+  fi
+
+  date=$(date +%Y-%m-%d)
+  slug=$(echo "$habit" | slugify)
+
+  mkdir -p "$HABIT_CONFIG_DIR"
+  echo "${habit}|${time}|${date}|${slug}" >>"$HABIT_CONFIG_LOG"
+  echo " ✨ Nice job! Added ${habit} to your tracking log..."
+}
+
+x.edit() { popup nvim "$HABIT_CONFIG_LOG"; }
+
+x.list.week() {
+  local -A logs
+  local -A habits
+
+  while IFS="|" read -ra log; do
+
+    if [[ -z "${log[0]}" ]]; then
+      echo "Ooops, something went wrong!"
+      exit 1
+    fi
+
+    habit="${log[0]}"
+    time="${log[1]}"
+    date="${log[2]}"
+    slug="${log[3]}"
+
+    weekNumber=$(gdate -d "$date" +"%V")
+    weekDay=$(gdate -d "$date" +"%u")
+
+    index="${slug}.${weekNumber}.${weekDay}"
+
+    count="${logs["${index}.count"]}"
+
+    if [[ -z $count ]]; then
+      # get update all the slugs
+      habits["${slug}"]="$slug"
+
+      logs["${index}.count"]=1
+      logs["${index}.title"]="$habit"
+      logs["${index}.time"]="$time"
+      logs["${index}.date"]="$date"
+    else
+      totalCounter=:
+      totalTimeInvested=:
+
+      currentCounter="${logs["${index}.count"]}"
+      currentTime="${logs["${index}.time"]}"
+
+      ((totalCounter = currentCounter + 1))
+      ((totalTimeInvested = currentTime + time))
+
+      logs["${index}.count"]=$totalCounter
+      logs["${index}.time"]="$totalTimeInvested"
+
+    fi
+
+  done <"$HABIT_CONFIG_LOG"
+
+  # 1..52
+  weekNumber=$(gdate +"%V")
+
+  padlimit=60
+  pad=$(printf '%*s' "$padlimit")
+  pad=${pad// /.}
+
+  padlength=40
+
+  for weekDay in {1..7}; do
+    case $weekDay in
+    1)
+      printf "\n"
+      echo -e "${yellow}Monday:${reset}"
+      ;;
+    2)
+      printf "\n"
+      echo -e "${yellow}Tuesday:${reset}"
+      ;;
+    3)
+      printf "\n"
+      echo -e "${yellow}Wednesday:${reset}"
+      ;;
+    4)
+      printf "\n"
+      echo -e "${yellow}Thursday:${reset}"
+      ;;
+    5)
+      printf "\n"
+      echo -e "${yellow}Friday:${reset}"
+      ;;
+    6)
+      printf "\n"
+      echo -e "${yellow}Saturday:${reset}"
+      ;;
+    7)
+      printf "\n"
+      echo -e "${yellow}Sunday:${reset}"
+      ;;
+    esac
+
+    for slug in ${!habits[*]}; do
+      index="${slug}.${weekNumber}.${weekDay}"
+
+      weekIndex="${logs["${index}.count"]}"
+
+      if [[ -n $weekIndex ]]; then
+        title="${logs["${index}.title"]}"
+        count="${logs["${index}.count"]}"
+        time="${logs["${index}.time"]}"
+        date="${logs["${index}.date"]}"
+        time=$(bc <<<"scale=2; ${time}/60")
+
+        printf '   %s (%s) ' "$title" "$count"
+        printf '%*.*s' 0 $((padlength - ${#title})) "$pad"
+        printf " H: ${cyan}%s${reset}\n" "$time"
+      fi
+    done
+  done
+  printf "\n"
+}
+
+# todo make so that it only displays the current month
+x.list.month() {
+  local -A logs
+  local -A habits
+
+  while IFS="|" read -ra log; do
+
+    if [[ -z "${log[0]}" ]]; then
+      echo "Ooops, something went wrong!"
+      exit 1
+    fi
+
+    habit="${log[0]}"
+    time="${log[1]}"
+    date="${log[2]}"
+    slug="${log[3]}"
+
+    count="${logs["${slug}.count"]}"
+
+    if [[ -z $count ]]; then
+      # get update all the slugs
+      habits["${slug}"]="$slug"
+
+      # if there's no habit in the log array, initialize
+      logs["${slug}.count"]=1
+      logs["${slug}.title"]="$habit"
+      logs["${slug}.time"]="$time"
+
+    else
+      totalCounter=:
+      totalTimeInvested=:
+
+      currentCounter="${logs["${slug}.count"]}"
+      currentTime="${logs["${slug}.time"]}"
+
+      ((totalCounter = currentCounter + 1))
+      ((totalTimeInvested = currentTime + time))
+
+      logs["${slug}.count"]=$totalCounter
+      logs["${slug}.time"]="$totalTimeInvested"
+    fi
+  done <"$HABIT_CONFIG_LOG"
+
+  padlimit=60
+  pad=$(printf '%*s' "$padlimit")
+  pad=${pad// /.}
+
+  padlength=40
+
+  printf "\n"
+  echo -e "${yellow}This Month:${reset}"
+
+  for slug in ${!habits[*]}; do
+    title="${logs["${slug}.title"]}"
+    count="${logs["${slug}.count"]}"
+    time="${logs["${slug}.time"]}"
+
+    time=$(bc <<<"scale=2; ${time}/60")
+
+    printf '   %s (%s) ' "$title" "$count"
+    printf '%*.*s' 0 $((padlength - ${#title})) "$pad"
+    printf " H: ${cyan}%s${reset}\n" "$time"
+  done
+  printf "\n"
+}
+
+# ----------------- completion & cmd automation -------------------
+#
+# reference: https://github.com/rwxrob/cmd-zet
+
+while IFS= read -r line; do
+  [[ $line =~ ^declare\ -f\ x\. ]] || continue
+  COMMANDS+=("${line##declare -f x.}")
+done < <(declare -F)
+
+mapfile -t COMMANDS < \
+  <(LC_COLLATE=C sort < <(printf "%s\n" "${COMMANDS[@]}"))
+
+if [[ -n $COMP_LINE ]]; then
+  line=${COMP_LINE#* }
+  for c in "${COMMANDS[@]}"; do
+    [[ ${c:0:${#line}} == "${line,,}" ]] && echo "$c"
+  done
+  exit
+fi
+
+for c in "${COMMANDS[@]}"; do
+  if [[ $c == "$EXE" ]]; then
+    "x.$EXE" "$@"
+    exit $?
+  fi
+done
+
+if [[ -n "$1" ]]; then
+  declare CMD="$1"
+  shift
+
+  for c in "${COMMANDS[@]}"; do
+    if [[ $c == "$CMD" ]]; then
+      "x.$CMD" "$@"
+      exit $?
+    fi
+  done
+fi
+
+x.help "$@"

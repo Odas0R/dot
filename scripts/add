@@ -12,14 +12,14 @@ rootPath=$(git rev-parse --show-toplevel)
 cd "$rootPath"
 
 files=$(
-  git -c color.status=always status --short \
-    | fzf --multi --ansi --nth 2..,.. \
+  git -c color.status=always status --short |
+    fzf --multi --ansi --nth 2..,.. \
       --header 'Ctrl + e: Edit on nvim, Ctrl + /: select all' \
       --bind 'ctrl-/:toggle-all' \
       --bind 'ctrl-e:execute(nvim {2} &>/dev/tty)+reload(git -c color.status=always status --short)' \
-      --preview '(git diff --color=always -- {-1} | sed 1,4d | bat --theme='gruvbox-dark' --color=always --style=numbers)' \
-    | cut -c4- \
-    | sed 's/.* -> //'
+      --preview '(git diff --color=always -- {-1} | sed 1,4d | bat --theme='ansi' --color=always --style=numbers)' |
+    cut -c4- |
+    sed 's/.* -> //'
 )
 
 [[ -z $files ]] && exit 1
