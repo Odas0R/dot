@@ -11,7 +11,7 @@ lsp_status.config({
 })
 
 require("lualine").setup({
-  options = { theme = "gruvbox", section_separators = "", component_separators = "" },
+  options = { theme = "tokyonight", section_separators = "", component_separators = "" },
   section_separators = {},
   sections = {
     lualine_a = { "mode" },

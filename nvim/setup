@@ -20,10 +20,9 @@ ln -sf "$HOME/dot/nvim/spell" "$NVIM/spell"
 mkdir -p "$HOME/snippets"
 ln -sf "$HOME/dot/nvim/ultisnips" "$HOME/snippets/ultisnips"
 
-# setup lua scripts
+# setup lua
 mkdir -p "$NVIM/lua"
-mkdir -p "$NVIM/lua/odas0r"
-find "$HOME/dot/nvim/lua/odas0r" -name "*.lua" | xargs -I{} ln -sf {} "$NVIM/lua/odas0r"
+ln -sf "$HOME/dot/nvim/lua" "$NVIM/lua"
 
 # installing plug
 if [[ ! -f "$NVIM/autoload/plug.vim" ]]; then
