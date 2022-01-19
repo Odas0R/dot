@@ -13,6 +13,7 @@ local on_attach = function(_, bufnr)
   local opts = { noremap = true, silent = true }
 
   -- See `:help vim.lsp.*` for documentation on any of the below functions
+  buf_set_keymap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", opts)
   buf_set_keymap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
   buf_set_keymap("n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
   buf_set_keymap("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
@@ -26,12 +27,14 @@ end
 
 local capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
+local debounce_text_changes = 150
+
 -- npm install -g typescript typescript-language-server
 require("lspconfig").tsserver.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 350,
+    debounce_text_changes,
   },
 })
 
@@ -42,7 +45,7 @@ require("lspconfig").java_language_server.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 350,
+    debounce_text_changes,
   },
   cmd = { home .. "/tools/javalsp/dist/lang_server_mac.sh" },
   root_dir = function(fname)
@@ -64,7 +67,7 @@ require("lspconfig").cssls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 350,
+    debounce_text_changes,
   },
 })
 
@@ -73,19 +76,25 @@ require("lspconfig").yamlls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 350,
+    debounce_text_changes,
   },
 })
 
 -- npm i -g bash-language-server
-require("lspconfig").bashls.setup({})
+require("lspconfig").bashls.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  flags = {
+    debounce_text_changes,
+  },
+})
 
 --  npm install -g @tailwindcss/language-server
 require("lspconfig").tailwindcss.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 500,
+    debounce_text_changes,
   },
 })
 
@@ -94,7 +103,7 @@ require("lspconfig").pylsp.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 350,
+    debounce_text_changes,
   },
 })
 
@@ -103,7 +112,7 @@ require("lspconfig").gopls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 350,
+    debounce_text_changes,
   },
   cmd = { "gopls", "serve" },
   settings = {
@@ -136,7 +145,7 @@ require("lspconfig").sumneko_lua.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 150,
+    debounce_text_changes,
   },
   cmd = { sumneko_binary_path, "-E", sumneko_root_path .. "/main.lua" },
   settings = {

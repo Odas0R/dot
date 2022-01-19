@@ -1,35 +1,17 @@
-syntax on
-filetype plugin on
+set tw=72 fo=cq wm=0 " no automatic wrapping, rewrapping will wrap to 72
 
-set nocompatible
-set ttyfast
-set lazyredraw
+set tabstop=2
+set softtabstop=-1
+set shiftwidth=0
+set shiftround
+set expandtab
+set autoindent
 
 set autowrite
 set relativenumber
 set ruler
 set showmode
 set showcmd
-
-set tw=72 fo=cq wm=0 " no automatic wrapping, rewrapping will wrap to 72
-
-set tabstop=2
-" length to use when editing text (eg. TAB and BS keys)
-" (0 for ‘tabstop’, -1 for ‘shiftwidth’):
-set softtabstop=-1
-" length to use when shifting text (eg. <<, >> and == commands)
-" (0 for ‘tabstop’):
-set shiftwidth=0
-" round indentation to multiples of 'shiftwidth' when shifting text
-" (so that it behaves like Ctrl-D / Ctrl-T):
-set shiftround
-" if set, only insert spaces; otherwise insert \t and complete with spaces:
-set expandtab
-" reproduce the indentation of the previous line:
-" set autoindent
-" use language‐specific plugins for indenting (better):
-filetype plugin indent on
-
 
 set numberwidth=2
 set laststatus=2
@@ -42,7 +24,7 @@ set shortmess=aoOtTI
 
 set hidden
 set history=1000
-set updatetime=100
+set updatetime=250
 
 " highlight search hits
 set hlsearch
@@ -115,7 +97,7 @@ augroup custom_settings
   au!
   au FileType markdown setl conceallevel=2 spell norelativenumber tw=76
   au FileType text setl conceallevel=2 spell norelativenumber tw=76
-  au BufRead *.env setl ft=config
+  au BufRead *.env* setl ft=config
 augroup end
 
 nnoremap \ :Defx -search=`expand('%:p')` `expand('%:p:h')`<CR>
@@ -229,7 +211,6 @@ augroup end
 call plug#begin()
 
 " treesitter shit
-
 Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'windwp/nvim-ts-autotag'
@@ -294,11 +275,6 @@ let g:tokyonight_style = "night"
 let g:tokyonight_italic_functions = 1
 let g:tokyonight_sidebars = [ "qf", "terminal", "plug" ]
 
-let g:tokyonight_colors = {
-  \ 'hint': 'orange',
-  \ 'error': '#ff0000'
-\ }
-
 colorscheme tokyonight
 
 " ==========================================================
@@ -330,9 +306,9 @@ au FileType * hi SpellBad ctermbg=NONE ctermfg=Red cterm=underline
 au FileType * hi Error ctermbg=NONE ctermfg=Red
 au FileType * hi ErrorMsg ctermbg=NONE ctermfg=Red
 
-au FileType markdown hi Title cterm=bold ctermbg=none ctermfg=Yellow
-au FileType markdown hi htmlBold cterm=bold ctermbg=none ctermfg=Cyan
-au FileType markdown hi htmlItalic cterm=italic ctermbg=none ctermfg=Magenta
+highlight Title gui=bold guifg=#e0af68 ctermfg=yellow
+highlight htmlBold gui=bold guifg=#e0af68 ctermfg=214
+highlight htmlItalic gui=italic guifg=#bb9af7 ctermfg=214
 
 " Color matching parenthesis
 hi MatchParen guibg=lightgray
