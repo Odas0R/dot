@@ -38,10 +38,12 @@ local shellcheck = {
 
 local util = require("lspconfig").util
 
+local debounce_text_changes = 150
+
 require("lspconfig").efm.setup({
   on_attach = on_attach,
   flags = {
-    debounce_text_changes = 500,
+    debounce_text_changes,
   },
   init_options = { documentFormatting = false },
   filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "sh" },
