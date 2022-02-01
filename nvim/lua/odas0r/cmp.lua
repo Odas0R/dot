@@ -6,8 +6,8 @@ for k, _ in pairs(lspkind.presets["default"]) do
   lspkind.presets["default"][k] = ""
 end
 
--- Setup nvim-cmp.
-local cmp = require("cmp")
+
+-- Utils
 local has_any_words_before = function()
   if vim.api.nvim_buf_get_option(0, "buftype") == "prompt" then
     return false
@@ -19,6 +19,9 @@ end
 local press = function(key)
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(key, true, true, true), "n", true)
 end
+
+-- Setup nvim-cmp.
+local cmp = require("cmp")
 
 cmp.setup({
   mapping = {
@@ -87,12 +90,12 @@ cmp.setup({
     format = lspkind.cmp_format({
       with_text = true,
       menu = {
-        nvim_lua = "[API]",
-        nvim_lsp = "[LSP]",
-        path = "[PATH]",
-        buffer = "[BF]",
-        ultisnips = "[SNIP]",
-        gh_issues = "[ISSUE]",
+        nvim_lua = "[Lua]",
+        nvim_lsp = "[Lsp]",
+        path = "[Path]",
+        buffer = "[Buffer]",
+        ultisnips = "[Snip]",
+        gh_issues = "[Issue]",
       },
     }),
   },

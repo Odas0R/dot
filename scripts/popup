@@ -7,4 +7,4 @@ if [[ ! -x "$(command -v tmux)" ]]; then
   exit 1
 fi
 
-tmux popup -h90% -w90% -E "$@"
+tmux popup -h90% -w95% -E "$@"

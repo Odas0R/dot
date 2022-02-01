@@ -73,9 +73,9 @@ autocmd FocusGained,BufEnter,CursorHold,CursorHoldI *
 autocmd FileChangedShellPost *
       \ echohl WarningMsg | echo "File changed on disk. Buffer reloaded." | echohl None
 
-" ============================================================
+"
 " Path (Files to Ignore)
-" ============================================================
+"
 
 set path+=**
 set wildmenu
@@ -90,9 +90,9 @@ set wildignore+=**/ios/*
 set wildignore+=**/.git/*
 set wildignore+=**/.supabase/*
 
-" ============================================================
+"
 " Custom Settings per FileType
-" ============================================================
+" 
 augroup custom_settings
   au!
   au FileType markdown setl conceallevel=2 spell norelativenumber tw=62
@@ -169,11 +169,11 @@ endfunction
 " 
 " Bindings
 "
-
 let g:mapleader = ","
 
+" dotfiles management
 nnoremap <leader>vu :so ~/.config/nvim/init.vim<CR>
-nnoremap <leader>ve :e ~/.config/nvim/init.vim<CR>
+nnoremap <leader>ve :lua require("odas0r.telescope").search_dotfiles()<CR>
 
 " Navigation
 nnoremap <silent> <C-p> <cmd>Telescope git_files<cr>

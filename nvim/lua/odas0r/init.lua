@@ -1,4 +1,3 @@
--- Require all the plugin modules
 require("odas0r.checkbox")
 require("odas0r.lsp")
 require("odas0r.efm")
