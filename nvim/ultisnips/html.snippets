@@ -151,6 +151,12 @@ snippet dfn "<dfn>" w
 <dfn>$1</dfn>
 endsnippet
 
+snippet div "<div>" w
+<div>
+	${0:${VISUAL}}
+</div>
+endsnippet
+
 snippet div. "<div> with class" w
 <div class="$1">
 	${0:${VISUAL}}
@@ -245,7 +251,7 @@ snippet hr "<hr>"
 <hr>
 endsnippet
 
-snippet html "HTML basic structure" b
+snippet ! "HTML basic structure" b
 <!DOCTYPE html>
 <html lang="${1:es}">
 	<head>
@@ -297,7 +303,7 @@ snippet li "list item" w
 endsnippet
 
 snippet link "HTML <link>" w
-<link rel="${1:stylesheet}" href="${2:/css/master.css}" type="text/css" media="${3:screen}" title="${4:no title}" charset="${5:utf-8}"`!p x(snip)`>
+<link rel="${1:stylesheet}" href="${2:/css/master.css}" />
 endsnippet
 
 snippet mailto "HTML <a mailto: >" w
@@ -328,7 +334,7 @@ endsnippet
 
 snippet nav "<nav>"
 <nav>
-${1:navigation links}
+	$1
 </nav>
 endsnippet
 

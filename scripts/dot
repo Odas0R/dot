@@ -9,7 +9,7 @@ if [[ -n $1 ]]; then
 fi
 
 cd "$HOME/dot"
-file="$(fzf --preview 'bat --theme='ansi'  --style=numbers --color=always {}')"
+file="$(fzf --preview 'bat --theme=ansi  --style=numbers --color=always {}')"
 
 if [[ -f $file ]]; then
   if [[ ${file: -4} =~ (.png|jpeg|gif) ]]; then

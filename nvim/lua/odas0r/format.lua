@@ -51,6 +51,9 @@ require("format").setup({
   html = {
     { cmd = { "prettier -w" } },
   },
+  svg = {
+    { cmd = { "prettier -w --parser html" } },
+  },
   css = {
     { cmd = { "prettier -w", "stylelint --fix" } },
   },
