@@ -15,8 +15,9 @@ require("telescope").setup({
         ["/"] = actions.toggle_all,
       },
     },
-    prompt_prefix = " $ ",
+    prompt_prefix = " > ",
     selection_caret = "  ",
+    color_devicons = true,
   },
   pickers = {
     find_files = {
@@ -41,3 +42,15 @@ require("telescope").setup({
     },
   },
 })
+
+local M = {}
+
+M.search_dotfiles = function()
+  require("telescope.builtin").git_files({
+    prompt_title = "Dotfiles",
+    cwd = "~/dot",
+    hidden = true,
+  })
+end
+
+return M
