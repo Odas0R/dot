@@ -5,7 +5,7 @@ if [ ! -x "$(command -v browser-sync)" ]; then
   exit 1
 fi
 
-browser-sync start \
+browser-sync "$@" \
   --no-notify --no-ui \
-  --ignore '**/.*' \
+  --ignore '*~formatting*' \
   -sw

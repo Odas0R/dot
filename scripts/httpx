@@ -57,7 +57,7 @@ EOF
 
 query() {
   cd "$HTTPIE"
-  file=$(fd | fzf --preview 'bat --theme='gruvbox-dark' --color=always {}')
+  file=$(fd | fzf --preview 'bat --theme=ansi --color=always {}')
   [[ -n "$file" ]] && nvim "$file"
 }
 

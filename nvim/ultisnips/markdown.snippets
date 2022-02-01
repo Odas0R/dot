@@ -41,11 +41,11 @@ snippet -[ "Add todo box" A
 endsnippet
 
 snippet link "Link to something"
-[${1:${VISUAL:Text}}](${2:${VISUAL:www.url.com}})$0
+[$1]($2)$0
 endsnippet
 
 snippet img "Image"
-![${1:pic alt}](${2:path}${3/.+/ "/}${3:opt title}${3/.+/"/})$0
+![$1]($2)$0
 endsnippet
 
 snippet il "Inline Code" i
@@ -57,12 +57,6 @@ snippet code "Codeblock" b
 ${2:${VISUAL}}
 \`\`\`
 $0
-endsnippet
-
-snippet refl "Reference Link"
-[${1:${VISUAL:Text}}][${2:id}]$0
-
-[$2]:${4:https://${3:www.url.com}} "${5:$4}"
 endsnippet
 
 # vim:ft=snippets:

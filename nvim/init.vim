@@ -95,8 +95,8 @@ set wildignore+=**/.supabase/*
 " ============================================================
 augroup custom_settings
   au!
-  au FileType markdown setl conceallevel=2 spell norelativenumber tw=76
-  au FileType text setl conceallevel=2 spell norelativenumber tw=76
+  au FileType markdown setl conceallevel=2 spell norelativenumber tw=62
+  au FileType text setl conceallevel=2 spell norelativenumber tw=72
   au BufRead *.env* setl ft=config
 augroup end
 
@@ -166,9 +166,9 @@ function! s:browse_check(path) abort
   execute 'Defx' a:path
 endfunction
 
-" ============================================================
+" 
 " Bindings
-" ============================================================
+"
 
 let g:mapleader = ","
 
@@ -176,7 +176,10 @@ nnoremap <leader>vu :so ~/.config/nvim/init.vim<CR>
 nnoremap <leader>ve :e ~/.config/nvim/init.vim<CR>
 
 " Navigation
-nnoremap <silent> <C-p> :FzfBat<CR>
+nnoremap <silent> <C-p> <cmd>Telescope git_files<cr>
+nnoremap <silent> <C-g> <cmd>Telescope live_grep<cr>
+nnoremap <silent> <leader>b <cmd>Telescope buffers<cr>
+nnoremap <silent> <leader>d <cmd>Telescope diagnostics<cr>
 
 " Move through errors on qf panel
 nnoremap <silent> <C-j> :cnext<CR>
@@ -190,9 +193,9 @@ nnoremap <silent> H :bprev<CR>
 nnoremap <silent> <leader>1 :set spell!<CR>
 nnoremap <silent> <leader>p :set paste!<CR>
 
-" ==========================================================
+"
 " Run Code...
-" =========================================================
+" 
 augroup run_code
   au!
   " bash
@@ -204,9 +207,9 @@ augroup run_code
   au FileType sql nnoremap <leader>rp vap:DB<CR>
 augroup end
 
-" ==========================================================
+"
 " Plugins
-" ==========================================================
+" 
 
 call plug#begin()
 
@@ -216,18 +219,16 @@ Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'windwp/nvim-ts-autotag'
 Plug 'nvim-treesitter/nvim-treesitter-refactor'
 
-" find, fuzzy
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-Plug 'junegunn/fzf.vim'
-
 " status line
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'nvim-lua/lsp-status.nvim'
 
-" utils
+" utils, fuzzy-finder, etc.
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
-Plug 'nvim-lua/plenary.nvim'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
@@ -255,52 +256,34 @@ Plug 'lukas-reineke/format.nvim'
 Plug 'sirver/UltiSnips'
 
 " writing
-Plug 'vim-pandoc/vim-pandoc'
+Plug 'preservim/vim-markdown'
 
 call plug#end()
 
-" ==========================================================
-" Markdown Writing, Formatting
-" ==========================================================
-let g:pandoc#formatting#mode = 'ha'
-let g:pandoc#formatting#textwidth = 72
-let g:pandoc#toc#position = "bottom"
-autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
+" 
+" Markdown
+"
 
-" ==========================================================
+set conceallevel=2
+
+let g:vim_markdown_folding_disabled = 1
+let g:vim_markdown_conceal_code_blocks = 1
+let g:vim_markdown_new_list_item_indent = 2
+let g:vim_markdown_no_extensions_in_markdown = 0
+let g:vim_markdown_autowrite = 1
+let g:vim_markdown_edit_url_in = 'current'
+
+" 
 " Colorscheme
-" ==========================================================
+"
 
 let g:tokyonight_style = "night"
 let g:tokyonight_italic_functions = 1
-let g:tokyonight_sidebars = [ "qf", "terminal", "plug" ]
-
 colorscheme tokyonight
 
-" ==========================================================
-" FZF
-" ==========================================================
-
-let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.8 } }
-let g:fzf_preview_window = ['right:70%']
-
-" Better FZF
-command! -bang -nargs=? -complete=dir FzfBat
-      \ call fzf#vim#files(<q-args>, {'options': ['--layout=reverse', '--info=inline', '--preview', 'bat --theme="ansi" --color=always --style=numbers {}']}, <bang>0)
-
-function! RipgrepFzf(query, fullscreen)
-  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -- %s || true'
-  let initial_command = printf(command_fmt, shellescape(a:query))
-  let reload_command = printf(command_fmt, '{q}')
-  let spec = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}
-  call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
-endfunction
-
-command! -nargs=* -bang Grep call RipgrepFzf(<q-args>, <bang>0)
-
-" ==========================================================
+"
 " Color Overrides
-" ==========================================================
+"
 
 au FileType * hi SpellBad ctermbg=NONE ctermfg=Red cterm=underline
 au FileType * hi Error ctermbg=NONE ctermfg=Red
@@ -310,34 +293,31 @@ highlight Title gui=bold guifg=#e0af68 ctermfg=yellow
 highlight htmlBold gui=bold guifg=#e0af68 ctermfg=214
 highlight htmlItalic gui=italic guifg=#bb9af7 ctermfg=214
 
-" Color matching parenthesis
 hi MatchParen guibg=lightgray
 
-" ==========================================================
+"
 " Completion, UltiSnips
-" ==========================================================
-
-" Please read `:help ins-completion`.
+"
+" read `:help ins-completion`.
 
 set completeopt=menuone,noinsert,noselect
 
-" UltiSnips
 let g:UltinipsExpandTrigger="<tab>"
 let g:UltiSnipsEditSplit="vertical"
 let g:UltiSnipsSnippetDirectories=["~/snippets/ultisnips"]
-let g:UltiSnipsJumpForwardTrigger='<c-j>'
-let g:UltiSnipsJumpBackwardTrigger='<c-k>'
+let g:UltiSnipsJumpForwardTrigger='<Tab>'
+let g:UltiSnipsJumpBackwardTrigger='<S-Tab>'
 
-" ==========================================================
-" Autocomplete Postgresql
-" ==========================================================
+" 
+" Database SQL Autocompletion
+" 
 let g:db="postgres://postgres:postgres@localhost:5432/postgres"
 let g:vim_dadbod_completion_mark = 'SQL'
 let g:completion_matching_ignore_case = 1
 
-" ==========================================================
+" 
 " Formatter
-" ==========================================================
+" 
 
 " let g:format_debug = v:true
 augroup Format

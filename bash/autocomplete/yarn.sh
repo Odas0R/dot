@@ -13,8 +13,7 @@
 #  or
 #  - ~/.local/share/bash-completion/completions/yarn
 #
-# https://github.com/dsifford/yarn-completion/blob/master/yarn-completion.bash
-#
+
 ###
 # Parses and extracts data from package.json files.
 #
@@ -922,7 +921,7 @@ _yarn_workspace() {
     __yarn_count_args
     case "$args" in
     [0-2])
-      workspaces_info=$(yarn workspaces info -s 2>/dev/null)
+      workspaces_info=$(yarn workspaces list -s 2>/dev/null)
       if [[ -n $workspaces_info ]]; then
         mapfile -t < <(
           sed -n 's/^ \{2\}"\([^"]*\)": {$/\1/p' <<<"$workspaces_info"
@@ -937,7 +936,7 @@ _yarn_workspace() {
       ;;
     *)
       declare cmd
-      workspaces_info=$(yarn workspaces info -s 2>/dev/null)
+      workspaces_info=$(yarn workspaces list -s 2>/dev/null)
 
       if [[ -n $workspaces_info ]]; then
         PWD=$(
@@ -961,8 +960,7 @@ _yarn_workspaces() {
   ((depth++))
   declare cmd
   subcommands=(
-    info
-    run
+    list
   )
   __yarn_get_command -d 4
   case "$cmd" in
