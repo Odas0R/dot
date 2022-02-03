@@ -97,121 +97,30 @@ set wildignore+=**/.supabase/*
 augroup custom_settings
   au!
   au FileType markdown setl conceallevel=2 spell norelativenumber tw=62
-  au FileType text setl conceallevel=2 spell norelativenumber tw=72
+  au FileType text setl conceallevel=2 spell norelativenumber tw=62
   au BufRead *.env* setl ft=config
 augroup end
-
-nnoremap \ :Defx -search=`expand('%:p')` `expand('%:p:h')`<CR>
-function! DefxMappings()
-  nnoremap <silent><buffer><expr> c
-        \ defx#do_action('copy')
-  nnoremap <silent><buffer><expr> m
-        \ defx#do_action('move')
-  nnoremap <silent><buffer><expr> p
-        \ defx#do_action('paste')
-  nnoremap <silent><buffer><expr> l
-        \ defx#do_action('open_tree', 'toggle')
-  nnoremap <silent><buffer><expr> <CR>
-        \ defx#do_action('open')
-  nnoremap <silent><buffer><expr> P
-        \ defx#do_action('preview')
-  nnoremap <silent><buffer><expr> d
-        \ defx#do_action('new_directory')
-  nnoremap <silent><buffer><expr> N
-        \ defx#do_action('new_file')
-  nnoremap <silent><buffer><expr> M
-        \ defx#do_action('new_multiple_files')
-  nnoremap <silent><buffer><expr> D
-        \ defx#do_action('remove')
-  nnoremap <silent><buffer><expr> R
-        \ defx#do_action('rename')
-  nnoremap <silent><buffer><expr> !
-        \ defx#do_action('execute_command')
-  " open directory on finder
-  nnoremap <silent><buffer><expr> o
-        \ defx#do_action('execute_system')
-  nnoremap <silent><buffer><expr> yy
-        \ defx#do_action('yank_path')
-  nnoremap <silent><buffer><expr> .
-        \ defx#do_action('toggle_ignored_files')
-  nnoremap <silent><buffer><expr> h
-        \ defx#do_action('cd', ['..'])
-  nnoremap <silent><buffer><expr> q
-        \ defx#do_action('quit')
-  nnoremap <silent><buffer><expr> <Tab>
-        \ defx#do_action('toggle_select') . 'j'
-  nnoremap <silent><buffer><expr> <C-7>
-        \ defx#do_action('toggle_select_all')
-  nnoremap <silent><buffer><expr> j
-        \ line('.') == line('$') ? 'gg' : 'j'
-  nnoremap <silent><buffer><expr> k
-        \ line('.') == 1 ? 'G' : 'k'
-  nnoremap <silent><buffer><expr> <C-l>
-        \ defx#do_action('redraw')
-endfunction
-autocmd FileType defx call DefxMappings()
-
-" open defx automatically when :edit a directory
-autocmd BufEnter,VimEnter,BufNew,BufWinEnter,BufRead,BufCreate
-      \ * if isdirectory(expand('<amatch>'))
-      \   | call s:browse_check(expand('<amatch>')) | endif
-
-function! s:browse_check(path) abort
-  if bufnr('%') != expand('<abuf>')
-    return
-  endif
-  " Disable netrw.
-  augroup FileExplorer
-    autocmd!
-  augroup END
-  execute 'Defx' a:path
-endfunction
 
 " 
 " Bindings
 "
 let g:mapleader = ","
 
-" dotfiles management
 nnoremap <leader>vu :so ~/.config/nvim/init.vim<CR>
-nnoremap <leader>ve :lua require("odas0r.telescope").search_dotfiles()<CR>
 
-" telescope
-nnoremap <silent> <C-p> <cmd>Telescope git_files<cr>
-nnoremap <silent> <C-g> <cmd>Telescope live_grep<cr>
-nnoremap <silent> <leader>b <cmd>Telescope buffers<cr>
-nnoremap <silent> <leader>d <cmd>Telescope diagnostics<cr>
-
-" marks navigation
-nnoremap <silent><leader>a :lua require("harpoon.mark").add_file()<CR>
-nnoremap <silent><C-e> :lua require("harpoon.ui").toggle_quick_menu()<CR>
-
-nnoremap <silent> <leader>q :lua require("harpoon.ui").nav_file(1)<CR>
-nnoremap <silent> <leader>w :lua require("harpoon.ui").nav_file(2)<CR>
-nnoremap <silent> <leader>e :lua require("harpoon.ui").nav_file(3)<CR>
-nnoremap <silent> <leader>r :lua require("harpoon.ui").nav_file(4)<CR>
-
-" checkbox
-nnoremap <leader>x :lua require("odas0r/checkbox").toggle()<cr>
-vnoremap <leader>x :lua require("odas0r/checkbox").toggle_many()<cr>
-
-" move through buffers
 nnoremap <silent> L <cmd>bnext<CR>
 nnoremap <silent> H <cmd>bprev<CR>
 
-" move through errors on qf panel
 nnoremap <silent> <C-j> :cnext<CR>
 nnoremap <silent> <C-k> :cprev<CR>
 
-" move through buffers
-" <leader> Mappings (like f1, f2,...)
 nnoremap <silent> <leader>1 :set spell!<CR>
 nnoremap <silent> <leader>p :set paste!<CR>
 
 "
-" Run Code...
+" Playground
 " 
-augroup run_code
+augroup playground
   au!
   " bash
   au FileType sh xnoremap <leader>r yPgv:!bash<CR>
@@ -275,19 +184,6 @@ Plug 'sirver/UltiSnips'
 Plug 'preservim/vim-markdown'
 
 call plug#end()
-
-" 
-" Markdown
-"
-
-set conceallevel=2
-
-let g:vim_markdown_folding_disabled = 1
-let g:vim_markdown_conceal_code_blocks = 1
-let g:vim_markdown_new_list_item_indent = 2
-let g:vim_markdown_no_extensions_in_markdown = 0
-let g:vim_markdown_autowrite = 1
-let g:vim_markdown_edit_url_in = 'current'
 
 " 
 " Colorscheme
