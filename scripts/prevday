@@ -1,13 +1,30 @@
 #!/usr/bin/env bash
 
-currentDate=""
+declare -r ZET="$HOME/github.com/zet"
+declare -r JOURNAL="$ZET/journal"
+
+yesterdayDate=:
 
 if [[ $OSTYPE == "darwin"* ]]; then
-  currentDate=$(gdate --date="yesterday" "+%Y-%m-%d")
+  yesterdayDate=$(gdate --date="yesterday" "+%Y-%m-%d")
 else
-  currentDate=$(date --date="yesterday" "+%Y-%m-%d")
+  yesterdayDate=$(date --date="yesterday" "+%Y-%m-%d")
 fi
 
-file="${HOME}/zet/journal/${currentDate}.md"
+file="$JOURNAL/${yesterdayDate}.md"
 
-popup nvim "$file"
+if [[ ! -f $file ]]; then
+  # Append the daily template on the file
+  tee "$file" <<EOF >/dev/null
+# Journal Entry, ${yesterdayDate}
+
+EOF
+
+  # Append the daily.md
+  cat "$ZET/daily.md" >>"$file"
+
+  # Open the daily file
+  popup nvim +2 "$file"
+else
+  popup nvim "$file"
+fi

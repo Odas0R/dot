@@ -79,6 +79,7 @@ autocmd FileChangedShellPost *
 
 set path+=**
 set wildmenu
+
 " Ignore this files
 set wildignore+=**/node_modules/**
 set wildignore+=*_build/*
@@ -175,20 +176,34 @@ let g:mapleader = ","
 nnoremap <leader>vu :so ~/.config/nvim/init.vim<CR>
 nnoremap <leader>ve :lua require("odas0r.telescope").search_dotfiles()<CR>
 
-" Navigation
+" telescope
 nnoremap <silent> <C-p> <cmd>Telescope git_files<cr>
 nnoremap <silent> <C-g> <cmd>Telescope live_grep<cr>
 nnoremap <silent> <leader>b <cmd>Telescope buffers<cr>
 nnoremap <silent> <leader>d <cmd>Telescope diagnostics<cr>
 
-" Move through errors on qf panel
+" marks navigation
+nnoremap <silent><leader>a :lua require("harpoon.mark").add_file()<CR>
+nnoremap <silent><C-e> :lua require("harpoon.ui").toggle_quick_menu()<CR>
+
+nnoremap <silent> <leader>q :lua require("harpoon.ui").nav_file(1)<CR>
+nnoremap <silent> <leader>w :lua require("harpoon.ui").nav_file(2)<CR>
+nnoremap <silent> <leader>e :lua require("harpoon.ui").nav_file(3)<CR>
+nnoremap <silent> <leader>r :lua require("harpoon.ui").nav_file(4)<CR>
+
+" checkbox
+nnoremap <leader>x :lua require("odas0r/checkbox").toggle()<cr>
+vnoremap <leader>x :lua require("odas0r/checkbox").toggle_many()<cr>
+
+" move through buffers
+nnoremap <silent> L <cmd>bnext<CR>
+nnoremap <silent> H <cmd>bprev<CR>
+
+" move through errors on qf panel
 nnoremap <silent> <C-j> :cnext<CR>
 nnoremap <silent> <C-k> :cprev<CR>
 
-" Move through buffers
-nnoremap <silent> L :bnext<CR>
-nnoremap <silent> H :bprev<CR>
-
+" move through buffers
 " <leader> Mappings (like f1, f2,...)
 nnoremap <silent> <leader>1 :set spell!<CR>
 nnoremap <silent> <leader>p :set paste!<CR>
@@ -229,6 +244,7 @@ Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
+Plug 'ThePrimeagen/harpoon'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }

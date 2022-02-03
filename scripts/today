@@ -2,8 +2,12 @@
 
 set -e
 
+declare -r ZET="${HOME}/github.com/zet"
+declare -r JOURNAL="$ZET/journal"
+
 currentDate=$(date +"%Y-%m-%d")
-file="${HOME}/zet/journal/${currentDate}.md"
+
+file="$JOURNAL/${currentDate}.md"
 
 if [ -f "$file" ]; then
   popup nvim "$file"
@@ -14,6 +18,9 @@ else
 # Journal Entry, ${currentDate}
 
 EOF
+
+  # Append the daily.md
+  cat "$ZET/daily.md" >>"$file"
 
   # Open the daily file
   popup nvim +2 "$file"

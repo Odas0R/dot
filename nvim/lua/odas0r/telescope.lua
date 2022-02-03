@@ -4,15 +4,20 @@ require("telescope").load_extension("fzf")
 
 require("telescope").setup({
   defaults = {
-    layout_strategy = "flex",
-    layout_config = { height = 0.95, width = 0.95, prompt_position = "bottom" },
+    layout_strategy = "horizontal",
+    layout_config = {
+      height = 0.95,
+      width = 0.95,
+      prompt_position = "bottom",
+      preview_width = 0.6,
+    },
     sorting_strategy = "ascending",
     mappings = {
       i = {
         ["<Tab>"] = actions.toggle_selection + actions.move_selection_worse,
         ["<S-Tab>"] = actions.toggle_selection + actions.move_selection_better,
 
-        ["/"] = actions.toggle_all,
+        ["<C-/>"] = actions.toggle_all,
       },
     },
     prompt_prefix = " > ",

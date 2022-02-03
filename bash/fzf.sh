@@ -16,7 +16,7 @@ FZF_TOKYO_THEME='
 
 export FZF_DEFAULT_OPTS="--no-mouse ${FZF_STYLES} ${FZF_BINDS} ${FZF_TOKYO_THEME}"
 
-export FZF_DEFAULT_COMMAND="fd --type f --type l ${FD_OPTIONS}"
+export FZF_DEFAULT_COMMAND="fd --hidden --type f --type l ${FD_OPTIONS}"
 export FZF_CTRL_T_COMMAND="fd ${FD_OPTIONS}"
 export FZF_ALT_C_COMMAND="fd --type d ${FD_OPTIONS}"
 

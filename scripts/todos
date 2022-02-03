@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-popup -d "$HOME/zet" nvim "$HOME/zet/todos.md"
+popup -d "$HOME/github.com/zet" nvim "$HOME/github.com/zet/todos.md"
