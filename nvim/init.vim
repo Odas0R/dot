@@ -106,6 +106,8 @@ augroup end
 "
 let g:mapleader = ","
 
+nnoremap <silent> Q <nop>
+
 nnoremap <leader>vu :so ~/.config/nvim/init.vim<CR>
 
 nnoremap <silent> L <cmd>bnext<CR>
@@ -236,3 +238,10 @@ augroup Format
   autocmd!
   autocmd BufWritePost * FormatWrite
 augroup END
+
+"
+" Reload Lua Configs
+"
+lua << EOF
+require("plenary.reload").reload_module("odas0r", true)
+EOF

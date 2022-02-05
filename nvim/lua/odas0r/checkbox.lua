@@ -31,12 +31,27 @@ local function get_visual_selection()
   else
     lines[n_lines] = string.sub(lines[n_lines], 1, s_end[3])
   end
-  return table.concat(lines, "\n")
+  return lines
 end
 
 local function toggle_many()
-  local selected_todos = get_visual_selection()
-  print(selected_todos)
+  local s_start = vim.fn.getpos("'<")[2] - 1
+  local s_end = vim.fn.getpos("'>")[2]
+
+  local lines = get_visual_selection()
+  for k, current_line in pairs(lines) do
+    local is_checked = current_line:match("%[" .. states.checked .. "%]")
+
+    if is_checked then
+      current_line = current_line:gsub("%[" .. states.checked .. "%]", "%[" .. states.unchecked .. "%]")
+    else
+      current_line = current_line:gsub("%[" .. states.unchecked .. "%]", "%[" .. states.checked .. "%]")
+    end
+
+    lines[k] = current_line
+  end
+
+  api.nvim_buf_set_lines(0, s_start, s_end, 0, lines)
 end
 
 return {
