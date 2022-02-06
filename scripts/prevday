@@ -1,30 +1,29 @@
 #!/usr/bin/env bash
 
+set -e
+
 declare -r ZET="$HOME/github.com/zet"
 declare -r JOURNAL="$ZET/journal"
+declare -r DAILY_TEMPLATE="$ZET/.templates/daily.tmpl.md"
 
-yesterdayDate=:
+declare yesterdaysDate
 
 if [[ $OSTYPE == "darwin"* ]]; then
-  yesterdayDate=$(gdate --date="yesterday" "+%Y-%m-%d")
+  yesterdaysDate=$(gdate --date="yesterday" "+%Y-%m-%d")
 else
-  yesterdayDate=$(date --date="yesterday" "+%Y-%m-%d")
+  yesterdaysDate=$(date --date="yesterday" "+%Y-%m-%d")
 fi
 
-file="$JOURNAL/${yesterdayDate}.md"
+file="$JOURNAL/${yesterdaysDate}.md"
 
 if [[ ! -f $file ]]; then
-  # Append the daily template on the file
-  tee "$file" <<EOF >/dev/null
-# Journal Entry, ${yesterdayDate}
 
-EOF
-
-  # Append the daily.md
-  cat "$ZET/daily.md" >>"$file"
+  # create a new journal using the `tmpl` script
+  export title="# Journal Entry, ${yesterdaysDate}"
+  tmpl "$DAILY_TEMPLATE" >"$file"
 
   # Open the daily file
-  popup nvim +2 "$file"
+  popup nvim "$file"
 else
   popup nvim "$file"
 fi

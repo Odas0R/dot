@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Build configuration files from templates with bash!
+#
+# Usage: title="Awesome Title"; tmpl some.template > output.config
+# Usage (inside a function): export title="Awesome Title"; tmpl some.template > output.config
+#
+# Source: https://stackoverflow.com/a/46716887/13534322
+
+declare -r FILE_TEMPLATE=$1
+
+if [[ ! -f $FILE_TEMPLATE ]]; then
+  echo -e "\ntemplate file must be valid.\n"
+  exit 1
+fi
+
+while IFS=$'\n\r' read -r line; do
+  line=${line//\\/\\\\}   # escape backslashes
+  line=${line//\"/\\\"}   # escape "
+  line=${line//\`/\\\`}   # escape `
+  line=${line//\$/\\\$}   # escape $
+  line=${line//\\\${/\${} # de-escape ${         - allows variable substitution: ${var} ${var:-default_value} etc
+  # to allow arithmetic expansion or command substitution uncomment one of following lines:
+  # line=${line//\\\$\(/\$\(}     # de-escape $( and $(( - allows $(( 1 + 2 )) or $( command ) - UNSECURE
+  # line=${line//\\\$\(\(/\$\(\(} # de-escape $((        - allows $(( 1 + 2 ))
+  eval "echo \"${line}\""
+done <"$FILE_TEMPLATE"
