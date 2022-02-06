@@ -20,6 +20,7 @@ local on_attach = function(_, bufnr)
 
   buf_set_keymap("n", "<leader>r", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
   buf_set_keymap("n", "<C-Space>", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
+  buf_set_keymap("n", "<leader>d", "<cmd>Telescope diagnostics<CR>", opts)
 end
 
 local capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protocol.make_client_capabilities())
@@ -123,10 +124,13 @@ require("lspconfig").gopls.setup({
 })
 
 -- npm i -g stylelint-lsp
--- require("lspconfig").stylelint_lsp.setup({
---   on_attach = on_attach,
---   capabilities = capabilities,
--- })
+require("lspconfig").stylelint_lsp.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  flags = {
+    debounce_text_changes,
+  },
+})
 
 -- LSP for lua
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#sumneko_lua

@@ -55,10 +55,10 @@ require("format").setup({
     { cmd = { "prettier -w --parser html" } },
   },
   css = {
-    { cmd = { "prettier -w", "stylelint --fix" } },
+    { cmd = { "prettier -w", "stylelint --cache --stdin --fix" } },
   },
   scss = {
-    { cmd = { "prettier -w", "stylelint --fix" } },
+    { cmd = { "prettier -w", "stylelint --cache --stdin --fix" } },
   },
   markdown = {
     {

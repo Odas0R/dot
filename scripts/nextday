@@ -2,23 +2,26 @@
 
 set -e
 
-currentDate=""
+declare -r ZET="$HOME/github.com/zet"
+declare -r JOURNAL="$ZET/journal"
+declare -r DAILY_TEMPLATE="$ZET/.templates/daily.tmpl.md"
+
+declare nextdayDate
 
 if [[ $OSTYPE == "darwin"* ]]; then
-  currentDate=$(gdate --date="next day" "+%Y-%m-%d")
+  nextdayDate=$(gdate --date="next day" "+%Y-%m-%d")
 else
-  currentDate=$(date --date="next day" "+%Y-%m-%d")
+  nextdayDate=$(date --date="next day" "+%Y-%m-%d")
 fi
 
-file="${HOME}/zet/journal/${currentDate}.md"
+file="$JOURNAL/${nextdayDate}.md"
 
-if [ ! -f "$file" ]; then
+if [[ ! -f "$file" ]]; then
   # Append the daily template on the file
-  tee "$file" <<EOF >/dev/null
-# Journal Entry, ${currentDate}
+  export title="# Journal Entry, ${nextdayDate}"
+  tmpl "$DAILY_TEMPLATE" >"$file"
 
-EOF
+  popup nvim "$file"
+else
+  popup nvim "$file"
 fi
-
-# Open the daily file
-popup nvim +2 "$file"

@@ -4,24 +4,19 @@ set -e
 
 declare -r ZET="${HOME}/github.com/zet"
 declare -r JOURNAL="$ZET/journal"
+declare -r DAILY_TEMPLATE="$ZET/.templates/daily.tmpl.md"
 
 currentDate=$(date +"%Y-%m-%d")
 
 file="$JOURNAL/${currentDate}.md"
 
-if [ -f "$file" ]; then
-  popup nvim "$file"
-else
-
-  # Append the daily template on the file
-  tee "$file" <<EOF >/dev/null
-# Journal Entry, ${currentDate}
-
-EOF
-
-  # Append the daily.md
-  cat "$ZET/daily.md" >>"$file"
+if [[ ! -f "$file" ]]; then
+  # create a new journal using the `tmpl` script
+  export title="# Journal Entry, ${currentDate}"
+  tmpl "$DAILY_TEMPLATE" >"$file"
 
   # Open the daily file
-  popup nvim +2 "$file"
+  popup nvim "$file"
+else
+  popup nvim "$file"
 fi
