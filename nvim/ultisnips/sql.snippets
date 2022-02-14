@@ -24,8 +24,128 @@
 #
 # Online reference: https://github.com/SirVer/ultisnips/blob/master/doc/UltiSnips.txt
 
-snippet /** "Create a comment body" A
-/**
- * ${0}
- */
+#
+# Table
+#
+
+snippet table "Create a sql table"
+create table if not exists public.${1:table} (
+	$2 ${3:uuid} not null ${4:default extensions.uuid_generate_v4 ()}
+	${0}
+	, created_at timestamp with time zone default
+		timezone('utc'::text , now())
+
+	-- constraints (keys)
+	, constraint $1_pkey primary key ($2)
+
+	-- constraints (checks)
+);
+endsnippet
+
+#
+# Keys Contraints
+#
+
+snippet cpkey "Description" b
+, constraint ${1:table}_pkey primary key (${0:id})
+endsnippet
+
+snippet cfkey "Description" b
+, constraint $1_fkey foreign key ($2) references $3 ($4)
+	on delete cascade
+endsnippet
+
+#
+# Row Level Security
+#
+
+snippet rls "Add row level security for a schema" b
+alter table if exists $1 enable row level security;
+endsnippet
+
+snippet rls:select "Add a postgres row level security policy on select for a schema" b
+create policy select_policy on public.$1
+	for select
+		using (${0:auth.uid () = user_id});
+endsnippet
+
+snippet rls:insert "Add a postgres row level security policy on insert for a schema" b
+create policy insert_policy on public.$1
+	for insert
+		with check (${0:auth.uid () = user_id});
+endsnippet
+
+snippet rls:update "Add a postgres row level security policy on update for a schema" b
+create policy update_policy on public.$1
+	for update
+		using (${0:auth.uid () = user_id});
+endsnippet
+
+snippet rls:delete "Add a postgres row level security policy on delete for a schema" b
+create policy delete_policy on public.$1
+	for delete
+		using (${0:auth.uid () = user_id});
+endsnippet
+
+#
+# Triggers
+#
+
+snippet trigger "Create a trigger" b
+create or replace function public.$1 ()
+returns trigger as
+$BODY$
+begin
+	$0
+	return new;
+end;
+$BODY$
+language 'plpgsql';
+
+create trigger $1
+	${2:before} ${3:insert or update} on public.${4:table} for each row
+	execute procedure public.$1 ();
+endsnippet
+
+#
+# PGTap
+#
+
+snippet pgtap "Unit test" b
+\echo ===================================================
+\echo Testing: $1
+\echo ===================================================
+
+begin;
+
+select no_plan();
+
+set local search_path = public, auth, extensions;
+set local role anon;
+
+	select
+		is_empty(
+			$$
+			select * from public.$1;
+			$$,
+			'anon cannot see any $1'
+		);
+
+-- set local "request.jwt.claim.sub" to :'user_0';
+
+
+select * from finish();
+
+do $$ begin assert num_failed() = 0; end $$;
+
+rollback;
+endsnippet
+
+#
+# Common
+#
+snippet if "if-else statement" b
+if ${1:${VISUAL:condition}} then
+	$0
+end if;
 endsnippet

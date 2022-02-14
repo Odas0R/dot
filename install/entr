@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd /tmp
+
+# clone the installer
+git clone https://github.com/eradman/entr
+cd entr
+
+# run configure
+/tmp/entr/configure
+# run tests
+make test
+
+# install entr
+make install

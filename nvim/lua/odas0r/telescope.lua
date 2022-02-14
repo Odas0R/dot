@@ -31,14 +31,10 @@ require("telescope").setup({
       path_display = { truncate = 1 },
     },
     live_grep = {
-      -- do not indent results
-      additional_args = function()
-        return { "--trim" }
-      end,
       -- do not show line + columns in results
       disable_coordinates = true,
       -- shorten path
-      path_display = { "shorten" },
+      -- path_display = { "shorten" },
     },
   },
   extensions = {

@@ -27,3 +27,18 @@ fi
 jump() {
   [ -h "$MARKPATH/$1" ] && cd "$(readlink "${MARKPATH}/${1}")" || exit 1
 }
+
+#  Use nvr to avoid nesting nvim in Terminal buffers.
+nvim_wrapper() {
+  NVIM=$(which nvim)
+  if test -z "$NVIM_LISTEN_ADDRESS"; then
+    $NVIM "$@"
+  else
+    if test -z "$@"; then
+      nvr -l -c new
+    else
+      nvr -l "$@"
+    fi
+  fi
+}
+alias nvim="nvim_wrapper"
