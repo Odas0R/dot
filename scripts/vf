@@ -13,6 +13,6 @@ if [[ -f $file ]]; then
     exit 0
   else
     # set the working directory before opening the file
-    nvim -c ":cd $(pwd)" "$file"
+    nvim-nvr -c ":cd $(pwd)" "$file"
   fi
 fi

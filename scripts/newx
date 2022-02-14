@@ -7,7 +7,7 @@ path="$HOME/.local/bin/scripts/${1}"
 if [[ -e $path ]]; then
   read -r -p "${1} already exists. Edit?" yes
   case "$yes" in
-  y | yes | ok | okay) exec nvim "$path" ;;
+  y | yes | ok | okay) exec nvim-nvr "$path" ;;
   esac
   exit 0
 fi
@@ -20,4 +20,4 @@ set -euxo pipefail
 EOF
 
 chmod +x "$path"
-nvim +2 "$path"
+nvim-nvr +2 "$path"

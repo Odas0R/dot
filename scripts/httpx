@@ -52,13 +52,13 @@ new_query() {
 
 
 EOF
-  nvim +25 "$file"
+  nvim-nvr +25 "$file"
 }
 
 query() {
   cd "$HTTPIE"
   file=$(fd | fzf --preview 'bat --theme=ansi --color=always {}')
-  [[ -n "$file" ]] && nvim "$file"
+  [[ -n "$file" ]] && nvim-nvr "$file"
 }
 
 case "$1" in
