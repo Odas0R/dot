@@ -8,7 +8,7 @@ FILE_PATH="$HOME/dot/nvim/lua/odas0r/${1}.lua"
 if [[ -e $FILE_PATH ]]; then
   read -r -p "${1} already exists. Edit?" yes
   case "$yes" in
-    y | yes | ok | okay) nvim "$FILE_PATH" ;;
+  y | yes | ok | okay) nvim-nvr "$FILE_PATH" ;;
   esac
   exit 0
 fi
@@ -17,4 +17,4 @@ fi
 touch "$FILE_PATH"
 ln -sf "$FILE_PATH" "$NVIM/lua/odas0r"
 
-nvim "$FILE_PATH"
+nvim-nvr "$FILE_PATH"
