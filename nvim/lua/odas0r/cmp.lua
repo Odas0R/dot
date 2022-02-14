@@ -6,7 +6,6 @@ for k, _ in pairs(lspkind.presets["default"]) do
   lspkind.presets["default"][k] = ""
 end
 
-
 -- Utils
 local has_any_words_before = function()
   if vim.api.nvim_buf_get_option(0, "buftype") == "prompt" then
@@ -96,6 +95,7 @@ cmp.setup({
         buffer = "[Buffer]",
         ultisnips = "[Snip]",
         gh_issues = "[Issue]",
+        ["vim-dadbod-completion"] = "[Sql]",
       },
     }),
   },

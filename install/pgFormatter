@@ -14,7 +14,6 @@ repo="pgFormatter"
 
 version="$(curl -s "https://api.github.com/repos/${owner}/${repo}/releases/latest" | jq -r '.tag_name')"
 downloadFile="${version}.tar.gz"
-tarFile="pgFormatter-${version//v/}.tar.gz"
 
 # download the latest release
 wget "https://github.com/${owner}/${repo}/archive/refs/tags/${downloadFile}"

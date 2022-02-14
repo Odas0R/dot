@@ -7,7 +7,7 @@ set shiftround
 set expandtab
 set autoindent
 
-set autowrite
+set autowriteall
 set relativenumber
 set ruler
 set showmode
@@ -42,9 +42,8 @@ set complete+=kspell
 set shortmess+=c
 set mouse=a
 
-" stop the automatic folding madness
+" set folding
 set foldmethod=manual
-set nofoldenable
 
 " add portuguese dictionary
 set spelllang+=pt_pt
@@ -96,7 +95,7 @@ set wildignore+=**/.supabase/*
 " 
 augroup custom_settings
   au!
-  au FileType markdown setl conceallevel=2 spell norelativenumber tw=62
+  au FileType markdown setl conceallevel=2 spell norelativenumber tw=62 foldlevel=99
   au FileType text setl conceallevel=2 spell norelativenumber tw=62
   au BufRead *.env* setl ft=config
 augroup end
@@ -116,7 +115,7 @@ nnoremap <silent> H <cmd>bprev<CR>
 nnoremap <silent> <C-j> :cnext<CR>
 nnoremap <silent> <C-k> :cprev<CR>
 
-nnoremap <silent> <leader>1 :set spell!<CR>
+nnoremap <silent> <leader>s :set spell!<CR>
 nnoremap <silent> <leader>p :set paste!<CR>
 
 "
@@ -156,12 +155,14 @@ Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
 Plug 'ThePrimeagen/harpoon'
+Plug 'caenrique/nvim-toggle-terminal'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
 
 " database
-Plug 'tpope/vim-dadbod'
+" fork of https://github.com/tpope/vim-dadbod (I believe this is faster)
+Plug 'kristijanhusak/vim-dadbod'
 Plug 'kristijanhusak/vim-dadbod-completion'
 
 " lsp, Completion Engine
@@ -239,9 +240,17 @@ augroup Format
   autocmd BufWritePost * FormatWrite
 augroup END
 
-"
-" Reload Lua Configs
-"
+" 
+" Folding
+" 
+let g:markdown_folding = 1
+
+augroup remember_folds
+  autocmd!
+  autocmd BufWinLeave *.* mkview
+  autocmd BufWinEnter *.* silent! loadview
+augroup END
+
 lua << EOF
 require("plenary.reload").reload_module("odas0r", true)
 EOF
