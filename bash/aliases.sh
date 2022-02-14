@@ -29,16 +29,4 @@ jump() {
 }
 
 #  Use nvr to avoid nesting nvim in Terminal buffers.
-nvim_wrapper() {
-  NVIM=$(which nvim)
-  if test -z "$NVIM_LISTEN_ADDRESS"; then
-    $NVIM "$@"
-  else
-    if test -z "$@"; then
-      nvr -l -c new
-    else
-      nvr -l "$@"
-    fi
-  fi
-}
-alias nvim="nvim_wrapper"
+alias nvim="nvim-nvr"

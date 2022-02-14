@@ -54,4 +54,20 @@ M.search_dotfiles = function()
   })
 end
 
+M.search_zet_fleet = function()
+  require("telescope.builtin").live_grep({
+    prompt_title = "Zettelkasten",
+    cwd = "~/github.com/zet/fleet",
+    hidden = true,
+  })
+end
+
+M.search_zet_permanent = function()
+  require("telescope.builtin").live_grep({
+    prompt_title = "Zettelkasten",
+    cwd = "~/github.com/zet/permanent",
+    hidden = true,
+  })
+end
+
 return M
