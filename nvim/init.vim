@@ -24,14 +24,13 @@ set shortmess=aoOtTI
 
 set hidden
 set history=1000
-set updatetime=250
+set updatetime=100
 
 " highlight search hits
 set hlsearch
 set incsearch
 set linebreak
 set nowrap " wrap is for psychopaths
-nnoremap <C-l> :nohl<CR><C-l>
 
 " more risky, but cleaner
 set nobackup
@@ -95,8 +94,8 @@ set wildignore+=**/.supabase/*
 " 
 augroup custom_settings
   au!
-  au FileType markdown setl conceallevel=2 spell norelativenumber tw=62 foldlevel=99
-  au FileType text setl conceallevel=2 spell norelativenumber tw=62
+  au FileType markdown setl conceallevel=2 spell norelativenumber tw=72 foldlevel=99
+  au FileType text setl conceallevel=2 spell norelativenumber tw=72
   au BufRead *.env* setl ft=config
 augroup end
 
@@ -109,28 +108,10 @@ nnoremap <silent> Q <nop>
 
 nnoremap <leader>vu :so ~/.config/nvim/init.vim<CR>
 
-nnoremap <silent> L <cmd>bnext<CR>
-nnoremap <silent> H <cmd>bprev<CR>
-
-nnoremap <silent> <C-j> :cnext<CR>
-nnoremap <silent> <C-k> :cprev<CR>
-
 nnoremap <silent> <leader>s :set spell!<CR>
 nnoremap <silent> <leader>p :set paste!<CR>
 
-"
-" Playground
-" 
-augroup playground
-  au!
-  " bash
-  au FileType sh xnoremap <leader>r yPgv:!bash<CR>
-  au FileType sh nnoremap <leader>rp vapyPgv:!bash<CR>
-
-  " sql
-  au FileType sql xnoremap <leader>r :DB<CR>
-  au FileType sql nnoremap <leader>rp vap:DB<CR>
-augroup end
+nnoremap <C-l> :nohl<CR><C-l>
 
 "
 " Plugins
@@ -156,6 +137,7 @@ Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
 Plug 'ThePrimeagen/harpoon'
 Plug 'caenrique/nvim-toggle-terminal'
+Plug 'mhinz/vim-signify'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
@@ -168,6 +150,7 @@ Plug 'kristijanhusak/vim-dadbod-completion'
 " lsp, Completion Engine
 Plug 'neovim/nvim-lspconfig'
 Plug 'onsails/lspkind-nvim'
+Plug 'jose-elias-alvarez/nvim-lsp-ts-utils'
 
 " completion
 Plug 'hrsh7th/nvim-cmp'
@@ -178,23 +161,22 @@ Plug 'hrsh7th/cmp-buffer'
 Plug 'quangnguyen30192/cmp-nvim-ultisnips'
 
 " formatter
-Plug 'lukas-reineke/format.nvim'
+" Plug 'lukas-reineke/format.nvim'
+Plug 'mhartington/formatter.nvim'
 
 " snippet Engine
 Plug 'sirver/UltiSnips'
+
+" documentation
+Plug 'heavenshell/vim-jsdoc', {
+  \ 'for': ['javascript', 'javascriptreact','typescript', 'typescriptreact'],
+  \ 'do': 'make install'
+\}
 
 " writing
 Plug 'preservim/vim-markdown'
 
 call plug#end()
-
-" 
-" Colorscheme
-"
-
-let g:tokyonight_style = "night"
-let g:tokyonight_italic_functions = 1
-colorscheme tokyonight
 
 "
 " Color Overrides
@@ -231,24 +213,14 @@ let g:vim_dadbod_completion_mark = 'SQL'
 let g:completion_matching_ignore_case = 1
 
 " 
-" Formatter
-" 
-
-" let g:format_debug = v:true
-augroup Format
-  autocmd!
-  autocmd BufWritePost * FormatWrite
-augroup END
-
-" 
 " Folding
 " 
 let g:markdown_folding = 1
-
+"
 augroup remember_folds
   autocmd!
-  autocmd BufWinLeave *.* mkview
-  autocmd BufWinEnter *.* silent! loadview
+  autocmd BufWinLeave *.md mkview
+  autocmd BufWinEnter *.md silent! loadview
 augroup END
 
 lua << EOF

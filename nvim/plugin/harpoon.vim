@@ -1,3 +1,5 @@
+" Documentation: https://github.com/ThePrimeagen/harpoon
+
 lua require("odas0r")
 
 nnoremap <silent><leader><leader>a :lua require("harpoon.mark").add_file()<CR>

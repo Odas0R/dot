@@ -1,7 +1,13 @@
+" Documentation: defx
+"
+" Press "K" on when cursor on top of defx
+
 lua require("odas0r")
 
 nnoremap \ :Defx -search=`expand('%:p')` `expand('%:p:h')`<CR>
 function! DefxMappings()
+  " open a file with left mouse click
+	nnoremap <silent><buffer><expr> <2-LeftMouse> defx#do_action('open_tree', 'toggle')
   nnoremap <silent><buffer><expr> c
         \ defx#do_action('copy')
   nnoremap <silent><buffer><expr> m

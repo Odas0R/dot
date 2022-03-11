@@ -1,3 +1,7 @@
+" Documentation: nvim-toggle-terminal
+"
+" Press "K" on when cursor on top of telescope
+
 nnoremap <silent> <leader>t :ToggleTerminal<Enter>
 tnoremap <silent> <leader>t <C-\><C-n>:ToggleTerminal<Enter>
 

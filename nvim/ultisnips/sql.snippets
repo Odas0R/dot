@@ -28,6 +28,12 @@
 # Table
 #
 
+snippet /* "comment block" b
+/*
+ * $0
+ */
+endsnippet
+
 snippet table "Create a sql table"
 create table if not exists public.${1:table} (
 	$2 ${3:uuid} not null ${4:default extensions.uuid_generate_v4 ()}
@@ -46,13 +52,33 @@ endsnippet
 # Keys Contraints
 #
 
-snippet cpkey "Description" b
-, constraint ${1:table}_pkey primary key (${0:id})
+snippet ct "postgresql constraint" b
+/*
+ * Add constraint "${1:${VISUAL:ct}}" on ${2:${VISUAL:public.table}}
+ */
+alter table $2
+	drop constraint if exists $1;
+
+alter table $2
+	add constraint $1 ${3:${VISUAL:check(char_length(col) = 2)}} not valid;
+
+alter table $2 validate constraint $1;
 endsnippet
 
-snippet cfkey "Description" b
-, constraint $1_fkey foreign key ($2) references $3 ($4)
-	on delete cascade
+snippet ctf "postgresql constraint foreign key" b
+/*
+ * Add foreign key constraint ${1:${VISUAL:fkey}} to table 
+ * ${2:${VISUAL:table_referencing}} (${3:${VISUAL:fkey_ref}})
+ * referencing ${4:${VISUAL:table_to_reference}}
+ */
+alter table $2
+	drop constraint if exists $1;
+
+alter table $2
+	add constraint $1 foreign key ($3) references $4
+		on delete cascade not valid;
+
+alter table $2 validate constraint $1;
 endsnippet
 
 #

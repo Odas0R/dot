@@ -1,3 +1,7 @@
+" Documentation: vim-markdown
+"
+" Press "K" on when cursor on top of vim-markdown
+
 set conceallevel=2
 
 let g:vim_markdown_folding_disabled = 1

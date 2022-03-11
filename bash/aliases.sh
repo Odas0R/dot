@@ -3,6 +3,9 @@
 # Vi
 alias vimdiff="nvim -d"
 
+# ngrok aliases
+alias ng-pg="ngrok tcp --region=eu --remote-addr=3.tcp.eu.ngrok.io:22146 5432"
+
 # Shortcuts
 alias fonts="open ~/.local/share/fonts"
 alias horario="open ~/zet/assets/horario.png"

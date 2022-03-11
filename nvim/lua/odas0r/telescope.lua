@@ -30,12 +30,6 @@ require("telescope").setup({
       follow = true,
       path_display = { truncate = 1 },
     },
-    live_grep = {
-      -- do not show line + columns in results
-      disable_coordinates = true,
-      -- shorten path
-      -- path_display = { "shorten" },
-    },
   },
   extensions = {
     fzf = {
@@ -56,7 +50,7 @@ end
 
 M.search_zet_fleet = function()
   require("telescope.builtin").live_grep({
-    prompt_title = "Zettelkasten",
+    prompt_title = "Searching Zettelkasten...",
     cwd = "~/github.com/zet/fleet",
     hidden = true,
   })
@@ -64,7 +58,7 @@ end
 
 M.search_zet_permanent = function()
   require("telescope.builtin").live_grep({
-    prompt_title = "Zettelkasten",
+    prompt_title = "Searching Zettelkasten...",
     cwd = "~/github.com/zet/permanent",
     hidden = true,
   })

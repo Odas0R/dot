@@ -1,4 +1,4 @@
-local on_attach = function(_, bufnr)
+local lsp_keymaps = function(_, bufnr)
   local function buf_set_keymap(...)
     vim.api.nvim_buf_set_keymap(bufnr, ...)
   end
@@ -28,7 +28,64 @@ local debounce_text_changes = 150
 
 -- npm install -g typescript typescript-language-server
 require("lspconfig").tsserver.setup({
-  on_attach = on_attach,
+  -- Needed for inlayHints. Merge this table with your settings or copy
+  -- it from the source if you want to add your own init_options.
+  init_options = require("nvim-lsp-ts-utils").init_options,
+  on_attach = function(client, bufnr)
+    local ts_utils = require("nvim-lsp-ts-utils")
+    ts_utils.setup({
+      debug = false,
+      disable_commands = false,
+      enable_import_on_completion = true,
+
+      -- import all
+      import_all_timeout = 5000, -- ms
+      -- lower numbers = higher priority
+      import_all_priorities = {
+        same_file = 1, -- add to existing import statement
+        local_files = 2, -- git files or files with relative path markers
+        buffer_content = 3, -- loaded buffer content
+        buffers = 4, -- loaded buffer names
+      },
+      import_all_scan_buffers = 100,
+      import_all_select_source = false,
+      -- if false will avoid organizing imports
+      always_organize_imports = true,
+
+      -- filter diagnostics
+      filter_out_diagnostics_by_severity = {},
+      filter_out_diagnostics_by_code = {},
+
+      -- inlay hints
+      auto_inlay_hints = true,
+      inlay_hints_highlight = "Comment",
+      inlay_hints_priority = 200, -- priority of the hint extmarks
+      inlay_hints_throttle = 150, -- throttle the inlay hint request
+      inlay_hints_format = { -- format options for individual hint kind
+        Type = {},
+        Parameter = {},
+        Enum = {},
+      },
+
+      -- update imports on file move
+      update_imports_on_move = true,
+      require_confirmation_on_move = false,
+      watch_dir = nil,
+    })
+
+    -- required to fix code action ranges and filter diagnostics
+    ts_utils.setup_client(client)
+
+    -- set default keymaps
+    lsp_keymaps(client, bufnr)
+
+    -- set custom keymaps to typescript development
+    local opts = { noremap = true, silent = true }
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "gs", ":TSLspOrganize<CR>", opts)
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "<leader>f", ":TSLspRenameFile<CR>", opts)
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "gi", ":TSLspImportAll<CR>", opts)
+  end,
+
   capabilities = capabilities,
   flags = {
     debounce_text_changes,
@@ -39,7 +96,7 @@ require("lspconfig").tsserver.setup({
 -- https://github.com/georgewfraser/java-language-server
 local home = os.getenv("HOME")
 require("lspconfig").java_language_server.setup({
-  on_attach = on_attach,
+  on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
     debounce_text_changes,
@@ -61,7 +118,7 @@ require("lspconfig").java_language_server.setup({
 
 -- npm i -g vscode-langservers-extracted
 require("lspconfig").cssls.setup({
-  on_attach = on_attach,
+  on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
     debounce_text_changes,
@@ -70,7 +127,7 @@ require("lspconfig").cssls.setup({
 
 -- npm i -g yaml-language-server
 require("lspconfig").yamlls.setup({
-  on_attach = on_attach,
+  on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
     debounce_text_changes,
@@ -79,7 +136,7 @@ require("lspconfig").yamlls.setup({
 
 -- npm i -g bash-language-server
 require("lspconfig").bashls.setup({
-  on_attach = on_attach,
+  on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
     debounce_text_changes,
@@ -88,7 +145,7 @@ require("lspconfig").bashls.setup({
 
 --  npm install -g @tailwindcss/language-server
 require("lspconfig").tailwindcss.setup({
-  on_attach = on_attach,
+  on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
     debounce_text_changes,
@@ -97,7 +154,7 @@ require("lspconfig").tailwindcss.setup({
 
 -- pip install 'python-lsp-server[all]'
 require("lspconfig").pylsp.setup({
-  on_attach = on_attach,
+  on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
     debounce_text_changes,
@@ -106,7 +163,7 @@ require("lspconfig").pylsp.setup({
 
 -- ./dot/installs/golang
 require("lspconfig").gopls.setup({
-  on_attach = on_attach,
+  on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
     debounce_text_changes,
@@ -123,14 +180,14 @@ require("lspconfig").gopls.setup({
 })
 
 -- npm i -g stylelint-lsp
-require("lspconfig").stylelint_lsp.setup({
-  on_attach = on_attach,
-  capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
-  filetypes = { "css", "less", "scss" },
-})
+-- require("lspconfig").stylelint_lsp.setup({
+--   on_attach = on_attach,
+--   capabilities = capabilities,
+--   flags = {
+--     debounce_text_changes,
+--   },
+--   filetypes = { "css", "less", "scss" },
+-- })
 
 -- LSP for lua
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#sumneko_lua
@@ -142,7 +199,7 @@ table.insert(runtime_path, "lua/?.lua")
 table.insert(runtime_path, "lua/?/init.lua")
 
 require("lspconfig").sumneko_lua.setup({
-  on_attach = on_attach,
+  on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
     debounce_text_changes,

@@ -31,16 +31,16 @@ require("format").setup({
     { cmd = { "autopep8 -i" } },
   },
   javascript = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
+    { cmd = { "prettier -w", "eslint --fix" } },
   },
   javascriptreact = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
+    { cmd = { "prettier -w", "eslint --fix" } },
   },
   typescript = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
+    { cmd = { "prettier -w", "eslint --fix" } },
   },
   typescriptreact = {
-    { cmd = { "prettier -w", "eslint_d --cache --cache-location /tmp/ --fix" } },
+    { cmd = { "prettier -w", "eslint --fix" } },
   },
   json = {
     { cmd = { "fixjson -w", "prettier -w" } },

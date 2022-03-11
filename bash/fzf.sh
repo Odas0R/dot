@@ -20,10 +20,6 @@ export FZF_DEFAULT_COMMAND="fd --hidden --type f --type l ${FD_OPTIONS}"
 export FZF_CTRL_T_COMMAND="fd ${FD_OPTIONS}"
 export FZF_ALT_C_COMMAND="fd --type d ${FD_OPTIONS}"
 
-# Bindings
-bind -x '"\C-p": vf'
-bind -x '"\\": nvim .'
-
 # To install fd
 # sudo apt install fd-find
 # ln -s $(which fdfind) ~/.local/bin/fd
