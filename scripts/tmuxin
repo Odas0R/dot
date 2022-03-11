@@ -2,8 +2,6 @@
 
 set -e
 
-wallServer=$(markpath wall-server)
-
 # Tags Explanation
 # -c: path of the session
 # -s: session name
@@ -18,22 +16,23 @@ wallServer=$(markpath wall-server)
 # manage the project wallstreeters
 
 session="wallstreeters"
+workspace="$(markpath wall-client)"
+
 if tmux has-session -t $session &>/dev/null; then
   tmux kill-session -t "$session"
 fi
 
-tmux new-session -c "$wallServer" -s "$session" -n sql -d
-tmux send-keys -t "$session" "source ~/.bashrc && vf" C-m
+tmux new-session -d -s "$session" -c "$workspace"
 
-tmux split-window -c "$wallServer" -t "$session" -h
-tmux send-keys -t "$session" "source ~/.bashrc && vf" C-m
+window=1
+tmux rename-window -t "${session}:${window}" "neovim"
+tmux send-keys -t "${session}:${window}" "nvim -c 'Telescope git_files'" C-m
 
-tmux new-window -c "$wallServer" -t "$session"
-# tmux split-window -c "$wallServer" -t "$session" -h
+window=2
+tmux new-window -t "${session}:${window}" -n "server" -c "$workspace"
+tmux send-keys -t "${session}:${window}" "yarn next:dev" C-m
 
-tmux select-window -t :+1 \; last-pane
+tmux split-window -h -t "${session}:${window}" -c "$workspace"
+tmux send-keys -t "${session}:${window}.2" "yarn db:psql" C-m
 
-# =================
-# Session to Attach
-# =================
-# tmux attach-session -t "wallstreeters"
+tmux select-window -t :+1

@@ -6,7 +6,8 @@
 	default = current
 [core]
   editor = nvim
-	autocrlf = false
+	autocrlf = input
+	eol = lf
 [init]
 	defaultBranch = main
 [credential]
