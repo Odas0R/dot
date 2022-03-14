@@ -68,8 +68,7 @@ endsnippet
 snippet ctf "postgresql constraint foreign key" b
 /*
  * Add foreign key constraint ${1:${VISUAL:fkey}} to table 
- * ${2:${VISUAL:table_referencing}} (${3:${VISUAL:fkey_ref}})
- * referencing ${4:${VISUAL:table_to_reference}}
+ * ${2:${VISUAL:table_referencing}} (${3:${VISUAL:fkey_ref}}) referencing ${4:${VISUAL:table_to_reference}}
  */
 alter table $2
 	drop constraint if exists $1;

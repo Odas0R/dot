@@ -31,6 +31,7 @@ require("lspconfig").tsserver.setup({
   -- Needed for inlayHints. Merge this table with your settings or copy
   -- it from the source if you want to add your own init_options.
   init_options = require("nvim-lsp-ts-utils").init_options,
+  root_dir = require("lspconfig").util.root_pattern("package.json"),
   on_attach = function(client, bufnr)
     local ts_utils = require("nvim-lsp-ts-utils")
     ts_utils.setup({
@@ -89,6 +90,18 @@ require("lspconfig").tsserver.setup({
   capabilities = capabilities,
   flags = {
     debounce_text_changes,
+  },
+})
+
+vim.g.markdown_fenced_languages = {
+  "ts=typescript",
+}
+
+require("lspconfig").denols.setup({
+  on_attach = lsp_keymaps,
+  root_dir = require("lspconfig").util.root_pattern("deno.json"),
+  init_options = {
+    lint = true,
   },
 })
 

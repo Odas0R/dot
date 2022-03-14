@@ -1,6 +1,7 @@
 " Documentation: https://github.com/mhartington/formatter.nvim
+"
 
 augroup FormatAutogroup
   autocmd!
-  autocmd BufWritePost * FormatWrite
+  nnoremap <silent> gp <cmd>FormatWrite<cr>
 augroup END

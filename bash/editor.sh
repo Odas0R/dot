@@ -10,15 +10,21 @@ fi
 export HRULEWIDTH=73
 
 # Define the editor
-if [ ! -x "$(command -v nvim)" ]; then
+if [[ ! -x "$(command -v nvim-nvr)" ]]; then
   export VISUAL=/usr/bin/vim
   export EDITOR="$VISUAL"
 else
   if [[ $OSTYPE == "darwin"* ]]; then
-    export VISUAL=/usr/local/bin/nvim
-    export EDITOR="$VISUAL"
+    VISUAL=/usr/local/bin/nvim
+    EDITOR="$VISUAL"
+
+    export VISUAL
+    export EDITOR
   else
-    export VISUAL=/usr/bin/nvim
-    export EDITOR="$VISUAL"
+    VISUAL=/usr/bin/nvim
+    EDITOR="$VISUAL"
+
+    export VISUAL
+    export EDITOR
   fi
 fi

@@ -5,7 +5,9 @@
 nnoremap <silent> <leader>t :ToggleTerminal<Enter>
 tnoremap <silent> <leader>t <C-\><C-n>:ToggleTerminal<Enter>
 
+
 tnoremap <expr> <Esc> (&filetype == "fzf") ? "<Esc>" : "<c-\><c-n>"
+tnoremap <C-v><Esc> <Esc>
 
 augroup terminal_settings
   autocmd!
@@ -20,3 +22,5 @@ augroup terminal_settings
         \   call nvim_input('<CR>')  |
         \ endif
 augroup END
+
+highlight! TermCursorNC guibg=red guifg=white ctermbg=1 ctermfg=15
