@@ -1,4 +1,0 @@
-#!/bin/sh
-
-# Removes the :Zone.Identifiers on the cwd
-exec find . -name '*:Zone.Identifier' -type f -delete

@@ -7,6 +7,7 @@ set shiftround
 set expandtab
 set autoindent
 
+set autoread 
 set autowriteall
 set relativenumber
 set ruler
@@ -59,17 +60,6 @@ au BufReadPost *
       \ if line("'\"") > 0 && line("'\"") <= line("$") |
       \   exe "normal! g`\"" |
       \ endif
-
-" Triger `autoread` when files changes on disk
-" https://unix.stackexchange.com/questions/149209/refresh-changed-content-of-file-opened-in-vim/383044#383044
-" https://vi.stackexchange.com/questions/13692/prevent-focusgained-autocmd-running-in-command-line-editing-mode
-autocmd FocusGained,BufEnter,CursorHold,CursorHoldI *
-      \ if mode() !~ '\v(c|r.?|!|t)' && getcmdwintype() == '' | checktime | endif
-
-" Notification after file change
-" https://vi.stackexchange.com/questions/13091/autocmd-event-for-autoread
-autocmd FileChangedShellPost *
-      \ echohl WarningMsg | echo "File changed on disk. Buffer reloaded." | echohl None
 
 "
 " Path (Files to Ignore)
@@ -186,7 +176,7 @@ au FileType * hi SpellBad ctermbg=NONE ctermfg=Red cterm=underline
 au FileType * hi Error ctermbg=NONE ctermfg=Red
 au FileType * hi ErrorMsg ctermbg=NONE ctermfg=Red
 
-highlight Title gui=bold guifg=#e0af68 ctermfg=yellow
+highlight htmlTitle gui=bold guifg=#e0af68 ctermfg=Yellow
 highlight htmlBold gui=bold guifg=#e0af68 ctermfg=214
 highlight htmlItalic gui=italic guifg=#bb9af7 ctermfg=214
 

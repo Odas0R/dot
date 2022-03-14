@@ -14,7 +14,7 @@ if ! git rev-parse HEAD >/dev/null 2>&1; then
   exit 1
 fi
 
-function sync() {
+_sync() {
   # Check if there are uncommitted changes
   if [ -n "$(git status --porcelain)" ]; then
     git add .
@@ -25,4 +25,4 @@ function sync() {
 }
 
 # run the command on the background
-(sync &) &>/dev/null
+(_sync &) &>/dev/null

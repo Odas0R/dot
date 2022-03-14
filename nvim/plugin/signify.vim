@@ -13,9 +13,13 @@ highlight SignifySignChange ctermfg=yellow guifg=#ffff00 cterm=NONE gui=NONE
 highlight SignColumn ctermbg=NONE cterm=NONE guibg=NONE gui=NONE
 
 " hunk mappings
-nmap <leader>hj <plug>(signify-next-hunk):SignifyHunkDiff<CR>
-nmap <leader>hk <plug>(signify-prev-hunk):SignifyHunkDiff<CR>
-nmap <leader>hd <cmd>SignifyHunkDiff<CR>
+nnoremap <silent> <leader>gj <plug>(signify-next-hunk):SignifyHunkDiff<CR>
+nnoremap <silent> <leader>gk <plug>(signify-prev-hunk):SignifyHunkDiff<CR>
+nnoremap <silent> <leader>gd <cmd>SignifyHunkDiff<CR>
+
+" hunk manipulations
+nnoremap <silent> <leader>gu <cmd>SignifyHunkUndo<cr>
+nnoremap <silent> <leader>gt <cmd>SignifyToggle<cr>
 
 " When you jump to a hunk, show "[Hunk 2/15]" by putting this in your vimrc:
 autocmd User SignifyHunk call s:show_current_hunk()

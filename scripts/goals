@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-popup -d "$HOME/zet" nvim "$HOME/zet/goals.md"
