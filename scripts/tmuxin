@@ -33,6 +33,6 @@ tmux new-window -t "${session}:${window}" -n "server" -c "$workspace"
 tmux send-keys -t "${session}:${window}" "yarn next:dev" C-m
 
 tmux split-window -h -t "${session}:${window}" -c "$workspace"
-tmux send-keys -t "${session}:${window}.2" "yarn db:psql" C-m
+tmux send-keys -t "${session}:${window}.2" "yarn psql" C-m
 
 tmux select-window -t :+1

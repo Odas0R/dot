@@ -5,7 +5,6 @@
 nnoremap <silent> <leader>t :ToggleTerminal<Enter>
 tnoremap <silent> <leader>t <C-\><C-n>:ToggleTerminal<Enter>
 
-
 tnoremap <expr> <Esc> (&filetype == "fzf") ? "<Esc>" : "<c-\><c-n>"
 tnoremap <C-v><Esc> <Esc>
 

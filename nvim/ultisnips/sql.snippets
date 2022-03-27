@@ -119,13 +119,15 @@ endsnippet
 snippet trigger "Create a trigger" b
 create or replace function public.$1 ()
 returns trigger as
-$BODY$
+language plpgsql
+security definer
+set search_path = public
+$$
 begin
 	$0
 	return new;
 end;
-$BODY$
-language 'plpgsql';
+$$;
 
 create trigger $1
 	${2:before} ${3:insert or update} on public.${4:table} for each row
@@ -164,6 +166,55 @@ select * from finish();
 do $$ begin assert num_failed() = 0; end $$;
 
 rollback;
+endsnippet
+
+#
+# pgTap common functions
+#
+
+snippet results_eq "pgtap results_eq unit test function" b
+select 
+  results_eq(
+    $$
+    ${2:${VISUAL:select (1)}}
+    $$,
+    $$
+    ${3:${VISUAL:values (1)}}
+    $$,
+    '$1'
+  );
+endsnippet
+
+snippet is_empty "pgtap is_empty unit test function" b
+select 
+  is_empty(
+    $$
+    ${2:${VISUAL:select (1)}}
+    $$,
+    '$1'
+  );
+endsnippet
+
+snippet lives_ok "pgtap lives_ok unit test function" b
+select 
+  lives_ok(
+    $$
+    ${2:${VISUAL:select (1)}}
+    $$,
+    '$1'
+  );
+endsnippet
+
+snippet throws_ok "pgtap throws_ok unit test function" b
+select 
+  throws_ok(
+    $$
+    ${2:${VISUAL:select (1)}}
+    $$,
+    ${3:${VISUAL:111}},
+    '${4:${VISUAL:some postgres error message thrown}}',
+    '$1'
+  );
 endsnippet
 
 #

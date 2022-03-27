@@ -13,9 +13,9 @@ highlight SignifySignChange ctermfg=yellow guifg=#ffff00 cterm=NONE gui=NONE
 highlight SignColumn ctermbg=NONE cterm=NONE guibg=NONE gui=NONE
 
 " hunk mappings
-nnoremap <silent> <leader>gj <plug>(signify-next-hunk):SignifyHunkDiff<CR>
-nnoremap <silent> <leader>gk <plug>(signify-prev-hunk):SignifyHunkDiff<CR>
-nnoremap <silent> <leader>gd <cmd>SignifyHunkDiff<CR>
+nmap <silent> <leader>gj <plug>(signify-next-hunk)<cmd>SignifyHunkDiff<CR>
+nmap <silent> <leader>gk <plug>(signify-prev-hunk)<cmd>SignifyHunkDiff<CR>
+nmap <silent> <leader>gh <cmd>SignifyHunkDiff<CR>
 
 " hunk manipulations
 nnoremap <silent> <leader>gu <cmd>SignifyHunkUndo<cr>
