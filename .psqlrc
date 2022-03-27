@@ -1,0 +1,41 @@
+\set QUIET 1
+
+\set COMP_KEYWORD_CASE lower
+
+\set VERBOSITY verbose
+
+-- \set HISTFILE ~/.psql/history- :DBNAME
+\set HISTCONTROL ignoredups
+\set HISTSIZE 2000
+
+\timing
+
+\x auto
+
+\pset pager off
+
+\pset null '(null)'
+
+\pset linestyle unicode
+\pset border 2
+
+\set PROMPT1 '(%n@%M:%>) [%/] > '
+\set PROMPT2 ''
+
+\encoding unicode
+
+\set QUIET 0
+
+-- Custom Queries:
+
+\set v 'SELECT version();'
+\set ext 'select * from pg_available_extensions;'
+
+-- Admin Queries:
+
+\set show_slow_queries 'select (total_exec_time / 1000 / 60) as total_minutes, (total_exec_time/calls) as average_time, query from pg_stat_statements order by 1 desc limit 100;'
+
+-- Development Queries:
+
+\set sp 'SHOW search_path;'
+\set c '\\! clear;'
