@@ -4,8 +4,8 @@
 
 let g:tokyonight_style = "night"
 let g:tokyonight_italic_functions = 1
+let g:tokyonight_transparent = 1
 colorscheme tokyonight
-
 
 " change themes
 nnoremap <leader>8 :let g:tokyonight_style = "night"<cr>:colorscheme default<cr>:colorscheme tokyonight<cr>
