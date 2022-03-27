@@ -17,3 +17,8 @@ mv nvim.appimage nvim
 chmod u+x ./nvim
 
 sudo mv ./nvim /usr/bin
+
+# install nvr
+
+sudo apt install python3-pip
+pip3 install neovim-remote

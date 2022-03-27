@@ -20,9 +20,9 @@ ln -sf "$HOME/dot/nvim/spell" "$NVIM/spell"
 mkdir -p "$HOME/snippets"
 ln -sf "$HOME/dot/nvim/ultisnips" "$HOME/snippets/ultisnips"
 
-# setup lua
-mkdir -p "$NVIM/lua"
-ln -sf "$HOME/dot/nvim/lua" "$NVIM/lua"
+# setup lua and plugins
+ln -sf "$HOME/dot/nvim/lua" "$NVIM"
+ln -sf "$HOME/dot/nvim/plugin" "$NVIM"
 
 # installing plug
 if [[ ! -f "$NVIM/autoload/plug.vim" ]]; then
@@ -32,4 +32,4 @@ fi
 
 printf "To install all vim plugins :PlugInstall!\n"
 
-echo "Vim setup done! 🌟"
+echo "Neovim setup done! 🌟"

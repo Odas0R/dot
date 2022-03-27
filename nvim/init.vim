@@ -214,5 +214,5 @@ augroup remember_folds
 augroup END
 
 lua << EOF
-require("plenary.reload").reload_module("odas0r", true)
+  require("plenary.reload").reload_module("odas0r", true)
 EOF

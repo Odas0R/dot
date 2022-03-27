@@ -5,24 +5,10 @@ if [[ ! -x "$(command -v lazygit)" ]]; then
   exit 1
 fi
 
-declare DISTRO
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  DISTRO=$(awk -F= '/^NAME/{print ${2}}' /etc/os-release)
-
-  if [[ ${DISTRO} = "Ubuntu"* ]]; then
-    if uname -a | grep -q '^Linux.*Microsoft'; then
-      # ubuntu via WSL Windows Subsystem for Linux
-      echo "SETUP NOT IMPLEMENTED: lazygit"
-    else
-      # native ubuntu
-      echo "SETUP NOT IMPLEMENTED: lazygit"
-    fi
-  elif [[ ${DISTRO} = "Debian"* ]]; then
-    # debian
-    echo "SETUP NOT IMPLEMENTED: lazygit"
-  fi
-elif [[ "$OSTYPE" == "darwin"* ]]; then
+if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS OSX
   ln -sf "$HOME/dot/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
+else
+  ln -sf "$HOME/dot/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
 fi
