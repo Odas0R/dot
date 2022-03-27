@@ -49,11 +49,8 @@ set foldmethod=manual
 set spelllang+=pt_pt
 set encoding=utf-8
 
-" on yank copy to clipboard
-set clipboard+=unnamedplus
-
 " set the cursor fat on insert
-set guicursor=i:block
+" set guicursor=i:block
 
 " Return to last edit position when opening files
 au BufReadPost *
@@ -142,6 +139,9 @@ Plug 'neovim/nvim-lspconfig'
 Plug 'onsails/lspkind-nvim'
 Plug 'jose-elias-alvarez/nvim-lsp-ts-utils'
 
+" yank over OSC
+Plug 'ojroques/vim-oscyank', {'branch': 'main'}
+
 " completion
 Plug 'hrsh7th/nvim-cmp'
 Plug 'hrsh7th/cmp-path'
@@ -202,11 +202,12 @@ let g:db="postgres://postgres:postgres@localhost:5432/postgres"
 let g:vim_dadbod_completion_mark = 'SQL'
 let g:completion_matching_ignore_case = 1
 
+
 " 
 " Folding
 " 
 let g:markdown_folding = 1
-"
+
 augroup remember_folds
   autocmd!
   autocmd BufWinLeave *.md mkview
@@ -214,5 +215,9 @@ augroup remember_folds
 augroup END
 
 lua << EOF
+  -- import all configs
+  require("odas0r")
+
+  -- Reload modules on save
   require("plenary.reload").reload_module("odas0r", true)
 EOF
