@@ -176,12 +176,9 @@ require("lspconfig").pylsp.setup({
 
 -- ./dot/installs/golang
 require("lspconfig").gopls.setup({
-  on_attach = lsp_keymaps,
-  capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
   cmd = { "gopls", "serve" },
+  filetypes = { "go", "gomod" },
+  root_dir = require("lspconfig").util.root_pattern("go.work", "go.mod", ".git"),
   settings = {
     gopls = {
       analyses = {
@@ -189,6 +186,11 @@ require("lspconfig").gopls.setup({
       },
       staticcheck = true,
     },
+  },
+  on_attach = lsp_keymaps,
+  capabilities = capabilities,
+  flags = {
+    debounce_text_changes,
   },
 })
 

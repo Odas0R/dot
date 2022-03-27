@@ -41,19 +41,28 @@ local formatterConfig = {
       }
     end,
   },
-  go = {
+  json = {
     function()
       return {
-        exe = "gofmt",
+        exe = "fixjson",
         args = { "-w" },
         stdin = true,
       }
     end,
+    prettierConfig,
+  },
+  go = {
     function()
       return {
         exe = "goimports",
-        args = { "-w", vim.fn.fnameescape(vim.api.nvim_buf_get_name(0)) },
+        args = { "-w" },
         stdin = false,
+      }
+    end,
+    function()
+      return {
+        exe = "gofmt",
+        stdin = true,
       }
     end,
   },
@@ -80,7 +89,6 @@ local commonFT = {
   "typescriptreact",
   "markdown",
   "markdown.mdx",
-  "json",
   "yaml",
   "xml",
   "svg",

@@ -1,5 +1,6 @@
 " Documentation: https://github.com/mhartington/formatter.nvim
 "
+autocmd FocusGained * checktime
 
 augroup FormatAutogroup
   autocmd!
