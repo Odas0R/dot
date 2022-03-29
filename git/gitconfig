@@ -8,8 +8,6 @@
   editor = nvim
 [init]
 	defaultBranch = main
-[credential "https://github.com"]
-  helper = ! auth git-credential
 [merge]
 	tool = "nvim -d"
 	conflictstyle = diff3
