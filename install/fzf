@@ -8,8 +8,6 @@ if [[ $OSTYPE == "darwin"* ]]; then
   $(brew --prefix)/opt/fzf/install
 else
   # install with github
-  mkdir -p /tmp/fzf
-  cd /tmp/fzf
-  git clone --depth 1 https://github.com/junegunn/fzf.git .
-  ./install
+  git clone --depth 1 https://github.com/junegunn/fzf.git $HOME/.fzf
+  $HOME/.fzf/install
 fi
