@@ -4,6 +4,10 @@ set -e
 
 # Docs: https://github.com/sumneko/lua-language-server/wiki/Build-and-Run-(Standalone)
 
+if [[ -d "$HOME/tools/lua-language-server" ]]; then
+  rm -rf "$HOME/tools/lua-language-server"
+fi
+
 mkdir -p $HOME/tools/
 cd $HOME/tools
 git clone --depth=1 https://github.com/sumneko/lua-language-server 

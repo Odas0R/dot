@@ -149,19 +149,13 @@ Plug 'hrsh7th/cmp-nvim-lua'
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'quangnguyen30192/cmp-nvim-ultisnips'
+Plug 'tzachar/cmp-tabnine', { 'do': './install.sh' }
 
 " formatter
-" Plug 'lukas-reineke/format.nvim'
 Plug 'mhartington/formatter.nvim'
 
 " snippet Engine
 Plug 'sirver/UltiSnips'
-
-" documentation
-Plug 'heavenshell/vim-jsdoc', {
-  \ 'for': ['javascript', 'javascriptreact','typescript', 'typescriptreact'],
-  \ 'do': 'make install'
-\}
 
 " writing
 Plug 'preservim/vim-markdown'

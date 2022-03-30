@@ -24,18 +24,22 @@ export GOPATH="$HOME/go"
 export CARGOPATH="/home/odas0r/.cargo"
 
 # Tools
-export LUA_LSP="$TOOLS/lua-language-server/bin/Linux"
+export LUA_LANGUAGE_SERVER="$TOOLS/lua-language-server/bin"
 
-# MacOS Shit
-if [[ $OSTYPE == "darwin"* ]]; then
-  # CoreUtils for macos
-  # brew install coreutils
-  export GNU_UTILS="/usr/local/opt/coreutils/libexec/gnubin"
-
-  # Tools
-  export LUA_LSP="$TOOLS/lua-language-server/bin/macOS"
-
-fi
+# Perl
+export PERLPATH="/hom/odas0r/perl5"
+export PERL5LIB="/home/odas0r/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"
+export PERL_LOCAL_LIB_ROOT="/home/odas0r/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LIB_ROOT}}"
+export PERL_MB_OPT='--install_base "/home/odas0r/perl5"'
+export PERL_MM_OPT="INSTALL_BASE=/home/odas0r/perl5"
 
 # Global Path
-export PATH="$PATH:/bin:/usr/local/bin:$GOROOT/bin:$GOPATH/bin:$CARGOPATH/bin:$PERLPATH/bin:$LOCAL_BIN:$LOCAL_SCRIPTS:$LUA_LSP:$GNU_UTILS"
+PATH="$PATH:/bin:/usr/local/bin:"
+PATH+="$GOROOT/bin:$GOPATH/bin:"
+PATH+="$CARGOPATH/bin:"
+PATH+="$PERLPATH/bin:"
+PATH+="$LOCAL_BIN:$LOCAL_SCRIPTS:"
+PATH+="$LUA_LANGUAGE_SERVER:"
+PATH+="$GNU_UTILS"
+
+export PATH
