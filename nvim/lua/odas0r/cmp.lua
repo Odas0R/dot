@@ -75,7 +75,7 @@ cmp.setup({
     },
     { name = "vim-dadbod-completion" },
 
-    -- { name = "cmp_tabnine" },
+    { name = "cmp_tabnine" },
     { name = "ultisnips" },
   }),
 
@@ -92,6 +92,7 @@ cmp.setup({
         nvim_lua = "[Lua]",
         nvim_lsp = "[Lsp]",
         path = "[Path]",
+        cmp_tabnine = "[TN]",
         ["vim-dadbod-completion"] = "[Sql]",
         gh_issues = "[Issue]",
         ultisnips = "[Snip]",

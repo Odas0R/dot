@@ -23,7 +23,7 @@ local lsp_keymaps = function(_, bufnr)
 end
 
 local capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protocol.make_client_capabilities())
-
+local lsp_config = require("lspconfig").util;
 local debounce_text_changes = 150
 
 -- npm install -g typescript typescript-language-server
@@ -50,7 +50,6 @@ require("lspconfig").tsserver.setup({
       },
       import_all_scan_buffers = 100,
       import_all_select_source = false,
-      -- if false will avoid organizing imports
       always_organize_imports = true,
 
       -- filter diagnostics
@@ -58,17 +57,7 @@ require("lspconfig").tsserver.setup({
       filter_out_diagnostics_by_code = {},
 
       -- inlay hints
-      auto_inlay_hints = true,
-      inlay_hints_highlight = "Comment",
-      inlay_hints_priority = 200, -- priority of the hint extmarks
-      inlay_hints_throttle = 150, -- throttle the inlay hint request
-      inlay_hints_format = { -- format options for individual hint kind
-        Type = {},
-        Parameter = {},
-        Enum = {},
-      },
-
-      -- update imports on file move
+      auto_inlay_hints = false,
       update_imports_on_move = true,
       require_confirmation_on_move = false,
       watch_dir = nil,
@@ -219,7 +208,7 @@ require("lspconfig").sumneko_lua.setup({
   flags = {
     debounce_text_changes,
   },
-  cmd = { sumneko_binary_path, "-E", sumneko_root_path .. "/main.lua" },
+  cmd = { sumneko_binary_path, "-E", sumneko_root_path .. "/lua-language-server/main.lua" },
   settings = {
     Lua = {
       runtime = {

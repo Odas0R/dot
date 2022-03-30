@@ -8,8 +8,12 @@ if [[ -n $1 ]]; then
   exit 0
 fi
 
-cd "$HOME/dot" 
-file="$(fzf-tmux -p 95% --preview 'bat --theme=ansi  --style=numbers --color=always {}')"
+cd "$HOME/dot"
+file=$(
+  fzf-tmux -p 95% --multi \
+    --prompt="Search through your dotfiles > " \
+    --preview 'bat --theme=ansi  --style=numbers --color=always {}'
+)
 
 if [[ -f $file ]]; then
   if [[ ${file: -4} =~ (.png|jpeg|gif) ]]; then

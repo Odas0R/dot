@@ -21,7 +21,7 @@ repos() {
 
   repo=$(
     find "$GITHUB_PATH" -mindepth 2 -maxdepth 2 -type d |
-      fzf-tmux -p 30% --prompt="Search your repositories >"
+      fzf-tmux -p 40% --multi --prompt="Your repositories > "
   )
 
   cd "$repo"
