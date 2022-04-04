@@ -9,10 +9,14 @@ set autoindent
 
 set autoread 
 set autowriteall
-set relativenumber
+set number
 set ruler
 set showmode
 set showcmd
+
+" experimentation for performance
+set lazyredraw
+set ttyfast
 
 set numberwidth=2
 set laststatus=2
@@ -149,7 +153,6 @@ Plug 'hrsh7th/cmp-nvim-lua'
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'quangnguyen30192/cmp-nvim-ultisnips'
-Plug 'tzachar/cmp-tabnine', { 'do': './install.sh' }
 
 " formatter
 Plug 'mhartington/formatter.nvim'
@@ -170,7 +173,7 @@ au FileType * hi SpellBad ctermbg=NONE ctermfg=Red cterm=underline
 au FileType * hi Error ctermbg=NONE ctermfg=Red
 au FileType * hi ErrorMsg ctermbg=NONE ctermfg=Red
 
-highlight htmlTitle gui=bold guifg=#e0af68 ctermfg=Yellow
+" give colors to **bold** and *italic*
 highlight htmlBold gui=bold guifg=#e0af68 ctermfg=214
 highlight htmlItalic gui=italic guifg=#bb9af7 ctermfg=214
 
@@ -195,7 +198,6 @@ let g:UltiSnipsJumpBackwardTrigger='<S-Tab>'
 let g:db="postgres://postgres:postgres@localhost:5432/postgres"
 let g:vim_dadbod_completion_mark = 'SQL'
 let g:completion_matching_ignore_case = 1
-
 
 " 
 " Folding

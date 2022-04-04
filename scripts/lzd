@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ ! -x "$(command -v lazydocker)" ]]; then
+  echo "You need to install lazygit"
+  exit 1
+fi
+
+popup lazydocker "$@"

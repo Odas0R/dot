@@ -4,4 +4,4 @@ prompt: enabled
 pager: less
 aliases:
     co: pr checkout
-browser: "'/mnt/c/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe'"
+browser: "open"

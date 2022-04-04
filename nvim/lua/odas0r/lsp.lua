@@ -23,7 +23,9 @@ local lsp_keymaps = function(_, bufnr)
 end
 
 local capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protocol.make_client_capabilities())
-local lsp_config = require("lspconfig").util;
+
+local lsp_util = require("lspconfig").util;
+
 local debounce_text_changes = 150
 
 -- npm install -g typescript typescript-language-server
@@ -31,7 +33,7 @@ require("lspconfig").tsserver.setup({
   -- Needed for inlayHints. Merge this table with your settings or copy
   -- it from the source if you want to add your own init_options.
   init_options = require("nvim-lsp-ts-utils").init_options,
-  root_dir = require("lspconfig").util.root_pattern("package.json"),
+  root_dir = lsp_util.root_pattern("package.json"),
   on_attach = function(client, bufnr)
     local ts_utils = require("nvim-lsp-ts-utils")
     ts_utils.setup({
@@ -128,12 +130,18 @@ require("lspconfig").cssls.setup({
 })
 
 -- npm i -g yaml-language-server
-require("lspconfig").yamlls.setup({
+require("lspconfig").yamlls.setup(
   on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
     debounce_text_changes,
   },
+  settings = {
+    schemas = {
+              ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*"
+
+    }
+  }
 })
 
 -- npm i -g bash-language-server
@@ -163,7 +171,8 @@ require("lspconfig").pylsp.setup({
   },
 })
 
--- ./dot/installs/golang
+-- go install golang.org/x/tools/gopls@latest
+-- go install golang.org/x/tools/cmd/goimports@latest
 require("lspconfig").gopls.setup({
   cmd = { "gopls", "serve" },
   filetypes = { "go", "gomod" },
