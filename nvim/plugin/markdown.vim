@@ -1,6 +1,7 @@
 " Documentation: vim-markdown
 "
 " Press "K" on when cursor on top of vim-markdown
+let g:netrw_browsex_viewer = "open"
 
 set conceallevel=2
 

@@ -3,7 +3,7 @@
 " Press "K" on when cursor on top of defx
 
 let g:tokyonight_style = "night"
-let g:tokyonight_italic_functions = 1
+let g:tokyonight_italic_functions = 0
 let g:tokyonight_transparent = 1
 colorscheme tokyonight
 
