@@ -14,7 +14,13 @@ local formatterConfig = {
     function()
       return {
         exe = "stylua",
-        args = { "--indent-type", "Spaces", "--indent-width", 2 },
+        args = {
+          "--indent-type",
+          "Spaces",
+          "--indent-width",
+          2,
+          vim.fn.fnameescape(vim.api.nvim_buf_get_name(0)),
+        },
         stdin = false,
       }
     end,
