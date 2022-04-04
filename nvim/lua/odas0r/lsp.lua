@@ -24,7 +24,7 @@ end
 
 local capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
-local lsp_util = require("lspconfig").util;
+local lsp_util = require("lspconfig").util
 
 local debounce_text_changes = 150
 
@@ -130,7 +130,7 @@ require("lspconfig").cssls.setup({
 })
 
 -- npm i -g yaml-language-server
-require("lspconfig").yamlls.setup(
+require("lspconfig").yamlls.setup({
   on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
@@ -138,10 +138,9 @@ require("lspconfig").yamlls.setup(
   },
   settings = {
     schemas = {
-              ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*"
-
-    }
-  }
+      ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
+    },
+  },
 })
 
 -- npm i -g bash-language-server
