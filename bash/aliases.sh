@@ -6,6 +6,8 @@ alias ls="ls --format=single-column --classify --color --group-directories-first
 alias la="ls -la"
 alias sb="source ~/.bashrc"
 
+alias hosts="sudoedit /etc/hosts"
+
 #  Use nvr to avoid nesting nvim in Terminal buffers.
 alias nvim="nvim-nvr"
 
@@ -24,5 +26,5 @@ repos() {
       fzf-tmux -p 40% --multi --prompt="Your repositories > "
   )
 
-  cd "$repo"
+  cd "$repo" || return
 }

@@ -12,6 +12,10 @@ let g:oscyank_term = 'default'
 
 let g:clipboard = {
         \   'name': 'osc53',
-        \   'copy': {'+': {lines, regtype -> OSCYankString(join(lines, "\n"))}},
-        \   'paste': {'+': {-> [split(getreg(''), '\n'), getregtype('')]}},
+        \   'copy': {
+        \     '+': {lines, regtype -> OSCYankString(join(lines, "\n"))},
+        \   },
+        \   'paste': {
+        \     '+': {-> [split(getreg(''), '\n'), getregtype('')]}
+        \   },
         \ }

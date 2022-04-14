@@ -19,10 +19,3 @@
     cmd = nvr -s -d $LOCAL $BASE $REMOTE $MERGED -c 'wincmd J | wincmd ='
     prompt = false
     keepBackup = false
-
-; [merge]
-; 	tool = "nvim -d"
-; 	conflictstyle = diff3
-; [mergetool]
-;   prompt = false
-;   keepBackup = false

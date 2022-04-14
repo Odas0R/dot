@@ -8,4 +8,5 @@ augroup zettelkasten_history
   au BufWinEnter ~/github.com/odas0r/zet-cmd/.zet/**/*.md silent !zet history.insert %
   au BufWinEnter ~/github.com/odas0r/zet/fleet/*.md silent !zet history.insert %
   au BufWinEnter ~/github.com/odas0r/zet/permanent/*.md silent !zet history.insert %
+  au BufWinEnter ~/github.com/odas0r/zet/permanent/*.md silent !zet history.insert %
 augroup end

@@ -9,6 +9,14 @@ local prettierConfig = function()
   }
 end
 
+local eslintConfig = function()
+  return {
+    exe = "eslint",
+    args = { "--fix", vim.fn.shellescape(vim.api.nvim_buf_get_name(0)) },
+    stdin = true,
+  }
+end
+
 local formatterConfig = {
   lua = {
     function()
@@ -21,7 +29,7 @@ local formatterConfig = {
           2,
           vim.fn.fnameescape(vim.api.nvim_buf_get_name(0)),
         },
-        stdin = false,
+        stdin = true,
       }
     end,
   },
@@ -84,15 +92,21 @@ local formatterConfig = {
   },
 }
 
+local commonPE = {
+  "javascript",
+  "javascriptreact",
+  "typescript",
+  "typescriptreact",
+}
+for _, ft in ipairs(commonPE) do
+  formatterConfig[ft] = { prettierConfig, eslintConfig }
+end
+
 local commonFT = {
   "css",
   "scss",
   "html",
   "java",
-  "javascript",
-  "javascriptreact",
-  "typescript",
-  "typescriptreact",
   "markdown",
   "markdown.mdx",
   "yaml",

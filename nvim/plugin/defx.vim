@@ -2,8 +2,13 @@
 "
 " Press "K" on when cursor on top of defx
 
-nnoremap \ :Defx -search=`expand('%:p')` `expand('%:p:h')`<CR>
+
+nnoremap \ <cmd>Defx -columns=mark:indent:icon:space:git:filename -search=`expand('%:p')` `expand('%:p:h')`<CR>
+
 function! DefxMappings()
+  " local options
+  setlocal cursorline
+
   " open a file with left mouse click
 	nnoremap <silent><buffer><expr> <2-LeftMouse> defx#do_action('open_tree', 'toggle')
   nnoremap <silent><buffer><expr> c
@@ -41,7 +46,7 @@ function! DefxMappings()
         \ defx#do_action('cd', ['..'])
   nnoremap <silent><buffer><expr> q
         \ defx#do_action('quit')
-  nnoremap <silent><buffer><expr> <Tab>
+  nnoremap <silent><buffer><expr> <Space>
         \ defx#do_action('toggle_select') . 'j'
   nnoremap <silent><buffer><expr> <C-7>
         \ defx#do_action('toggle_select_all')
@@ -69,3 +74,13 @@ function! s:browse_check(path) abort
   augroup END
   execute 'Defx' a:path
 endfunction
+
+" Defx *git* indicators
+call defx#custom#column('git', 'raw_mode', 1)
+
+call defx#custom#column('git', 'column_length', 1)
+call defx#custom#column('git', 'max_indicator_width', 0)
+
+" I want to update defx status automatically when changing file.
+autocmd BufWritePost * call defx#redraw()
+
