@@ -1,4 +1,4 @@
-set tw=72 fo=cq wm=0 " no automatic wrapping, rewrapping will wrap to 72
+set tw=79 fo=cq wm=0 " no automatic wrapping, rewrapping will wrap to 79
 
 set tabstop=2
 set softtabstop=-1
@@ -24,7 +24,6 @@ set nofixendofline
 set foldmethod=manual
 set noshowmatch
 
-match ErrorMsg '\s\+$'
 set shortmess=aoOtTI
 
 set hidden
@@ -35,7 +34,7 @@ set updatetime=100
 set hlsearch
 set incsearch
 set linebreak
-set nowrap " wrap is for psychopaths
+set nowrap 
 
 " more risky, but cleaner
 set nobackup
@@ -52,9 +51,6 @@ set foldmethod=manual
 " add portuguese dictionary
 set spelllang+=pt_pt
 set encoding=utf-8
-
-" set the cursor fat on insert
-" set guicursor=i:block
 
 " Return to last edit position when opening files
 au BufReadPost *
@@ -85,7 +81,6 @@ set wildignore+=**/.supabase/*
 " 
 augroup custom_settings
   au!
-  au FileType markdown setl conceallevel=2 spell norelativenumber tw=72 foldlevel=99
   au FileType text setl conceallevel=2 spell norelativenumber tw=72
   au BufRead *.env* setl ft=config
 augroup end
@@ -114,7 +109,6 @@ call plug#begin()
 Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'windwp/nvim-ts-autotag'
-Plug 'nvim-treesitter/nvim-treesitter-refactor'
 
 " status line
 Plug 'nvim-lualine/lualine.nvim'
@@ -127,11 +121,13 @@ Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
 Plug 'ThePrimeagen/harpoon'
-Plug 'caenrique/nvim-toggle-terminal'
+" Plug 'caenrique/nvim-toggle-terminal'
+Plug 's1n7ax/nvim-terminal'
 Plug 'mhinz/vim-signify'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'kristijanhusak/defx-git'
 
 " database
 " fork of https://github.com/tpope/vim-dadbod (I believe this is faster)
@@ -199,16 +195,6 @@ let g:db="postgres://postgres:postgres@localhost:5432/postgres"
 let g:vim_dadbod_completion_mark = 'SQL'
 let g:completion_matching_ignore_case = 1
 
-" 
-" Folding
-" 
-let g:markdown_folding = 1
-
-augroup remember_folds
-  autocmd!
-  autocmd BufWinLeave *.md mkview
-  autocmd BufWinEnter *.md silent! loadview
-augroup END
 
 lua << EOF
   -- import all configs

@@ -2,24 +2,4 @@
 
 set -e
 
-# install Perl CGI module
-sudo apt-get install libcgi-pm-perl -y
-
-# make tmp dir for installation
-mkdir -p /tmp/pgFormatter
-cd /tmp/pgFormatter
-
-owner="darold"
-repo="pgFormatter"
-
-version="$(curl -s "https://api.github.com/repos/${owner}/${repo}/releases/latest" | jq -r '.tag_name')"
-downloadFile="${version}.tar.gz"
-
-# download the latest release
-wget "https://github.com/${owner}/${repo}/archive/refs/tags/${downloadFile}"
-
-# tar the file
-tar -xzf "$downloadFile"
-cd "pgFormatter-${version//v/}"
-perl Makefile.PL
-make && sudo make install
+echo "type pg_format to see the installer command"

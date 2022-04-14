@@ -11,4 +11,5 @@ LANG=C pg_format \
   --keyword-case 1 \
   --wrap-comment \
   --nogrouping \
+  --format-type \
   --no-extra-line

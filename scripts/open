@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -e
+
+host="Guilherme Rosado@workstation.host"
+pass="Portimao325814"
+
+sshpass -p "$pass" ssh "$host" "PsExec -i 1 cmd.exe /C start explorer.exe ${1}"

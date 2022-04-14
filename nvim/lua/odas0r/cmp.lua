@@ -59,12 +59,8 @@ cmp.setup({
       "s",
     }),
   },
-
   sources = cmp.config.sources({
-    { name = "gh_issues" },
-
     { name = "nvim_lua" },
-
     { name = "nvim_lsp" },
     { name = "path" },
     {
@@ -74,17 +70,13 @@ cmp.setup({
       },
     },
     { name = "vim-dadbod-completion" },
-
-    -- { name = "cmp_tabnine" },
     { name = "ultisnips" },
   }),
-
   snippet = {
     expand = function(args)
       vim.fn["UltiSnips#Anon"](args.body)
     end,
   },
-
   formatting = {
     format = lspkind.cmp_format({
       with_text = true,
@@ -92,9 +84,7 @@ cmp.setup({
         nvim_lua = "[Lua]",
         nvim_lsp = "[Lsp]",
         path = "[Path]",
-        -- cmp_tabnine = "[TN]",
         ["vim-dadbod-completion"] = "[Sql]",
-        gh_issues = "[Issue]",
         ultisnips = "[Snip]",
         buffer = "[Buffer]",
       },

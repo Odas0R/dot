@@ -2,8 +2,8 @@
 "
 " Press "K" on when cursor on top of telescope
 
-nnoremap <silent> <leader>t :ToggleTerminal<Enter>
-tnoremap <silent> <leader>t <C-\><C-n>:ToggleTerminal<Enter>
+nnoremap <silent> <leader>t <cmd>lua terminal:toggle()<cr>
+tnoremap <silent> <leader>t <C-\><C-n><cmd>lua terminal:toggle()<cr>
 
 tnoremap <expr> <Esc> (&filetype == "fzf") ? "<Esc>" : "<c-\><c-n>"
 tnoremap <C-v><Esc> <Esc>
@@ -11,7 +11,7 @@ tnoremap <C-v><Esc> <Esc>
 augroup terminal_settings
   autocmd!
 
-	autocmd TermOpen * startinsert
+	autocmd TermOpen * startinsert | setlocal nonumber norelativenumber
   autocmd TermLeave * stopinsert
 
   " Ignore various filetypes as those will close terminal automatically
