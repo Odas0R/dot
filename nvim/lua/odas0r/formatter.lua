@@ -9,14 +9,6 @@ local prettierConfig = function()
   }
 end
 
-local eslintConfig = function()
-  return {
-    exe = "eslint",
-    args = { "--fix", vim.fn.shellescape(vim.api.nvim_buf_get_name(0)) },
-    stdin = true,
-  }
-end
-
 local formatterConfig = {
   lua = {
     function()
@@ -27,7 +19,6 @@ local formatterConfig = {
           "Spaces",
           "--indent-width",
           2,
-          vim.fn.fnameescape(vim.api.nvim_buf_get_name(0)),
         },
         stdin = false,
       }
@@ -92,16 +83,6 @@ local formatterConfig = {
   },
 }
 
-local commonPE = {
-  "javascript",
-  "javascriptreact",
-  "typescript",
-  "typescriptreact",
-}
-for _, ft in ipairs(commonPE) do
-  formatterConfig[ft] = { prettierConfig, eslintConfig }
-end
-
 local commonFT = {
   "css",
   "scss",
@@ -112,6 +93,10 @@ local commonFT = {
   "yaml",
   "xml",
   "svg",
+  "javascript",
+  "javascriptreact",
+  "typescript",
+  "typescriptreact",
 }
 for _, ft in ipairs(commonFT) do
   formatterConfig[ft] = { prettierConfig }

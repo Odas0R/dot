@@ -11,6 +11,8 @@ tnoremap <C-v><Esc> <Esc>
 augroup terminal_settings
   autocmd!
 
+  autocmd BufReadPost * execute ":lua terminal:close()"
+
 	autocmd TermOpen * startinsert | setlocal nonumber norelativenumber
   autocmd TermLeave * stopinsert
 
