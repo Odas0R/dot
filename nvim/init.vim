@@ -121,7 +121,6 @@ Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
 Plug 'ThePrimeagen/harpoon'
-" Plug 'caenrique/nvim-toggle-terminal'
 Plug 's1n7ax/nvim-terminal'
 Plug 'mhinz/vim-signify'
 
@@ -194,7 +193,6 @@ let g:UltiSnipsJumpBackwardTrigger='<S-Tab>'
 let g:db="postgres://postgres:postgres@localhost:5432/postgres"
 let g:vim_dadbod_completion_mark = 'SQL'
 let g:completion_matching_ignore_case = 1
-
 
 lua << EOF
   -- import all configs

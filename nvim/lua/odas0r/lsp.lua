@@ -33,16 +33,6 @@ require("lspconfig").tsserver.setup({
   -- Needed for inlayHints. Merge this table with your settings or copy
   -- it from the source if you want to add your own init_options.
   init_options = require("nvim-lsp-ts-utils").init_options,
-  filetypes = {
-    "javascript",
-    "javascriptreact",
-    "javascript.jsx",
-    "typescript",
-    "typescriptreact",
-    "typescript.tsx",
-    -- "markdown"
-  },
-  root_dir = lsp_util.root_pattern("package.json"),
   on_attach = function(client, bufnr)
     local ts_utils = require("nvim-lsp-ts-utils")
     ts_utils.setup({
@@ -68,9 +58,25 @@ require("lspconfig").tsserver.setup({
       filter_out_diagnostics_by_code = {},
 
       -- inlay hints
-      auto_inlay_hints = false,
+      auto_inlay_hints = true,
+      inlay_hints_highlight = "Comment",
+      inlay_hints_priority = 200, -- priority of the hint extmarks
+      inlay_hints_throttle = 150, -- throttle the inlay hint request
+      inlay_hints_format = { -- format options for individual hint kind
+        Type = {},
+        Parameter = {},
+        Enum = {},
+        -- Example format customization for `Type` kind:
+        -- Type = {
+        --     highlight = "Comment",
+        --     text = function(text)
+        --         return "->" .. text:sub(2)
+        --     end,
+        -- },
+      },
+
       update_imports_on_move = true,
-      require_confirmation_on_move = false,
+      require_confirmation_on_move = true,
       watch_dir = nil,
     })
 
@@ -96,6 +102,9 @@ require("lspconfig").tsserver.setup({
 vim.g.markdown_fenced_languages = {
   "ts=typescript",
 }
+
+-- npm i -g vscode-langservers-extracted
+require("lspconfig").eslint.setup({})
 
 require("lspconfig").denols.setup({
   on_attach = lsp_keymaps,

@@ -3,7 +3,7 @@
 " Press "K" on when cursor on top of defx
 
 
-nnoremap \ <cmd>Defx -columns=mark:indent:icon:space:git:filename -search=`expand('%:p')` `expand('%:p:h')`<CR>
+nnoremap \ <cmd>Defx -columns=mark:indent:icon:indent:filename:space:git -search=`expand('%:p')` `expand('%:p:h')`<CR>
 
 function! DefxMappings()
   " local options

@@ -49,6 +49,38 @@ M.search_dotfiles = function()
   })
 end
 
+M.search_zet = function(tags)
+  if #tags == 0 then
+    require("telescope.builtin").live_grep({
+      prompt_title = "[All]",
+      cwd = "~/github.com/odas0r/zet",
+      hidden = true,
+    })
+  end
+
+  local search = ""
+
+  for index, tag in ipairs(tags) do
+    if index < #tags then
+      search = search .. tag .. "|"
+    else
+      search = search .. tag
+    end
+  end
+
+  -- create the regex expression
+  search = "(" .. search .. ")"
+
+  -- Search on zettel
+  require("telescope.builtin").grep_string({
+    search = search,
+    prompt_title = "[All]: " .. search,
+    cwd = "~/github.com/odas0r/zet",
+    use_regex = true,
+    hidden = true,
+  })
+end
+
 M.search_zet_fleet = function(tags)
   if #tags == 0 then
     require("telescope.builtin").live_grep({
@@ -77,7 +109,6 @@ M.search_zet_fleet = function(tags)
     prompt_title = "[Fleet]: " .. search,
     cwd = "~/github.com/odas0r/zet/fleet",
     use_regex = true,
-    word_match = "-w",
     hidden = true,
   })
 end
@@ -110,7 +141,6 @@ M.search_zet_permanent = function(tags)
     prompt_title = "[Permanent]: " .. search,
     cwd = "~/github.com/odas0r/zet/permanent",
     use_regex = true,
-    word_match = "-w",
     hidden = true,
   })
 end
