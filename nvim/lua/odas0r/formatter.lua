@@ -4,7 +4,12 @@ local formatter = require("formatter")
 local prettierConfig = function()
   return {
     exe = "prettier",
-    args = { "--stdin-filepath", vim.fn.shellescape(vim.api.nvim_buf_get_name(0)), "--double-quote" },
+    args = {
+      "--stdin-filepath",
+      vim.fn.shellescape(vim.api.nvim_buf_get_name(0)),
+      "--double-quote",
+      "--prose-wrap always",
+    },
     stdin = true,
   }
 end
