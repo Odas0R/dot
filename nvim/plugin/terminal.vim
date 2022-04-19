@@ -12,6 +12,7 @@ augroup terminal_settings
   autocmd!
 
   autocmd BufReadPre * execute ":lua terminal:close()"
+  autocmd BufWinEnter * execute ":lua terminal:close()"
 
 	autocmd TermOpen * startinsert | setlocal nonumber norelativenumber
   autocmd TermLeave * stopinsert
