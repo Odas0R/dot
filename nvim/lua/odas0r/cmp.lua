@@ -23,7 +23,18 @@ end
 local cmp = require("cmp")
 
 cmp.setup({
+  snippet = {
+    expand = function(args)
+      vim.fn["UltiSnips#Anon"](args.body)
+    end,
+  },
+  window = {
+    completion = cmp.config.window.bordered(),
+    documentation = cmp.config.window.bordered(),
+  },
   mapping = {
+    ['<C-n>'] = cmp.mapping.select_next_item(),
+    ['<C-p>'] = cmp.mapping.select_prev_item(),
     ["<C-u>"] = cmp.mapping.scroll_docs(-4),
     ["<C-d>"] = cmp.mapping.scroll_docs(4),
     ["<CR>"] = cmp.mapping.confirm({
@@ -72,11 +83,6 @@ cmp.setup({
     { name = "vim-dadbod-completion" },
     { name = "ultisnips" },
   }),
-  snippet = {
-    expand = function(args)
-      vim.fn["UltiSnips#Anon"](args.body)
-    end,
-  },
   formatting = {
     format = lspkind.cmp_format({
       with_text = true,
