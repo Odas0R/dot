@@ -1,12 +1,15 @@
 " Documentation: tokyonight
 "
-" Press "K" on when cursor on top of defx
+" Press "K" on when cursor on top of ...
 
-let g:tokyonight_style = "night"
-let g:tokyonight_italic_functions = 0
-let g:tokyonight_transparent = 1
-colorscheme tokyonight
+set background=dark " or light if you want light mode
+colorscheme gruvbox
 
-" change themes
-nnoremap <leader>8 :let g:tokyonight_style = "night"<cr>:colorscheme default<cr>:colorscheme tokyonight<cr>
-nnoremap <leader>9 :let g:tokyonight_style = "day"<cr>:colorscheme default<cr>:colorscheme tokyonight<cr>
+let g:gruvbox_bold = 1
+let g:gruvbox_italic = 1
+let g:gruvbox_transparent_bg = 1
+let g:gruvbox_underline = 1
+let g:gruvbox_undercurl = 1
+
+" soft, medium, hard
+let g:gruvbox_contrast_dark = "medium"
