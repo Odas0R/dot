@@ -136,7 +136,6 @@ Plug 'kristijanhusak/vim-dadbod-completion'
 " lsp, Completion Engine
 Plug 'neovim/nvim-lspconfig'
 Plug 'onsails/lspkind-nvim'
-Plug 'jose-elias-alvarez/nvim-lsp-ts-utils'
 
 " yank over OSC
 Plug 'ojroques/vim-oscyank', {'branch': 'main'}
