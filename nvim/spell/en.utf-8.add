@@ -1,6 +1,6 @@
 STDOUT
 zettels
-zettelkasten
+#ettelkasten
 reddit
 fzf
 Backend
@@ -424,3 +424,14 @@ F6
 F5
 webapp
 #ash
+mvp
+full-text-search
+fuzzy-finding
+#ettelkasten
+zettelkasten
+tcp
+ufw
+testing-ui
+gx
+Kepubify
+Freewind.scss
