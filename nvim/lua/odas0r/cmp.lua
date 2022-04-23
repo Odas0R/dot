@@ -23,6 +23,9 @@ end
 local cmp = require("cmp")
 
 cmp.setup({
+  completion = {
+    autocomplete = false
+  },
   snippet = {
     expand = function(args)
       vim.fn["UltiSnips#Anon"](args.body)
@@ -97,3 +100,10 @@ cmp.setup({
     }),
   },
 })
+
+vim.cmd([[
+  augroup CmpDebounceAuGroup
+    au!
+    au TextChangedI * lua require("odas0r.debounce").debounce()
+  augroup end
+]])

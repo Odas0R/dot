@@ -24,9 +24,9 @@ end
 
 local capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
-local lsp_util = require("lspconfig").util
+local util = require("lspconfig").util
 
-local debounce_text_changes = 250
+local debounce_text_changes = 150
 
 -- npm install -g typescript typescript-language-server
 require("lspconfig").tsserver.setup({
@@ -42,7 +42,8 @@ require("lspconfig").eslint.setup({})
 
 require("lspconfig").denols.setup({
   on_attach = lsp_keymaps,
-  root_dir = require("lspconfig").util.root_pattern("deno.json"),
+  capabilities = capabilities,
+  root_dir = util.root_pattern("deno.json"),
   init_options = {
     lint = true,
   },
@@ -127,7 +128,7 @@ require("lspconfig").pylsp.setup({
 require("lspconfig").gopls.setup({
   cmd = { "gopls", "serve" },
   filetypes = { "go", "gomod" },
-  root_dir = require("lspconfig").util.root_pattern("go.work", "go.mod", ".git"),
+  root_dir = util.root_pattern("go.work", "go.mod", ".git"),
   settings = {
     gopls = {
       analyses = {
