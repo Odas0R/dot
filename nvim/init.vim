@@ -105,10 +105,11 @@ nnoremap <C-l> :nohl<CR><C-l>
 
 call plug#begin()
 
+" theme
+Plug 'ellisonleao/gruvbox.nvim'
+
 " treesitter shit
-Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-Plug 'windwp/nvim-ts-autotag'
 
 " status line
 Plug 'nvim-lualine/lualine.nvim'
@@ -120,6 +121,7 @@ Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
+Plug 'windwp/nvim-ts-autotag'
 Plug 'ThePrimeagen/harpoon'
 Plug 's1n7ax/nvim-terminal'
 Plug 'mhinz/vim-signify'

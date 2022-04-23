@@ -26,7 +26,7 @@ local capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protoco
 
 local lsp_util = require("lspconfig").util
 
-local debounce_text_changes = 150
+local debounce_text_changes = 250
 
 -- npm install -g typescript typescript-language-server
 require("lspconfig").tsserver.setup({
