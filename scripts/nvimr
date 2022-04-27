@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -e
+
+# TODO: Refactor this into using the builtin, check remote.txt
+
+declare NVIM_LISTEN_ADDRESS
+
+# Create a server per tmux session
+NVIM_LISTEN_ADDRESS="/tmp/nvim_$(tmux display-message -p '#S')"
+export NVIM_LISTEN_ADDRESS
+
+if [[ -z "$*" ]]; then
+  nvr -s -l -c enew
+else
+  nvr -s -l "$@"
+fi

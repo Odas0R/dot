@@ -2,4 +2,4 @@
 
 ZET="$HOME/github.com/odas0r/zet"
 
-popup -d "$ZET" nvim "$ZET/todos.md"
+popup -d "$ZET" nvimr "$ZET/todos.md"

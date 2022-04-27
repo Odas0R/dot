@@ -21,7 +21,7 @@ if [[ ! -f "$file" ]]; then
   export title="# Journal Entry, ${nextdayDate}"
   tmpl "$DAILY_TEMPLATE" >"$file"
 
-  popup nvim "$file"
+  popup nvimr "$file"
 else
-  popup nvim "$file"
+  popup nvimr "$file"
 fi

@@ -108,7 +108,7 @@ call plug#begin()
 " theme
 Plug 'ellisonleao/gruvbox.nvim'
 
-" treesitter shit
+" treesitter
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 
 " status line
@@ -119,12 +119,15 @@ Plug 'nvim-lua/lsp-status.nvim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
-Plug 'numToStr/Comment.nvim'
-Plug 'JoosepAlviste/nvim-ts-context-commentstring'
 Plug 'windwp/nvim-ts-autotag'
 Plug 'ThePrimeagen/harpoon'
 Plug 's1n7ax/nvim-terminal'
 Plug 'mhinz/vim-signify'
+
+
+" comments, utilities for documentation
+Plug 'numToStr/Comment.nvim'
+Plug 'JoosepAlviste/nvim-ts-context-commentstring'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
@@ -149,6 +152,7 @@ Plug 'hrsh7th/cmp-nvim-lua'
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'quangnguyen30192/cmp-nvim-ultisnips'
+Plug 'tzachar/cmp-tabnine', { 'do': './install.sh' }
 
 " formatter
 Plug 'mhartington/formatter.nvim'
@@ -198,7 +202,5 @@ let g:completion_matching_ignore_case = 1
 lua << EOF
   -- import all configs
   require("odas0r")
-
-  -- Reload modules on save
   require("plenary.reload").reload_module("odas0r", true)
 EOF

@@ -4,7 +4,7 @@ set -e
 
 if [[ -n $1 ]]; then
   # find the files by regex & open them w/ vim
-  find "$HOME/dot" -type f -name "*$1*" -exec nvim '{}' +
+  find "$HOME/dot" -type f -name "*$1*" -exec nvimr '{}' +
   exit 0
 fi
 
@@ -21,6 +21,6 @@ if [[ -f $file ]]; then
     open "$(basename "$file")"
     exit 0
   else
-    nvim "$file"
+    nvimr "$file"
   fi
 fi

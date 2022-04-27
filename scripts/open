@@ -5,4 +5,4 @@ set -e
 host="Guilherme Rosado@workstation.host"
 pass="Portimao325814"
 
-sshpass -p "$pass" ssh "$host" "PsExec -i 1 cmd.exe /C start explorer.exe ${1}"
+sshpass -p "$pass" ssh "$host" "PsExec -i 1 cmd.exe /C start brave.exe ${1}"
