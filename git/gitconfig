@@ -10,12 +10,12 @@
 [init]
 	defaultBranch = main
 [diff]
-    tool = nvr
-[difftool "nvr"]
-    cmd = nvr -s -d $LOCAL $REMOTE
+    tool = nvimr
+[difftool "nvimr"]
+    cmd = nvimr -d $LOCAL $REMOTE
 [merge]
-    tool = nvr
-[mergetool "nvr"]
-    cmd = nvr -s -d $LOCAL $BASE $REMOTE $MERGED -c 'wincmd J | wincmd ='
+    tool = nvimr
+[mergetool "nvimr"]
+    cmd = nvimr -d $LOCAL $BASE $REMOTE $MERGED -c 'wincmd J | wincmd ='
     prompt = false
     keepBackup = false
