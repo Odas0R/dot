@@ -1,5 +1,5 @@
-nnoremap <leader>zf <cmd>lua require("odas0r.telescope").search_zet_fleet()<CR>
-nnoremap <leader>zp <cmd>lua require("odas0r.telescope").search_zet_permanent()<CR>
+nnoremap <leader>zq <cmd>lua require("odas0r.telescope").search_zet({})<CR>
+nnoremap <leader>zf <cmd>!zet fix %<CR>
 
 " add files to the history of zettelkasten
 augroup zettelkasten_history

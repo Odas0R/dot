@@ -24,7 +24,7 @@ local cmp = require("cmp")
 
 cmp.setup({
   completion = {
-    autocomplete = false
+    autocomplete = false,
   },
   snippet = {
     expand = function(args)
@@ -36,8 +36,8 @@ cmp.setup({
     documentation = cmp.config.window.bordered(),
   },
   mapping = {
-    ['<C-n>'] = cmp.mapping.select_next_item(),
-    ['<C-p>'] = cmp.mapping.select_prev_item(),
+    ["<C-n>"] = cmp.mapping.select_next_item(),
+    ["<C-p>"] = cmp.mapping.select_prev_item(),
     ["<C-u>"] = cmp.mapping.scroll_docs(-4),
     ["<C-d>"] = cmp.mapping.scroll_docs(4),
     ["<CR>"] = cmp.mapping.confirm({
@@ -85,6 +85,7 @@ cmp.setup({
     },
     { name = "vim-dadbod-completion" },
     { name = "ultisnips" },
+    { name = "cmp_tabnine" },
   }),
   formatting = {
     format = lspkind.cmp_format({
@@ -96,14 +97,22 @@ cmp.setup({
         ["vim-dadbod-completion"] = "[Sql]",
         ultisnips = "[Snip]",
         buffer = "[Buffer]",
+        cmp_tabnine = "[TN]",
       },
     }),
   },
 })
 
-vim.cmd([[
-  augroup CmpDebounceAuGroup
-    au!
-    au TextChangedI * lua require("odas0r.debounce").debounce()
-  augroup end
-]])
+local t = require("telescope.state")
+
+local callback = function()
+  -- if telescope is open don't execute `cmp`
+  if #t.get_existing_prompts() ~= 2 then
+    return require("odas0r.debounce").debounce()
+  end
+end
+
+vim.api.nvim_create_autocmd({ "TextChangedI" }, {
+  pattern = { "*" },
+  callback = callback,
+})

@@ -23,7 +23,7 @@ if [[ ! -f $file ]]; then
   tmpl "$DAILY_TEMPLATE" >"$file"
 
   # Open the daily file
-  popup nvim "$file"
+  popup nvimr "$file"
 else
-  popup nvim "$file"
+  popup nvimr "$file"
 fi

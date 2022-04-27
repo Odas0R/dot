@@ -5,7 +5,7 @@ local window = Window:new({
 	position = 'botright',
 	split = 'sp',
 	width = 100,
-	height = 30
+	height = 35
 })
 
 terminal = Terminal:new(window)

@@ -18,7 +18,7 @@ require("telescope").setup({
         ["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist
       },
       n = {
-        ["<C-l>"] = actions.toggle_all,
+        ["<C-a>"] = actions.toggle_all,
         ["l"] = actions.toggle_selection,
         ["h"] = actions.remove_selection,
         ["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist
