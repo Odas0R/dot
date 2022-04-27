@@ -110,6 +110,7 @@ Plug 'ellisonleao/gruvbox.nvim'
 
 " treesitter
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'nvim-treesitter/playground'
 
 " status line
 Plug 'nvim-lualine/lualine.nvim'
@@ -172,10 +173,6 @@ call plug#end()
 au FileType * hi SpellBad ctermbg=NONE ctermfg=Red cterm=underline
 au FileType * hi Error ctermbg=NONE ctermfg=Red
 au FileType * hi ErrorMsg ctermbg=NONE ctermfg=Red
-
-" give colors to **bold** and *italic*
-highlight htmlBold gui=bold guifg=#e0af68 ctermfg=214
-highlight htmlItalic gui=italic guifg=#bb9af7 ctermfg=214
 
 hi MatchParen guibg=lightgray
 

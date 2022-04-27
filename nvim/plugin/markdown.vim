@@ -16,6 +16,14 @@ let g:vim_markdown_edit_url_in = 'current'
 " Experiments
 let g:vim_markdown_conceal = 2
 
+" Treesitter uses a differnt highlight group regarding markdown, etc:  
+"
+" TSTitle, TSLiteral, TSEmphasis, TSStrong, TSURI, TSTextReference,
+" TSPunctSpecial and TSStringEscape.
+"
+highlight TSStrong guifg=#fabd2f gui=bold
+highlight TSEmphasis guifg=#d3869b gui=italic
+
 " 
 " Markdown Custom Settings
 " 
