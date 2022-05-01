@@ -12,7 +12,6 @@ let g:gruvbox_undercurl = 1
 
 " fix for transparent background
 " let g:gruvbox_transparent_bg = 1 
-autocmd VimEnter * hi Normal ctermbg=NONE guibg=NONE
 
 " soft, medium, hard
 let g:gruvbox_contrast_dark = "medium"

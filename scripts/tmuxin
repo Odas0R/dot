@@ -17,7 +17,6 @@ tmux new-session -d -s "$session" -c "$workspace"
 
 window=1
 tmux rename-window -t "${session}:${window}" "neovim"
-tmux send-keys -t "${session}:${window}" "nvimr -c 'Telescope git_files'" C-m
 
 window=2
 tmux new-window -t "${session}:${window}" -n "server" -c "$workspace"
