@@ -1,0 +1,149 @@
+# Example: https://github.com/alacritty/alacritty/blob/master/alacritty.yml
+#
+# ----------------------
+# TERM env customization.
+# ----------------------
+env:
+  # If this property is not set, alacritty will set it to xterm-256color.
+  #
+  # Note that some xterm terminfo databases don't declare support for italics.
+  # You can verify this by checking for the presence of `smso` and `sitm` in
+  # `infocmp xterm-256color`.
+  TERM: xterm-256color
+
+# ----------------------
+# Font configuration
+# ----------------------
+font:
+  # Font Size
+  size: 11
+  offset:
+    x: 0
+    y: 1
+
+  normal:
+    family: JetBrains Mono
+    style: Regular
+  bold:
+    family: JetBrains Mono
+    style: Bold
+  italic:
+    family: JetBrains Mono
+    style: Italic
+  bold_italic:
+    family: JetBrains Mono
+    style: Bold Italic
+# ----------------------
+# Window Padding
+# ----------------------
+#
+window:
+  padding:
+    x: 8
+    y: 8
+  opacity: 0.8
+
+# ----------------------
+# Others
+# ----------------------
+
+# Display tabs using this many cells (changes require restart)
+# tabspaces: 8
+
+# When true, bold text is drawn using the bright variant of colors.
+draw_bold_text_with_bright_colors: true
+
+# Disable bell
+visual_bell:
+  animation: EaseOutExpo
+  duration: 0
+
+hide_cursor_when_typing: true
+
+
+# ----------------------
+# THEME: Gruvbox
+# ----------------------
+#
+# Source: https://github.com/alacritty/alacritty/wiki/Color-schemes 
+
+colors:
+  primary:
+    # hard contrast background - '#1d2021'
+    background:        &gruvbox_dark_bg '#282828'
+    # soft contrast background - '#32302f'
+    foreground:        '#ebdbb2'
+    bright_foreground: '#fbf1c7'
+    dim_foreground:    '#a89984'
+  cursor:
+    text:   CellBackground
+    cursor: CellForeground
+  vi_mode_cursor:
+    text:   CellBackground
+    cursor: CellForeground
+  # search:
+  #   matches:
+  #     foreground: '#000000'
+  #     background: '#ffffff'
+  #   focused_match:
+  #    foreground: CellBackground
+  #    background: CellForeground
+  #   bar:
+  #     background: ''
+  #     foreground: ''
+  # line_indicator:
+  #   foreground: None
+  #   background: None
+  selection:
+    text:       CellBackground
+    background: CellForeground
+  bright:
+    black:   '#928374'
+    red:     '#fb4934'
+    green:   '#b8bb26'
+    yellow:  '#fabd2f'
+    blue:    '#83a598'
+    magenta: '#d3869b'
+    cyan:    '#8ec07c'
+    white:   '#ebdbb2'
+  normal:
+    black:   *gruvbox_dark_bg
+    red:     '#cc241d'
+    green:   '#98971a'
+    yellow:  '#d79921'
+    blue:    '#458588'
+    magenta: '#b16286'
+    cyan:    '#689d6a'
+    white:   '#a89984'
+  dim:
+    black:   '#32302f'
+    red:     '#9d0006'
+    green:   '#79740e'
+    yellow:  '#b57614'
+    blue:    '#076678'
+    magenta: '#8f3f71'
+    cyan:    '#427b58'
+    white:   '#928374'
+  # indexed_colors: []
+
+# ----------------------
+# Keybindings
+# ----------------------
+key_bindings:
+- { key: T,        mods: Control,       command: { program: "alacritty" }    }
+# copy-paste
+- { key: V,        mods: Control,       action: Paste                        }
+- { key: C,        mods: Control,       action: Copy                         }
+# control + shift + c -> interrupt
+- { key: C,        mods: Control|Shift, chars: "\x03"                        }
+
+- { key: Paste,                         action: Paste                        }
+- { key: Copy,                          action: Copy                         }
+- { key: L,        mods: Control,       action: ClearLogNotice               }
+- { key: L,        mods: Control,       chars: "\x0c"                        }
+- { key: PageUp,   mods: Shift,         action: ScrollPageUp,   mode: ~Alt   }
+- { key: PageDown, mods: Shift,         action: ScrollPageDown, mode: ~Alt   }
+- { key: Home,     mods: Shift,         action: ScrollToTop,    mode: ~Alt   }
+- { key: End,      mods: Shift,         action: ScrollToBottom, mode: ~Alt   }
+
+- { key: F11,                           action: ToggleFullscreen             }
