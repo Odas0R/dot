@@ -18,7 +18,7 @@ _sync() {
   # Check if there are uncommitted changes
   if [ -n "$(git status --porcelain)" ]; then
     git add .
-    git commit -m "automated/scripted commit and push " -q
+    git commit -m "Gitsync: $(date +%Y-%m-%d)" -q
     git pull -q
     git push -q
   fi

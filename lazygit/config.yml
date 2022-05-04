@@ -52,7 +52,7 @@ git:
     # one of always, never, when-maximised
     # this determines whether the git graph is rendered in the commits panel
     showGraph: 'when-maximised'
-  skipHookPrefix: WIP
+  skipHookPrefix: 'WIP'
   autoFetch: true
   branchLogCmd: 'git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --'
   allBranchesLogCmd: 'git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium'

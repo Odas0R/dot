@@ -23,7 +23,21 @@ end
 local cmp = require("cmp")
 
 cmp.setup({
+  completion = {
+    autocomplete = false,
+  },
+  snippet = {
+    expand = function(args)
+      vim.fn["UltiSnips#Anon"](args.body)
+    end,
+  },
+  window = {
+    completion = cmp.config.window.bordered(),
+    documentation = cmp.config.window.bordered(),
+  },
   mapping = {
+    ["<C-n>"] = cmp.mapping.select_next_item(),
+    ["<C-p>"] = cmp.mapping.select_prev_item(),
     ["<C-u>"] = cmp.mapping.scroll_docs(-4),
     ["<C-d>"] = cmp.mapping.scroll_docs(4),
     ["<CR>"] = cmp.mapping.confirm({
@@ -59,12 +73,8 @@ cmp.setup({
       "s",
     }),
   },
-
   sources = cmp.config.sources({
-    { name = "gh_issues" },
-
     { name = "nvim_lua" },
-
     { name = "nvim_lsp" },
     { name = "path" },
     {
@@ -74,17 +84,9 @@ cmp.setup({
       },
     },
     { name = "vim-dadbod-completion" },
-
-    -- { name = "cmp_tabnine" },
     { name = "ultisnips" },
+    { name = "cmp_tabnine" },
   }),
-
-  snippet = {
-    expand = function(args)
-      vim.fn["UltiSnips#Anon"](args.body)
-    end,
-  },
-
   formatting = {
     format = lspkind.cmp_format({
       with_text = true,
@@ -93,10 +95,24 @@ cmp.setup({
         nvim_lsp = "[Lsp]",
         path = "[Path]",
         ["vim-dadbod-completion"] = "[Sql]",
-        gh_issues = "[Issue]",
         ultisnips = "[Snip]",
         buffer = "[Buffer]",
+        cmp_tabnine = "[TN]",
       },
     }),
   },
+})
+
+local t = require("telescope.state")
+
+local callback = function()
+  -- if telescope is open don't execute `cmp`
+  if #t.get_existing_prompts() ~= 2 then
+    return require("odas0r.debounce").debounce()
+  end
+end
+
+vim.api.nvim_create_autocmd({ "TextChangedI" }, {
+  pattern = { "*" },
+  callback = callback,
 })

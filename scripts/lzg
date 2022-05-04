@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -e
+
+is_in_git_repo() {
+  git rev-parse HEAD -- >/dev/null 2>&1
+}
+
+if [[ ! -x "$(command -v lazygit)" ]]; then
+  echo "You need to install lazygit"
+  exit 1
+fi
+
+if [[ -d "$1" ]]; then
+  cd "$1"
+  is_in_git_repo || (echo "You're not in a git repo" && exit 1)
+  root=$(git rev-parse --show-toplevel)
+  popup lazygit -p "$root" "${@:1}"
+
+else
+  is_in_git_repo || (echo "You're not in a git repo" && exit 1)
+  root=$(git rev-parse --show-toplevel)
+  popup lazygit -p "$root" "$@"
+fi

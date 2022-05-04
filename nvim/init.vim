@@ -1,4 +1,4 @@
-set tw=72 fo=cq wm=0 " no automatic wrapping, rewrapping will wrap to 72
+set tw=79 fo=cq wm=0 " no automatic wrapping, rewrapping will wrap to 79
 
 set tabstop=2
 set softtabstop=-1
@@ -9,10 +9,14 @@ set autoindent
 
 set autoread 
 set autowriteall
-set relativenumber
+set number
 set ruler
 set showmode
 set showcmd
+
+" experimentation for performance
+set lazyredraw
+set ttyfast
 
 set numberwidth=2
 set laststatus=2
@@ -20,7 +24,6 @@ set nofixendofline
 set foldmethod=manual
 set noshowmatch
 
-match ErrorMsg '\s\+$'
 set shortmess=aoOtTI
 
 set hidden
@@ -31,7 +34,7 @@ set updatetime=100
 set hlsearch
 set incsearch
 set linebreak
-set nowrap " wrap is for psychopaths
+set nowrap 
 
 " more risky, but cleaner
 set nobackup
@@ -48,12 +51,6 @@ set foldmethod=manual
 " add portuguese dictionary
 set spelllang+=pt_pt
 set encoding=utf-8
-
-" on yank copy to clipboard
-set clipboard+=unnamedplus
-
-" set the cursor fat on insert
-set guicursor=i:block
 
 " Return to last edit position when opening files
 au BufReadPost *
@@ -84,7 +81,6 @@ set wildignore+=**/.supabase/*
 " 
 augroup custom_settings
   au!
-  au FileType markdown setl conceallevel=2 spell norelativenumber tw=72 foldlevel=99
   au FileType text setl conceallevel=2 spell norelativenumber tw=72
   au BufRead *.env* setl ft=config
 augroup end
@@ -109,11 +105,12 @@ nnoremap <C-l> :nohl<CR><C-l>
 
 call plug#begin()
 
-" treesitter shit
-Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
+" theme
+Plug 'ellisonleao/gruvbox.nvim'
+
+" treesitter
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-Plug 'windwp/nvim-ts-autotag'
-Plug 'nvim-treesitter/nvim-treesitter-refactor'
+Plug 'nvim-treesitter/playground'
 
 " status line
 Plug 'nvim-lualine/lualine.nvim'
@@ -123,14 +120,19 @@ Plug 'nvim-lua/lsp-status.nvim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
+Plug 'windwp/nvim-ts-autotag'
+Plug 'ThePrimeagen/harpoon'
+Plug 's1n7ax/nvim-terminal'
+Plug 'mhinz/vim-signify'
+
+
+" comments, utilities for documentation
 Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
-Plug 'ThePrimeagen/harpoon'
-Plug 'caenrique/nvim-toggle-terminal'
-Plug 'mhinz/vim-signify'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'kristijanhusak/defx-git'
 
 " database
 " fork of https://github.com/tpope/vim-dadbod (I believe this is faster)
@@ -140,7 +142,9 @@ Plug 'kristijanhusak/vim-dadbod-completion'
 " lsp, Completion Engine
 Plug 'neovim/nvim-lspconfig'
 Plug 'onsails/lspkind-nvim'
-Plug 'jose-elias-alvarez/nvim-lsp-ts-utils'
+
+" yank over OSC
+Plug 'ojroques/vim-oscyank', {'branch': 'main'}
 
 " completion
 Plug 'hrsh7th/nvim-cmp'
@@ -149,19 +153,13 @@ Plug 'hrsh7th/cmp-nvim-lua'
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'quangnguyen30192/cmp-nvim-ultisnips'
+Plug 'tzachar/cmp-tabnine', { 'do': './install.sh' }
 
 " formatter
-" Plug 'lukas-reineke/format.nvim'
 Plug 'mhartington/formatter.nvim'
 
 " snippet Engine
 Plug 'sirver/UltiSnips'
-
-" documentation
-Plug 'heavenshell/vim-jsdoc', {
-  \ 'for': ['javascript', 'javascriptreact','typescript', 'typescriptreact'],
-  \ 'do': 'make install'
-\}
 
 " writing
 Plug 'preservim/vim-markdown'
@@ -175,10 +173,6 @@ call plug#end()
 au FileType * hi SpellBad ctermbg=NONE ctermfg=Red cterm=underline
 au FileType * hi Error ctermbg=NONE ctermfg=Red
 au FileType * hi ErrorMsg ctermbg=NONE ctermfg=Red
-
-highlight htmlTitle gui=bold guifg=#e0af68 ctermfg=Yellow
-highlight htmlBold gui=bold guifg=#e0af68 ctermfg=214
-highlight htmlItalic gui=italic guifg=#bb9af7 ctermfg=214
 
 hi MatchParen guibg=lightgray
 
@@ -202,17 +196,8 @@ let g:db="postgres://postgres:postgres@localhost:5432/postgres"
 let g:vim_dadbod_completion_mark = 'SQL'
 let g:completion_matching_ignore_case = 1
 
-" 
-" Folding
-" 
-let g:markdown_folding = 1
-"
-augroup remember_folds
-  autocmd!
-  autocmd BufWinLeave *.md mkview
-  autocmd BufWinEnter *.md silent! loadview
-augroup END
-
 lua << EOF
-require("plenary.reload").reload_module("odas0r", true)
+  -- import all configs
+  require("odas0r")
+  require("plenary.reload").reload_module("odas0r", true)
 EOF

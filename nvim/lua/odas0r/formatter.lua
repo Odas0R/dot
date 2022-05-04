@@ -4,7 +4,12 @@ local formatter = require("formatter")
 local prettierConfig = function()
   return {
     exe = "prettier",
-    args = { "--stdin-filepath", vim.fn.shellescape(vim.api.nvim_buf_get_name(0)), "--double-quote" },
+    args = {
+      "--stdin-filepath",
+      vim.fn.shellescape(vim.api.nvim_buf_get_name(0)),
+      "--double-quote",
+      "--prose-wrap always",
+    },
     stdin = true,
   }
 end
@@ -14,7 +19,12 @@ local formatterConfig = {
     function()
       return {
         exe = "stylua",
-        args = { "--indent-type", "Spaces", "--indent-width", 2 },
+        args = {
+          "--indent-type",
+          "Spaces",
+          "--indent-width",
+          2,
+        },
         stdin = false,
       }
     end,
@@ -83,15 +93,15 @@ local commonFT = {
   "scss",
   "html",
   "java",
-  "javascript",
-  "javascriptreact",
-  "typescript",
-  "typescriptreact",
   "markdown",
   "markdown.mdx",
   "yaml",
   "xml",
   "svg",
+  "javascript",
+  "javascriptreact",
+  "typescript",
+  "typescriptreact",
 }
 for _, ft in ipairs(commonFT) do
   formatterConfig[ft] = { prettierConfig }

@@ -4,31 +4,28 @@ extends javascript
 extends html
 extends javascript-jsdoc
 
-snippet int "interface"
+snippet interface "interface"
 interface ${1} {
+	$0
 };
 endsnippet
 
-snippet eint "interface"
-export interface ${1} {
-};
-endsnippet
-
-snippet ty "new type"
+snippet type "new type"
 type $1 = $2;
 endsnippet
 
-snippet ety "new type"
-export type $1 = $2;
-endsnippet
-
-snippet nspc "namespace"
-namespace ${1} {
+snippet export:interface "interface"
+export interface ${1} {
+	$0
 };
 endsnippet
 
-snippet ex "export" 
-export $1 from "$2";
+snippet export:type "new type"
+export type $1 = $2;
+endsnippet
+
+snippet import "import a module" 
+import $2 from "$1";
 endsnippet
 
 priority -49
@@ -36,4 +33,20 @@ snippet fun "function (named)" b
 function ${1:function_name} (${2:argument}: ${3:argument_type}) {
 	${VISUAL}$0
 }
+endsnippet
+
+# Jest Snippets
+
+snippet describe "Jest suite test case" b
+describe("$1", () => {
+	test("$2", () => {
+		$0
+	})
+})
+endsnippet
+
+snippet test "Jest suite test case" b
+test("$1", () => {
+	$0
+})
 endsnippet

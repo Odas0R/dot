@@ -4,5 +4,5 @@ set -e
 
 cmd="$(command -v "$1")"
 if [ -n "$cmd" ]; then
-  popup nvim "$cmd"
+  popup nvimr "$cmd"
 fi

@@ -10,6 +10,6 @@ LANG=C pg_format \
   --comma-start \
   --keyword-case 1 \
   --wrap-comment \
-  --wrap-limit 78 \
   --nogrouping \
+  --format-type \
   --no-extra-line

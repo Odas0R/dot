@@ -2,21 +2,12 @@
 
 set -e
 
-# Tags Explanation
-# -c: path of the session
-# -s: session name
-# -n: window name
-# -d: "detach"
-# send-keys: C-m -> Enter Key
-
-# =====================
-# wallstreeters session
-# =====================
-#
-# manage the project wallstreeters
+# ==================================
+# Wallstreeters
+# ==================================
 
 session="wallstreeters"
-workspace="$(markpath wall-client)"
+workspace="$HOME/github.com/wallstreeters/client"
 
 if tmux has-session -t $session &>/dev/null; then
   tmux kill-session -t "$session"
@@ -26,13 +17,16 @@ tmux new-session -d -s "$session" -c "$workspace"
 
 window=1
 tmux rename-window -t "${session}:${window}" "neovim"
-tmux send-keys -t "${session}:${window}" "nvim -c 'Telescope git_files'" C-m
 
 window=2
 tmux new-window -t "${session}:${window}" -n "server" -c "$workspace"
-tmux send-keys -t "${session}:${window}" "yarn next:dev" C-m
+tmux send-keys -t "${session}:${window}" "yarn docker:start && yarn psql" C-m
 
 tmux split-window -h -t "${session}:${window}" -c "$workspace"
-tmux send-keys -t "${session}:${window}.2" "yarn psql" C-m
+tmux send-keys -t "${session}:${window}.2" "yarn next:dev" C-m
+
+window=3
+tmux new-window -t "${session}:${window}" -n "docker" -c "$workspace"
+tmux send-keys -t "${session}:${window}" "lazydocker" C-m
 
 tmux select-window -t :+1

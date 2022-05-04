@@ -4,12 +4,16 @@ set -e
 
 if [[ -n $1 ]]; then
   # find the files by regex & open them w/ vim
-  find "$HOME/dot" -type f -name "*$1*" -exec nvim-nvr '{}' +
+  find "$HOME/dot" -type f -name "*$1*" -exec nvimr '{}' +
   exit 0
 fi
 
-cd "$HOME/dot" 
-file="$(fzf-tmux -p 95% --preview 'bat --theme=ansi  --style=numbers --color=always {}')"
+cd "$HOME/dot"
+file=$(
+  fzf-tmux -p 95% --multi \
+    --prompt="Search through your dotfiles > " \
+    --preview 'bat --theme=gruvbox-dark --style=numbers --color=always {}'
+)
 
 if [[ -f $file ]]; then
   if [[ ${file: -4} =~ (.png|jpeg|gif) ]]; then
@@ -17,6 +21,6 @@ if [[ -f $file ]]; then
     open "$(basename "$file")"
     exit 0
   else
-    nvim-nvr "$file"
+    nvimr "$file"
   fi
 fi

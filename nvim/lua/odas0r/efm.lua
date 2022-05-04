@@ -1,3 +1,5 @@
+-- go install github.com/mattn/efm-langserver@latest
+
 local on_attach = function(_, bufnr)
   local function buf_set_keymap(...)
     vim.api.nvim_buf_set_keymap(bufnr, ...)
@@ -16,15 +18,6 @@ local on_attach = function(_, bufnr)
   buf_set_keymap("n", "K", "<cmd>lua vim.diagnostic.goto_prev()<CR>", opts)
   buf_set_keymap("n", "J", "<cmd>lua vim.diagnostic.goto_next()<CR>", opts)
 end
-
--- Eslint Setup with efm
--- https://github.com/neovim/nvim-lspconfig/wiki/User-contributed-tips#eslint_d
-local eslint = {
-  lintCommand = "eslint_d -f unix --stdin --stdin-filename ${INPUT}",
-  lintStdin = true,
-  lintFormats = { "%f:%l:%c: %m" },
-  lintIgnoreExitCode = true,
-}
 
 local shellcheck = {
   lintCommand = "shellcheck -f gcc -x",
@@ -46,18 +39,14 @@ require("lspconfig").efm.setup({
     debounce_text_changes,
   },
   init_options = { documentFormatting = false },
-  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "sh" },
+  filetypes = { "sh" },
   root_dir = function(fname)
-    return util.root_pattern("tsconfig.json")(fname) or util.root_pattern(".eslintrc.js", ".git")(fname) or ""
+    return util.root_pattern(".git")(fname) or ""
   end,
   settings = {
-    rootMarkers = { ".eslintrc.js", ".git/" },
+    rootMarkers = { ".git/" },
     languages = {
       sh = { shellcheck },
-      javascript = { eslint },
-      javascriptreact = { eslint },
-      typescript = { eslint },
-      typescriptreact = { eslint },
     },
   },
 })
