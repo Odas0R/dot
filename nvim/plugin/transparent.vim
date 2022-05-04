@@ -5,7 +5,7 @@ augroup Transparent
   au VimEnter * highlight CursorColumn cterm=NONE ctermbg=NONE ctermfg=NONE
   au VimEnter * highlight CursorLine cterm=NONE ctermbg=NONE ctermfg=NONE
   au VimEnter * highlight CursorLineNr cterm=NONE ctermbg=NONE ctermfg=NONE
-  " au VimEnter * highlight SignColumn ctermbg=NONE cterm=NONE guibg=NONE gui=NONE
+  au VimEnter * highlight SignColumn ctermbg=NONE guibg=NONE
 
   " Signify Transparent Color
   au VimEnter * highlight SignifySignAdd    ctermfg=green  guifg=#00ff00 guibg=NONE ctermbg=NONE cterm=NONE gui=NONE
