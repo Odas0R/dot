@@ -14,4 +14,4 @@ cd entr
 make test
 
 # install entr
-make install
+sudo make install

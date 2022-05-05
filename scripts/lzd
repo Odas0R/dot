@@ -3,7 +3,7 @@
 set -e
 
 if [[ ! -x "$(command -v lazydocker)" ]]; then
-  echo "You need to install lazygit"
+  echo "You need to install lazydocker"
   exit 1
 fi
 

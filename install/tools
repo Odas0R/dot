@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+npm install -g \
+  yarn \
+  typescript \
+  typescript-language-server \
+  vscode-langservers-extracted \
+  yaml-language-server \
+  bash-language-server \
+  stylelint-lsp
+
+sudo apt install shellcheck
+sudo apt install docker-compose
+
+pip install 'python-lsp-server[all]'
+
+go install golang.org/x/tools/gopls@latest 
+go install golang.org/x/tools/cmd/goimports@latest 
+go install github.com/jesseduffield/lazydocker@latest
+go install github.com/mattn/efm-langserver@latest
+go install mvdan.cc/sh/v3/cmd/shfmt@latest

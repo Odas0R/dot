@@ -2,4 +2,4 @@
 
 set -e
 
-echo "type pg_format to see the installer command"
+sudo apt install pgformatter

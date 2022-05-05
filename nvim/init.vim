@@ -144,7 +144,7 @@ Plug 'neovim/nvim-lspconfig'
 Plug 'onsails/lspkind-nvim'
 
 " yank over OSC
-Plug 'ojroques/vim-oscyank', {'branch': 'main'}
+" Plug 'ojroques/vim-oscyank', {'branch': 'main'}
 
 " completion
 Plug 'hrsh7th/nvim-cmp'
