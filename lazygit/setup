@@ -5,10 +5,12 @@ if [[ ! -x "$(command -v lazygit)" ]]; then
   exit 1
 fi
 
+DOT="$HOME/github.com/odas0r/dot"
+
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS OSX
-  ln -sf "$HOME/dot/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
+  ln -sf "$DOT/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
 else
-  ln -sf "$HOME/dot/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
+  ln -sf "$DOT/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
 fi

@@ -26,6 +26,4 @@ repos() {
   cd "$repo" || return
 }
 
-# check ~/dot/scripts/nvimr
-#
 alias nvim="nvimr"

@@ -16,7 +16,7 @@ env:
 # ----------------------
 font:
   # Font Size
-  size: 11
+  size: 11 
   offset:
     x: 0
     y: 1

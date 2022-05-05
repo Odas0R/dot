@@ -2,12 +2,12 @@
 
 set -e
 
-if [[ ! -x "$(command -v tmux)" ]]; then
+if [[ ! -x "$(command -v gh)" ]]; then
   echo "gh isn't installed, skipping..." >&2
   exit 1
 fi
 
-DOT_GH="$HOME/dot/gh"
+DOT_GH="$HOME/github.com/odas0r/gh"
 
 # create gh config directory
 mkdir -p "$HOME/.config/gh"

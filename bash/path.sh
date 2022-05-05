@@ -7,6 +7,9 @@ export LOCAL_BIN="$HOME/.local/bin"
 export LOCAL_SCRIPTS="$HOME/.local/bin/scripts" # $HOME/.local/bin is the PATH for global scripts
 export TOOLS="$HOME/tools"
 
+# Dot Path
+export DOT="$HOME/github.com/odas0r/dot"
+
 #NVM (Node Version Manager) (OLD)
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm

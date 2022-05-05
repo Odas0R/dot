@@ -48,7 +48,7 @@ local M = {}
 M.search_dotfiles = function()
   require("telescope.builtin").git_files({
     prompt_title = "Dotfiles",
-    cwd = "~/dot",
+    cwd = "$HOME/github.com/odas0r/dot",
     hidden = true,
   })
 end
@@ -57,7 +57,7 @@ M.search_zet = function(tags)
   if #tags == 0 then
     require("telescope.builtin").live_grep({
       prompt_title = "[All]",
-      cwd = "~/github.com/odas0r/zet",
+      cwd = "$HOME/github.com/odas0r/zet",
       hidden = true,
     })
   end
@@ -79,7 +79,7 @@ M.search_zet = function(tags)
   require("telescope.builtin").grep_string({
     search = search,
     prompt_title = "[All]: " .. search,
-    cwd = "~/github.com/odas0r/zet",
+    cwd = "$HOME/github.com/odas0r/zet",
     use_regex = true,
     hidden = true,
   })
@@ -111,7 +111,7 @@ M.search_zet_fleet = function(tags)
   require("telescope.builtin").grep_string({
     search = search,
     prompt_title = "[Fleet]: " .. search,
-    cwd = "~/github.com/odas0r/zet/fleet",
+    cwd = "$HOME/github.com/odas0r/zet/fleet",
     use_regex = true,
     hidden = true,
   })
@@ -121,7 +121,7 @@ M.search_zet_permanent = function(tags)
   if #tags == 0 then
     require("telescope.builtin").live_grep({
       prompt_title = "[Permanent]",
-      cwd = "~/github.com/odas0r/zet/permanent",
+      cwd = "$HOME/github.com/odas0r/zet/permanent",
       hidden = true,
     })
   end
@@ -143,7 +143,7 @@ M.search_zet_permanent = function(tags)
   require("telescope.builtin").grep_string({
     search = search,
     prompt_title = "[Permanent]: " .. search,
-    cwd = "~/github.com/odas0r/zet/permanent",
+    cwd = "$HOME/github.com/odas0r/zet/permanent",
     use_regex = true,
     hidden = true,
   })

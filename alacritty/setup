@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+ln -sf "$DOT/alacritty/alacritty.yml" "$HOME/.alacritty.yml"
+
+printf "Alacritty setup done! 🌟\n"

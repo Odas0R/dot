@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -e
+
+echo -e "\nCloning all projects...\n"
+
+git clone git@github.com:Odas0R/dot.git &
+git clone git@github.com:Odas0R/portfolio.git &
+git clone git@github.com:Odas0R/zet-cmd.git &
+git clone git@github.com:Odas0R/nr-cmd.git &
+git clone git@github.com:Odas0R/neon-noir.git &
+git clone git@github.com:Odas0R/zet.git &
+git clone git@github.com:Odas0R/supabase-starter.git &
+
+wait

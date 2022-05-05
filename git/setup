@@ -3,7 +3,7 @@
 set -euo pipefail
 
 declare DISTRO
-declare -r GIT_PATH="$HOME/dot/git"
+declare -r GIT_PATH="$HOME/github.com/odas0r/dot/git"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS OSX
