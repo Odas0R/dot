@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -e
+
+repo="$1"
+key="$2"
+
+if [[ -z "$repo" ]] || [[ -z "$key" ]]; then
+  echo "invalid args :("
+  exit 1
+fi
+
+sudo apt-key export "$key" | sudo gpg --dearmour -o "/usr/share/keyrings/$repo.gpg"
+
+# edit file
+# sudo echo -e "\n # Edit:[arch=amd64 signed-by=/usr/share/keyrings/$repo.gpg]" | sudo tee -a "/etc/apt/sources.list.d/$repo.list"
+sudo nvim "/etc/apt/sources.list.d/$repo.list"
+
+# sudo apt update
+
+
+# sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/"$repo".gpg --keyserver keyserver.ubuntu.com --recv "$key"
+# sudo chmod 644 /etc/apt/trusted.gpg.d/"$repo".gpg
+
+# sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "$1"

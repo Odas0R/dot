@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+emojis=$(curl -sSL 'https://git.io/JXXO7')
+
+selected_emoji=$(echo "$emojis" | fzf-tmux -p 95%)
+
+echo "${selected_emoji:0:1}"

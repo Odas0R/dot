@@ -4,17 +4,18 @@ _hasDuckyKeyboard() {
   test -n "$(lsusb -v 2>/dev/null | grep -E '(^Bus|Keyboard)' | grep -w 'Varmilo Keyboard')"
 }
 
-
 # remap capslock for whole system to ESC (X only)
 if [ -n "${DISPLAY}" ]; then
-  # setxkbmap -option caps:swapescape
-  setxkbmap -option caps:escape
-  if _hasDuckyKeyboard; then
+
   # https://gist.github.com/jatcwang/ae3b7019f219b8cdc6798329108c9aee
-  setxkbmap -layout pt -model macbook79
+  if _hasDuckyKeyboard; then
+    setxkbmap -layout pt -model macbook79
+  else
+    setxkbmap -layout pt -model pc101
   fi
-  # setxkbmap -option caps:escape
-  setxkbmap -layout pt
+
+  # Default Options
+  setxkbmap -option caps:escape
 fi
 
 export HRULEWIDTH=73

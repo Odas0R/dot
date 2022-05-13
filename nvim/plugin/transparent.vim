@@ -8,7 +8,7 @@ augroup Transparent
   au VimEnter * highlight SignColumn ctermbg=NONE guibg=NONE
 
   " Signify Transparent Color
-  au VimEnter * highlight SignifySignAdd    ctermfg=green  guifg=#00ff00 guibg=NONE ctermbg=NONE cterm=NONE gui=NONE
-  au VimEnter * highlight SignifySignDelete ctermfg=red    guifg=#ff0000 guibg=NONE ctermbg=NONE cterm=NONE gui=NONE
-  au VimEnter * highlight SignifySignChange ctermfg=yellow guifg=#ffff00 guibg=NONE ctermbg=NONE cterm=NONE gui=NONE
+  " au VimEnter * highlight SignifySignAdd    ctermfg=green  guifg=#00ff00 guibg=NONE ctermbg=NONE cterm=NONE gui=NONE
+  " au VimEnter * highlight SignifySignDelete ctermfg=red    guifg=#ff0000 guibg=NONE ctermbg=NONE cterm=NONE gui=NONE
+  " au VimEnter * highlight SignifySignChange ctermfg=yellow guifg=#ffff00 guibg=NONE ctermbg=NONE cterm=NONE gui=NONE
 augroup end

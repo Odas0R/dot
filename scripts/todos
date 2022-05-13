@@ -1,5 +1,3 @@
 #!/usr/bin/env bash
 
-ZET="$HOME/github.com/odas0r/zet"
-
-nvimr "$ZET/todos.md"
+open "https://todoist.com/app/project/2239608238" &>/dev/null

@@ -2,7 +2,7 @@
 
 set -e
 
-version="v4.15.1"
+version="v4.15.2"
 platform="linux"
 
 mkdir -p /tmp/migrate

@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# Followed this to install openssl 1.1.1, which is needed on some applications.
+# If some problem related to openssl happens this might be the cause, since I
+# replaced the v3.X.X with openssl.old
+#
+# https://askubuntu.com/questions/1126893/how-to-install-openssl-1-1-1-and-libssl-package#1127228
+export LD_LIBRARY_PATH="/opt/openssl/lib:${LD_LIBRARY_PATH}"
+
 # Utils
 export MARKPATH="$HOME/.marks"
 export SNIPPETS="$HOME/snippets"
@@ -43,6 +50,7 @@ PATH+="$CARGOPATH/bin:"
 PATH+="$PERLPATH/bin:"
 PATH+="$LOCAL_BIN:$LOCAL_SCRIPTS:"
 PATH+="$LUA_LANGUAGE_SERVER:"
-PATH+="$GNU_UTILS"
+PATH+="$GNU_UTILS:"
+PATH+="$LD_LIBRARY_PATH"
 
 export PATH
