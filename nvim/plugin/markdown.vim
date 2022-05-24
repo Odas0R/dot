@@ -23,6 +23,7 @@ let g:vim_markdown_conceal = 2
 "
 highlight TSStrong guifg=#fabd2f gui=bold
 highlight TSEmphasis guifg=#d3869b gui=italic
+highlight TSTextReference guifg=gray gui=italic
 
 " 
 " Markdown Custom Settings

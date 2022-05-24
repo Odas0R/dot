@@ -12,6 +12,12 @@ set autowriteall
 set number
 set ruler
 set showmode
+
+" set the winbar on top-right instead of bottom-left
+" https://www.youtube.com/watch?v=LKW_SUucO-k
+set winbar=%=%m\ %f
+set laststatus=3
+set cmdheight=1
 set showcmd
 
 " experimentation for performance
@@ -19,7 +25,6 @@ set lazyredraw
 set ttyfast
 
 set numberwidth=2
-set laststatus=2
 set nofixendofline
 set foldmethod=manual
 set noshowmatch
@@ -99,6 +104,12 @@ nnoremap <silent> <leader>p :set paste!<CR>
 
 nnoremap <C-l> :nohl<CR><C-l>
 
+" Buffers management
+nnoremap <silent> <leader>bn <cmd>bnext<cr>
+nnoremap <silent> <leader>bp <cmd>bprevious<cr>
+nnoremap <silent> <leader>bd <cmd>bdelete<cr>
+nnoremap <silent> <leader>bl <cmd>Telescope buffers<cr>
+
 "
 " Plugins
 " 
@@ -129,6 +140,8 @@ Plug 'mhinz/vim-signify'
 " comments, utilities for documentation
 Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
+Plug 'jose-elias-alvarez/nvim-lsp-ts-utils'
+Plug 'wakatime/vim-wakatime'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }

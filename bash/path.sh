@@ -17,9 +17,9 @@ export TOOLS="$HOME/tools"
 # Dot Path
 export DOT="$HOME/github.com/odas0r/dot"
 
-#NVM (Node Version Manager) (OLD)
+# NVM (Node Version Manager)
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 
 # Java
 # export JAVA_HOME=$(/usr/libexec/java_home -v 17)

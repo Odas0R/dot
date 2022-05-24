@@ -41,7 +41,7 @@ window:
   padding:
     x: 8
     y: 8
-  opacity: 0.6
+  opacity: 1.0
 
 # ----------------------
 # Others
@@ -58,9 +58,6 @@ custom_cursor_colors: true
 visual_bell:
   animation: EaseOutExpo
   duration: 0
-
-hide_cursor_when_typing: true
-
 
 # ----------------------
 # THEME: Gruvbox

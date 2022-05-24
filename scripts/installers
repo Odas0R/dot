@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+
+declare INSTALLS_PATH="$HOME/github.com/odas0r/dot/install"
+
+installer=$(
+  find "$INSTALLS_PATH" -mindepth 1 -maxdepth 1 -type f -printf "%f\n" |
+    fzf-tmux -p 40% --multi --prompt="Your installers > "
+)
+
+cd "$INSTALLS_PATH" && ./"$installer"

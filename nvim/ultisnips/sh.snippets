@@ -119,4 +119,11 @@ declare white="\e[1;37m"
 declare reset="\e[0m"
 endsnippet
 
+snippet read "read input with [y/Y]"
+read -r -p "$1 [y/Y]" yes
+case "$yes" in
+y | Y | yes | ok | okay) $0
+esac
+endsnippet
+
 # vim:ft=snippets:

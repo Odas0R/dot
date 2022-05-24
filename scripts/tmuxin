@@ -23,10 +23,50 @@ tmux new-window -t "${session}:${window}" -n "server" -c "$workspace"
 tmux send-keys -t "${session}:${window}" "yarn docker:start && yarn psql" C-m
 
 tmux split-window -h -t "${session}:${window}" -c "$workspace"
-tmux send-keys -t "${session}:${window}.2" "yarn next:dev" C-m
+tmux send-keys -t "${session}:${window}.2" "yarn dev" C-m
 
 window=3
 tmux new-window -t "${session}:${window}" -n "docker" -c "$workspace"
 tmux send-keys -t "${session}:${window}" "lazydocker" C-m
 
 tmux select-window -t :+1
+
+# ==================================
+# AoLado
+# ==================================
+
+session="aolado"
+workspace="$HOME/github.com/odas0r/aolado"
+
+if tmux has-session -t $session &>/dev/null; then
+  tmux kill-session -t "$session"
+fi
+
+tmux new-session -d -s "$session" -c "$workspace"
+
+window=1
+tmux rename-window -t "${session}:${window}" "neovim"
+tmux send-keys -t "${session}:${window}" "nvim -c 'Telescope git_files'" C-m
+
+# ==================================
+# Zettelkasten
+# ==================================
+
+session="zettelkasten"
+workspace="$HOME/github.com/odas0r/zet"
+
+if tmux has-session -t $session &>/dev/null; then
+  tmux kill-session -t "$session"
+fi
+
+tmux new-session -d -s "$session" -c "$workspace"
+
+window=1
+tmux rename-window -t "${session}:${window}" "neovim"
+
+# ==================================
+# Other Configs
+# ==================================
+
+# attach to the working tmux session
+tmux attach-session -t wallstreeters
