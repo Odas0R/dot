@@ -15,10 +15,11 @@ set showmode
 
 " set the winbar on top-right instead of bottom-left
 " https://www.youtube.com/watch?v=LKW_SUucO-k
-set winbar=%=%m\ %f
-set laststatus=3
-set cmdheight=1
-set showcmd
+" set winbar=%=%m\ %f
+" set cmdheight=1
+" set showcmd
+
+set laststatus=2
 
 " experimentation for performance
 set lazyredraw

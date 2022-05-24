@@ -6,7 +6,7 @@ read -r -p "Prefer nightly? [y/Y]" answer
 if [[ $answer =~ [yY](es)* ]]; then
   curl -LJO https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage
 else
-  curl -LJO https://github.com/neovim/neovim/releases/download/latest/nvim.appimage
+  curl -LJO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
 fi
 
 mv nvim.appimage nvim
