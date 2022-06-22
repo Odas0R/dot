@@ -2,7 +2,7 @@
 
 set -e
 
-read -r -p "Prefer nightly? [y/Y]" answer
+read -r -p "Prefer nightly? [y/Y] " answer
 if [[ $answer =~ [yY](es)* ]]; then
   curl -LJO https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage
 else
@@ -13,8 +13,3 @@ mv nvim.appimage nvim
 chmod u+x ./nvim
 
 sudo mv ./nvim /usr/bin
-
-# install nvr
-
-sudo apt install python3-pip
-pip3 install neovim-remote

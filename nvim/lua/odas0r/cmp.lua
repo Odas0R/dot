@@ -23,13 +23,13 @@ end
 local cmp = require("cmp")
 
 cmp.setup({
-  -- completion = {
-  --   autocomplete = false,
-  -- },
   snippet = {
     expand = function(args)
       vim.fn["UltiSnips#Anon"](args.body)
     end,
+  },
+  experimental = {
+    ghost_text = true, -- this feature conflict with copilot.vim's preview.
   },
   window = {
     completion = cmp.config.window.bordered(),
@@ -97,22 +97,8 @@ cmp.setup({
         ["vim-dadbod-completion"] = "[Sql]",
         ultisnips = "[Snip]",
         buffer = "[Buffer]",
-        cmp_tabnine = "[TN]",
+        cmp_tabnine = "[TabNine]",
       },
     }),
   },
 })
-
--- local t = require("telescope.state")
---
--- local callback = function()
---   -- if telescope is open don't execute `cmp`
---   if #t.get_existing_prompts() ~= 2 then
---     return require("odas0r.debounce").debounce()
---   end
--- end
---
--- vim.api.nvim_create_autocmd({ "TextChangedI" }, {
---   pattern = { "*" },
---   callback = callback,
--- })

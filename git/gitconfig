@@ -19,3 +19,5 @@
     cmd = nvimr -d $LOCAL $BASE $REMOTE $MERGED -c 'wincmd J | wincmd ='
     prompt = false
     keepBackup = false
+[pull]
+	rebase = false

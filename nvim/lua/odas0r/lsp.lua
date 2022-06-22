@@ -93,7 +93,29 @@ require("lspconfig").tsserver.setup({
     ts_utils.setup_client(client)
 
     lsp_keymaps(_, bufnr)
+
+    -- organize imports
+
+    local import_organize = function()
+      vim.cmd([[
+        :TSLspImportAll
+        :TSLspOrganize
+      ]])
+    end
+
+    local opts = { noremap = true, silent = true, callback = import_organize }
+
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "gi", "", opts)
   end,
+})
+
+-- npm install -g @astrojs/language-server
+require("lspconfig").astro.setup({
+  on_attach = lsp_keymaps,
+  capabilities = capabilities,
+  flags = {
+    debounce_text_changes,
+  },
 })
 
 -- npm i -g vscode-langservers-extracted
@@ -108,36 +130,24 @@ require("lspconfig").denols.setup({
   },
 })
 
--- https://github.com/neovim/nvim-lspconfig/blob/master/CONFIG.md#java_language_server
--- https://github.com/georgewfraser/java-language-server
--- local home = os.getenv("HOME")
--- require("lspconfig").java_language_server.setup({
---   on_attach = lsp_keymaps,
---   capabilities = capabilities,
---   flags = {
---     debounce_text_changes,
---   },
---   cmd = { home .. "/tools/javalsp/dist/lang_server_mac.sh" },
---   root_dir = function(fname)
---     return require("lspconfig").util.root_pattern("pom.xml", "gradle.build", ".classpath", ".git")(fname)
---       or vim.fn.getcwd()
---   end,
--- })
-
--- require("lspconfig").jdtls.setup({
---   on_attach = on_attach,
---   cmd = { "jdtls" },
---   root_dir = function(fname)
---     return require("lspconfig").util.root_pattern("pom.xml", "gradle.build", ".git")(fname) or vim.fn.getcwd()
---   end,
--- })
-
 -- npm i -g vscode-langservers-extracted
 require("lspconfig").cssls.setup({
   on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
     debounce_text_changes,
+  },
+  settings = {
+    scss = {
+      lint = {
+        unknownAtRules = "ignore",
+      },
+    },
+    css = {
+      lint = {
+        unknownAtRules = "ignore",
+      },
+    },
   },
 })
 
@@ -178,7 +188,7 @@ require("lspconfig").tailwindcss.setup({
   on_attach = lsp_keymaps,
   capabilities = capabilities,
   flags = {
-    debounce_text_changes = 500
+    debounce_text_changes = 700,
   },
 })
 

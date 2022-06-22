@@ -20,8 +20,8 @@ local on_attach = function(_, bufnr)
 end
 
 local shellcheck = {
-  lintCommand = "shellcheck -f gcc -x",
-  lintSource = "shellcheck",
+  lintCommand = "shellcheck --format=gcc -x",
+  lintSource = "Shellcheck",
   lintFormats = {
     "%f:%l:%c: %trror: %m",
     "%f:%l:%c: %tarning: %m",
@@ -31,13 +31,8 @@ local shellcheck = {
 
 local util = require("lspconfig").util
 
-local debounce_text_changes = 150
-
 require("lspconfig").efm.setup({
   on_attach = on_attach,
-  flags = {
-    debounce_text_changes,
-  },
   init_options = { documentFormatting = false },
   filetypes = { "sh" },
   root_dir = function(fname)

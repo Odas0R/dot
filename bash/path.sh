@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2155
+
+# neovim socket pipe
+export NVIM_SOCKET="$HOME/.cache/nvim/nvim_$(tmux display-message -p '#S').pipe"
+
 # Followed this to install openssl 1.1.1, which is needed on some applications.
 # If some problem related to openssl happens this might be the cause, since I
 # replaced the v3.X.X with openssl.old

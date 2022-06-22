@@ -27,5 +27,3 @@ repos() {
 
   cd "$repo" || return
 }
-
-alias nvim="nvimr"

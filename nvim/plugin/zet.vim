@@ -6,6 +6,15 @@ augroup zettelkasten_history
   au!
 
   " add to history
-  au BufWinEnter ~/github.com/odas0r/zet/fleet/*.md silent !zet history.insert %
-  au BufWinEnter ~/github.com/odas0r/zet/permanent/*.md silent !zet history.insert %
+  au BufRead ~/github.com/odas0r/zet/fleet/*.md silent !zet history.insert %
+  au BufRead ~/github.com/odas0r/zet/permanent/*.md silent !zet history.insert %
+
+  " fix zettel on write
+  au BufWritePost ~/github.com/odas0r/zet/fleet/*.md silent !zet fix %
+  au BufWritePost ~/github.com/odas0r/zet/permanent/*.md silent !zet fix %
+
+  " disable signify on zet
+  au BufEnter ~/github.com/odas0r/zet/fleet/*.md SignifyDisable
+  au BufEnter ~/github.com/odas0r/zet/permanent/*.md SignifyDisable
+  au BufEnter ~/github.com/odas0r/zet/journal/*.md SignifyDisable
 augroup end

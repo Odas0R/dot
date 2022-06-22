@@ -89,6 +89,9 @@ augroup custom_settings
   au!
   au FileType text setl conceallevel=2 spell norelativenumber tw=72
   au BufRead *.env* setl ft=config
+
+  " missing filetype on .astro
+  autocmd BufRead,BufEnter *.astro set filetype=astro
 augroup end
 
 " 

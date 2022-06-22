@@ -1,5 +1,6 @@
 local vim = vim
 local formatter = require("formatter")
+local util = require("formatter.util")
 
 local prettierConfig = function()
   return {
@@ -15,6 +16,20 @@ local prettierConfig = function()
 end
 
 local formatterConfig = {
+  astro = {
+    function()
+      return {
+        exe = "prettier",
+        args = {
+          "--stdin-filepath",
+          vim.fn.shellescape(vim.api.nvim_buf_get_name(0)),
+          "--double-quote",
+          "--prose-wrap always",
+        },
+        stdin = true,
+      }
+    end,
+  },
   lua = {
     function()
       return {

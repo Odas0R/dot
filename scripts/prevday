@@ -2,7 +2,7 @@
 
 set -e
 
-declare -r ZET="$HOME/github.com/zet"
+declare -r ZET="${HOME}/github.com/odas0r/zet"
 declare -r JOURNAL="$ZET/journal"
 declare -r DAILY_TEMPLATE="$ZET/.templates/daily.tmpl.md"
 
@@ -19,11 +19,11 @@ file="$JOURNAL/${yesterdaysDate}.md"
 if [[ ! -f $file ]]; then
 
   # create a new journal using the `tmpl` script
-  export title="# Journal Entry, ${yesterdaysDate}"
+  export title="Journal Entry, ${yesterdaysDate}"
   tmpl "$DAILY_TEMPLATE" >"$file"
 
   # Open the daily file
-  popup nvimr "$file"
+  nvimr "$file"
 else
-  popup nvimr "$file"
+  nvimr "$file"
 fi

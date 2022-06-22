@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if [[ ! -x "$(command -v go)" ]]; then
+  echo "You need to install go"
+  exit 1
+fi
+
+go install github.com/mattn/efm-langserver@latest

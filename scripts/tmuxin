@@ -2,6 +2,11 @@
 
 set -e
 
+declare yellow="\e[33m"
+declare reset="\e[0m"
+
+echo -e "\n${yellow}Initializing your work environment...${reset}\n"
+
 # ==================================
 # Wallstreeters
 # ==================================
@@ -36,7 +41,7 @@ tmux select-window -t :+1
 # ==================================
 
 session="aolado"
-workspace="$HOME/github.com/odas0r/aolado"
+workspace="$HOME/github.com/aolado-labs/aolado"
 
 if tmux has-session -t $session &>/dev/null; then
   tmux kill-session -t "$session"
@@ -65,8 +70,36 @@ window=1
 tmux rename-window -t "${session}:${window}" "neovim"
 
 # ==================================
+# Neon Noir
+# ==================================
+
+session="neon-noir"
+workspace="$HOME/github.com/odas0r/neon-noir"
+
+if tmux has-session -t $session &>/dev/null; then
+  tmux kill-session -t "$session"
+fi
+
+tmux new-session -d -s "$session" -c "$workspace"
+
+window=1
+tmux rename-window -t "${session}:${window}" "neovim"
+
+# ==================================
 # Other Configs
 # ==================================
 
 # attach to the working tmux session
-tmux attach-session -t wallstreeters
+# tmux attach-session -t wallstreeters
+session=$(
+  tmux ls |
+    fzf-tmux -p 40% --multi --prompt="Your sessions > "
+)
+session=${session%%:*}
+
+if [[ -z "$session" ]]; then
+  echo "session cannot be empty"
+  exit 1
+fi
+
+tmux attach-session -t "$session"
