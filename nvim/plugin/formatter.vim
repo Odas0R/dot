@@ -2,13 +2,17 @@
 "
 autocmd FocusGained * checktime
 
+function! CustomFormatJS()
+  :TypescriptAddMissingImports!
+  :TypescriptOrganizeImports!
+  :EslintFixAll
+endfunction
+
 augroup FormatAutogroup
   autocmd!
-
   " Formatter
   nnoremap <silent> gp <cmd>FormatWrite<cr>
-
   " ESLint
-  autocmd BufWritePre *.tsx,*.ts,*.jsx,*.js silent EslintFixAll
+  autocmd BufWrite *.tsx,*.ts,*.jsx,*.js call CustomFormatJS()<CR>
 
 augroup END

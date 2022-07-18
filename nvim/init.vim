@@ -149,7 +149,7 @@ Plug 'mhinz/vim-signify'
 " comments, utilities for documentation
 Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
-Plug 'jose-elias-alvarez/nvim-lsp-ts-utils'
+Plug 'jose-elias-alvarez/typescript.nvim'
 Plug 'wakatime/vim-wakatime'
 
 " newtr replacement because newtr sucks
