@@ -22,6 +22,7 @@ tmux new-session -d -s "$session" -c "$workspace"
 
 window=1
 tmux rename-window -t "${session}:${window}" "neovim"
+tmux send-keys -t "${session}:${window}" "nvimr-reset" C-m
 
 window=2
 tmux new-window -t "${session}:${window}" -n "server" -c "$workspace"
@@ -51,23 +52,7 @@ tmux new-session -d -s "$session" -c "$workspace"
 
 window=1
 tmux rename-window -t "${session}:${window}" "neovim"
-tmux send-keys -t "${session}:${window}" "nvim -c 'Telescope git_files'" C-m
-
-# ==================================
-# Zettelkasten
-# ==================================
-
-session="zettelkasten"
-workspace="$HOME/github.com/odas0r/zet"
-
-if tmux has-session -t $session &>/dev/null; then
-  tmux kill-session -t "$session"
-fi
-
-tmux new-session -d -s "$session" -c "$workspace"
-
-window=1
-tmux rename-window -t "${session}:${window}" "neovim"
+tmux send-keys -t "${session}:${window}" "nvimr-reset" C-m
 
 # ==================================
 # Neon Noir
@@ -84,6 +69,7 @@ tmux new-session -d -s "$session" -c "$workspace"
 
 window=1
 tmux rename-window -t "${session}:${window}" "neovim"
+tmux send-keys -t "${session}:${window}" "nvimr-reset" C-m
 
 # ==================================
 # Other Configs

@@ -31,6 +31,9 @@ export NVM_DIR="$HOME/.nvm"
 # export JUNIT_HOME="$HOME/java"
 # export CLASSPATH="$CLASSPATH:$JUNIT_HOME/junit-4.13.2.jar:$JUNIT_HOME/hamcrest-core-1.3.jar"
 
+# zet path
+export ZET="$HOME/github.com/odas0r/zet"
+
 # Go
 export GOROOT="/usr/local/go"
 export GOPATH="$HOME/go"

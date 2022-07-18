@@ -8,7 +8,7 @@ snippet _ "italics"
 _${1:${VISUAL}}_ $0
 endsnippet
 
-snippet * "bold" 
+snippet ** "bold" 
 **${1:${VISUAL}}** $0
 endsnippet
 
@@ -57,6 +57,14 @@ snippet code "Codeblock" b
 ${2:${VISUAL}}
 \`\`\`
 $0
+endsnippet
+
+#
+# Zettelkasten
+#
+snippet bio "Link to something"
+- **${1:${VISUAL}}**:
+	<${0:${VISUAL}}>
 endsnippet
 
 # vim:ft=snippets:

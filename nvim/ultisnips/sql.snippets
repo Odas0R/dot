@@ -185,6 +185,19 @@ select
   );
 endsnippet
 
+snippet set_eq "pgtap set_eq unit test function" b
+select 
+  set_eq(
+    $$
+    ${2:${VISUAL:select (1)}}
+    $$,
+    $$
+    ${3:${VISUAL:values (1)}}
+    $$,
+    '$1'
+  );
+endsnippet
+
 snippet is_empty "pgtap is_empty unit test function" b
 select 
   is_empty(

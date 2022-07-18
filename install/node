@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ ! -x "$(command -v nvm)" ]]; then
+  echo "You need to install nvm"
+  exit 1
+fi
+
+nvm install node

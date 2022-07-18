@@ -9,6 +9,6 @@ augroup FormatAutogroup
   nnoremap <silent> gp <cmd>FormatWrite<cr>
 
   " ESLint
-  autocmd BufWritePre *.tsx,*.ts,*.jsx,*.js EslintFixAll
+  autocmd BufWritePre *.tsx,*.ts,*.jsx,*.js silent EslintFixAll
 
 augroup END

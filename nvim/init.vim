@@ -106,6 +106,8 @@ nnoremap <leader>vu :so ~/.config/nvim/init.vim<CR>
 nnoremap <silent> <leader>s :set spell!<CR>
 nnoremap <silent> <leader>p :set paste!<CR>
 
+nnoremap <silent> <leader><leader>g :!lzg<CR>
+
 nnoremap <C-l> :nohl<CR><C-l>
 
 " Buffers management
@@ -113,6 +115,9 @@ nnoremap <silent> <leader>bn <cmd>bnext<cr>
 nnoremap <silent> <leader>bp <cmd>bprevious<cr>
 nnoremap <silent> <leader>bd <cmd>bdelete<cr>
 nnoremap <silent> <leader>bl <cmd>Telescope buffers<cr>
+
+" disable macros
+map qq <nop>
 
 "
 " Plugins

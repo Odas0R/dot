@@ -28,6 +28,9 @@ cmp.setup({
       vim.fn["UltiSnips#Anon"](args.body)
     end,
   },
+  performance = {
+    trigger_debounce_time = 250
+  },
   experimental = {
     ghost_text = true, -- this feature conflict with copilot.vim's preview.
   },
