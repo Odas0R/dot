@@ -18,21 +18,21 @@ font:
   # Font Size
   size: 11 
   offset:
-    x: 0
+    x: -1
     y: 1
 
   normal:
     family: JetBrains Mono
-    style: Regular
+    style: Light
   bold:
     family: JetBrains Mono
-    style: Bold
+    style: Medium
   italic:
     family: JetBrains Mono
-    style: Italic
+    style: Light Italic
   bold_italic:
     family: JetBrains Mono
-    style: Bold Italic
+    style: SemiBold Italic
 # ----------------------
 # Window Padding
 # ----------------------
@@ -41,7 +41,7 @@ window:
   padding:
     x: 8
     y: 8
-  opacity: 0.8
+  opacity: 0.90
 
 # ----------------------
 # Others

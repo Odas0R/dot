@@ -22,6 +22,9 @@ export TOOLS="$HOME/tools"
 # Dot Path
 export DOT="$HOME/github.com/odas0r/dot"
 
+# Deno
+export DENO_INSTALL="/home/odas0r/.deno"
+
 # NVM (Node Version Manager)
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -56,6 +59,7 @@ PATH="$PATH:/bin:/usr/local/bin:"
 PATH+="$GOROOT/bin:$GOPATH/bin:"
 PATH+="$CARGOPATH/bin:"
 PATH+="$PERLPATH/bin:"
+PATH+="$DENO_INSTALL/bin:"
 PATH+="$LOCAL_BIN:$LOCAL_SCRIPTS:"
 PATH+="$LUA_LANGUAGE_SERVER:"
 PATH+="$GNU_UTILS:"

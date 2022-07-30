@@ -6,8 +6,8 @@ augroup zettelkasten_history
   au!
 
   " add to history
-  au BufRead ~/github.com/odas0r/zet/fleet/*.md silent !zet history.insert %
-  au BufRead ~/github.com/odas0r/zet/permanent/*.md silent !zet history.insert %
+  au BufReadPre ~/github.com/odas0r/zet/fleet/*.md silent !zet history.insert %
+  au BufReadPre ~/github.com/odas0r/zet/permanent/*.md silent !zet history.insert %
 
   " fix zettel on write
   au BufWritePost ~/github.com/odas0r/zet/fleet/*.md silent !zet fix %

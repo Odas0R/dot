@@ -16,16 +16,16 @@ fi
 cd "$DOT"
 
 file=$(
- fzf-tmux -p 95% --multi \
+  fzf-tmux -p 95% --multi \
     --prompt="Search through your dotfiles > " \
     --preview 'bat --theme=gruvbox-dark --style=numbers --color=always {}'
 )
 
 if [[ -f $file ]]; then
   if [[ ${file: -4} =~ (.png|jpeg|gif) ]]; then
-    open "$file"
+    open "$DOT/${file}"
     exit 0
   else
-    nvimr "$file"
+    nvimr "$DOT/${file}"
   fi
 fi

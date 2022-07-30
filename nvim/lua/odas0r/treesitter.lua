@@ -10,7 +10,6 @@ require("nvim-treesitter.configs").setup({
   },
 
   -- Plugins
-
   incremental_selection = { enable = true },
 
   autotag = { enable = true },
