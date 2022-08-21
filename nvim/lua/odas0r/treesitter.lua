@@ -5,8 +5,7 @@ require("nvim-treesitter.configs").setup({
 
   highlight = {
     enable = true,
-    disable = { "html" },
-
+    disable = { "html", "sql" },
   },
 
   -- Plugins

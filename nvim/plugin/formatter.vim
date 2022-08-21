@@ -2,11 +2,6 @@
 "
 autocmd FocusGained * checktime
 
-function! FixImports()
-  :TypescriptAddMissingImports!
-  :TypescriptOrganizeImports!
-endfunction
-
 augroup FormatAutogroup
   autocmd!
 

@@ -26,7 +26,7 @@ tmux send-keys -t "${session}:${window}" "nvimr-reset" C-m
 
 window=2
 tmux new-window -t "${session}:${window}" -n "server" -c "$workspace"
-tmux send-keys -t "${session}:${window}" "yarn docker:start && yarn psql" C-m
+tmux send-keys -t "${session}:${window}" "yarn psql" C-m
 
 window=3
 tmux new-window -t "${session}:${window}" -n "docker" -c "$workspace"
@@ -35,21 +35,31 @@ tmux send-keys -t "${session}:${window}" "lazydocker" C-m
 tmux select-window -t :+1
 
 # ==================================
-# AoLado
+# ahorta
 # ==================================
 
-# session="aolado"
-# workspace="$HOME/github.com/aolado-labs/aolado"
-#
-# if tmux has-session -t $session &>/dev/null; then
-#   tmux kill-session -t "$session"
-# fi
-#
-# tmux new-session -d -s "$session" -c "$workspace"
-#
-# window=1
-# tmux rename-window -t "${session}:${window}" "neovim"
-# tmux send-keys -t "${session}:${window}" "nvimr-reset" C-m
+session="ahorta"
+workspace="$HOME/github.com/ahorta-labs/ahorta"
+
+if tmux has-session -t $session &>/dev/null; then
+  tmux kill-session -t "$session"
+fi
+
+tmux new-session -d -s "$session" -c "$workspace"
+
+window=1
+tmux rename-window -t "${session}:${window}" "neovim"
+tmux send-keys -t "${session}:${window}" "nvimr-reset" C-m
+
+window=2
+tmux new-window -t "${session}:${window}" -n "server" -c "$workspace"
+tmux send-keys -t "${session}:${window}" "yarn psql" C-m
+
+window=3
+tmux new-window -t "${session}:${window}" -n "docker" -c "$workspace"
+tmux send-keys -t "${session}:${window}" "lazydocker" C-m
+
+tmux select-window -t :+1
 
 # ==================================
 # Other Configs

@@ -28,31 +28,51 @@
 # Table
 #
 
-snippet /* "comment block" b
+snippet /** "comment block" b
 /*
  * $0
  */
 endsnippet
 
+snippet - "comment" b
+-- $0
+endsnippet
+
 snippet table "Create a sql table"
-create table if not exists public.${1:table} (
-	$2 ${3:uuid} not null ${4:default extensions.uuid_generate_v4 ()}
+/*
+ * Add some description
+ */
+create table if not exists ${1:public}.${2:table} (
+	${3:id} ${4:uuid} not null ${5:default extensions.uuid_generate_v4 ()}
 	${0}
 	, created_at timestamp with time zone default
 		timezone('utc'::text , now())
 
 	-- constraints (keys)
-	, constraint $1_pkey primary key ($2)
+	, constraint $2_pkey primary key ($3)
 
 	-- constraints (checks)
 );
+endsnippet
+
+snippet view "Create a view table"
+/*
+ * Add some description
+ */
+create or replace view ${1:public}.${2:user_data} as (
+	select
+		${0:*}
+	from
+		${3:private}.${4:table}
+);
+${5:alter view $1.$2 owner to ${6:role};}
 endsnippet
 
 #
 # Keys Contraints
 #
 
-snippet ct "postgresql constraint" b
+snippet constraint "postgresql constraint" b
 /*
  * Add constraint "${1:${VISUAL:ct}}" on ${2:${VISUAL:public.table}}
  */
@@ -65,11 +85,11 @@ alter table $2
 alter table $2 validate constraint $1;
 endsnippet
 
-snippet foreignkey "postgresql constraint foreign key" b
+snippet fk "postgresql constraint foreign key" b
 /*
  * Add foreign key constraint ${1:${VISUAL:fkey}} to table 
- * ${2:${VISUAL:table_referencing}} (${3:${VISUAL:fkey_ref}}) referencing ${4:${VISUAL:table_to_reference}}
- */
+ * ${2:${VISUAL:table_referencing}} (${3:${VISUAL:fkey_ref}}) referencing ${4:${VISUAL:table_to_reference}}
+ */ 
 alter table $2
 	drop constraint if exists $1;
 

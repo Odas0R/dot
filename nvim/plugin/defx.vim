@@ -2,10 +2,10 @@
 "
 " Press "K" on when cursor on top of defx
 
+nnoremap \ <cmd>Defx -resume -columns=mark:indent:icon:indent:filename:space:git -search=`expand('%:p')` `expand('%:p:h')`<CR>
 
-nnoremap \ <cmd>Defx -columns=mark:indent:icon:indent:filename:space:git -search=`expand('%:p')` `expand('%:p:h')`<CR>
-
-function! DefxMappings()
+autocmd FileType defx call s:defx_my_settings()
+function! s:defx_my_settings() abort
   " local options
   setlocal cursorline
 
@@ -33,9 +33,6 @@ function! DefxMappings()
         \ defx#do_action('remove')
   nnoremap <silent><buffer><expr> R
         \ defx#do_action('rename')
-  nnoremap <silent><buffer><expr> !
-        \ defx#do_action('execute_command')
-  " open directory on finder
   nnoremap <silent><buffer><expr> o
         \ defx#do_action('execute_system')
   nnoremap <silent><buffer><expr> yy
@@ -44,10 +41,12 @@ function! DefxMappings()
         \ defx#do_action('toggle_ignored_files')
   nnoremap <silent><buffer><expr> h
         \ defx#do_action('cd', ['..'])
+  nnoremap <silent><buffer><expr> L
+        \ defx#do_action('toggle_select') . 'j'
   nnoremap <silent><buffer><expr> q
         \ defx#do_action('quit')
-  nnoremap <silent><buffer><expr> <Tab>
-        \ defx#do_action('toggle_select') . 'j'
+  nnoremap <silent><buffer><expr> <Esc>
+        \ defx#do_action('quit')
   nnoremap <silent><buffer><expr> <C-a>
         \ defx#do_action('toggle_select_all')
   nnoremap <silent><buffer><expr> j
@@ -56,8 +55,8 @@ function! DefxMappings()
         \ line('.') == 1 ? 'G' : 'k'
   nnoremap <silent><buffer><expr> <C-l>
         \ defx#do_action('redraw')
+
 endfunction
-autocmd FileType defx call DefxMappings()
 
 " open defx automatically when :edit a directory
 autocmd BufEnter,VimEnter,BufNew,BufWinEnter,BufRead,BufCreate
@@ -67,7 +66,7 @@ autocmd BufEnter,VimEnter,BufNew,BufWinEnter,BufRead,BufCreate
 function! s:browse_check(path) abort
   if bufnr('%') != expand('<abuf>')
     return
-  endif
+  endiF
   " Disable netrw.
   augroup FileExplorer
     autocmd!
@@ -77,10 +76,8 @@ endfunction
 
 " Defx *git* indicators
 call defx#custom#column('git', 'raw_mode', 1)
-
 call defx#custom#column('git', 'column_length', 1)
 call defx#custom#column('git', 'max_indicator_width', 0)
 
 " I want to update defx status automatically when changing file.
 autocmd BufWritePost * call defx#redraw()
-

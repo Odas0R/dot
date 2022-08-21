@@ -1,7 +1,28 @@
 local actions = require("telescope.actions")
+local action_state = require("telescope.actions.state")
+local custom_actions = {}
+
+local function getTableSize(t)
+  local count = 0
+  for _, __ in pairs(t) do
+    count = count + 1
+  end
+  return count
+end
+
+function custom_actions.fzf_multi_select(prompt_bufnr)
+  local picker = action_state.get_current_picker(prompt_bufnr)
+  local num_selections = getTableSize(picker:get_multi_selection())
+
+  if num_selections > 1 then
+    actions.add_to_qflist(prompt_bufnr)
+    actions.open_qflist(prompt_bufnr)
+  else
+    actions.file_edit(prompt_bufnr)
+  end
+end
 
 require("telescope").load_extension("fzf")
-
 require("telescope").setup({
   defaults = {
     layout_strategy = "horizontal",
@@ -14,15 +35,29 @@ require("telescope").setup({
     sorting_strategy = "ascending",
     mappings = {
       i = {
+        ["<esc>"] = actions.close,
+        ["<C-j>"] = actions.move_selection_next,
+        ["<C-k>"] = actions.move_selection_previous,
+        ["<C-p>"] = actions.move_selection_previous,
+        ["<C-n>"] = actions.move_selection_next,
+        ["<tab>"] = actions.toggle_selection + actions.move_selection_next,
+        ["<s-tab>"] = actions.toggle_selection + actions.move_selection_previous,
+        ["<cr>"] = custom_actions.fzf_multi_select,
         ["<C-a>"] = actions.toggle_all,
-        ["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist
+        ["<C-u>"] = false
       },
       n = {
-        ["<C-a>"] = actions.toggle_all,
-        ["l"] = actions.toggle_selection,
-        ["h"] = actions.remove_selection,
-        ["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist
-      }
+        ["<esc>"] = actions.close,
+        ["<tab>"] = actions.toggle_selection + actions.move_selection_next,
+        ["<s-tab>"] = actions.toggle_selection + actions.move_selection_previous,
+        ["<C-p>"] = actions.move_selection_previous,
+        ["<C-n>"] = actions.move_selection_next,
+        ["<cr>"] = custom_actions.fzf_multi_select,
+      },
+    },
+    file_ignore_patterns = {
+      ".git",
+      "node_modules",
     },
     prompt_prefix = " > ",
     selection_caret = "  ",
@@ -30,15 +65,13 @@ require("telescope").setup({
   },
   pickers = {
     find_files = {
-      hidden = true,
-      follow = true,
-      path_display = { truncate = 1 },
+      find_command = { "fd", "--type", "f", "--strip-cwd-prefix" },
     },
   },
   extensions = {
     fzf = {
       fuzzy = true,
-      -- case_mode = "smart_case",
+      case_mode = "smart_case",
     },
   },
 })
@@ -46,105 +79,10 @@ require("telescope").setup({
 local M = {}
 
 M.search_dotfiles = function()
-  require("telescope.builtin").git_files({
+  require("telescope.builtin").find_files({
     prompt_title = "Dotfiles",
     cwd = "$HOME/github.com/odas0r/dot",
-    hidden = true,
-  })
-end
-
-M.search_zet = function(tags)
-  if #tags == 0 then
-    require("telescope.builtin").live_grep({
-      prompt_title = "[All]",
-      cwd = "$HOME/github.com/odas0r/zet",
-      hidden = true,
-    })
-  end
-
-  local search = ""
-
-  for index, tag in ipairs(tags) do
-    if index < #tags then
-      search = search .. tag .. "|"
-    else
-      search = search .. tag
-    end
-  end
-
-  -- create the regex expression
-  search = "(" .. search .. ")"
-
-  -- Search on zettel
-  require("telescope.builtin").grep_string({
-    search = search,
-    prompt_title = "[All]: " .. search,
-    cwd = "$HOME/github.com/odas0r/zet",
-    use_regex = true,
-    hidden = true,
-  })
-end
-
-M.search_zet_fleet = function(tags)
-  if #tags == 0 then
-    require("telescope.builtin").live_grep({
-      prompt_title = "[Fleet]",
-      cwd = "~/github.com/odas0r/zet/fleet",
-      hidden = true,
-    })
-  end
-
-  local search = ""
-
-  for index, tag in ipairs(tags) do
-    if index < #tags then
-      search = search .. tag .. "|"
-    else
-      search = search .. tag
-    end
-  end
-
-  -- create the regex expression
-  search = "(" .. search .. ")"
-
-  -- Search on zettel
-  require("telescope.builtin").grep_string({
-    search = search,
-    prompt_title = "[Fleet]: " .. search,
-    cwd = "$HOME/github.com/odas0r/zet/fleet",
-    use_regex = true,
-    hidden = true,
-  })
-end
-
-M.search_zet_permanent = function(tags)
-  if #tags == 0 then
-    require("telescope.builtin").live_grep({
-      prompt_title = "[Permanent]",
-      cwd = "$HOME/github.com/odas0r/zet/permanent",
-      hidden = true,
-    })
-  end
-
-  local search = ""
-
-  for index, tag in ipairs(tags) do
-    if index < #tags then
-      search = search .. tag .. "|"
-    else
-      search = search .. tag
-    end
-  end
-
-  -- create the regex expression
-  search = "(" .. search .. ")"
-
-  -- Search on zettel
-  require("telescope.builtin").grep_string({
-    search = search,
-    prompt_title = "[Permanent]: " .. search,
-    cwd = "$HOME/github.com/odas0r/zet/permanent",
-    use_regex = true,
+    use_regex = false,
     hidden = true,
   })
 end

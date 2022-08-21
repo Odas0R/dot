@@ -51,16 +51,7 @@ require("typescript").setup({
       buf_set_keymap("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
       buf_set_keymap("n", "K", "<cmd>lua vim.diagnostic.goto_prev()<CR>", opts)
       buf_set_keymap("n", "J", "<cmd>lua vim.diagnostic.goto_next()<CR>", opts)
-      buf_set_keymap(
-        "n",
-        "gi",
-        [[
-        :TypescriptAddMissingImports!
-        :TypescriptOrganizeImports!
-        :TypescriptRemoveUnused!
-      ]],
-        opts
-      )
+      buf_set_keymap("n", "gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
 
       buf_set_keymap("n", "<leader>r", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
       buf_set_keymap("n", "<leader>a", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
@@ -83,16 +74,6 @@ require("lspconfig").astro.setup({
 
 -- npm i -g vscode-langservers-extracted
 require("lspconfig").eslint.setup({})
-
-require("lspconfig").denols.setup({
-  on_attach = lsp_keymaps,
-  capabilities = capabilities,
-  root_dir = util.root_pattern("mod.ts", "mod.js"),
-  init_options = {
-    lint = true,
-    enable = false
-  },
-})
 
 -- npm i -g vscode-langservers-extracted
 require("lspconfig").cssls.setup({

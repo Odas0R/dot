@@ -108,6 +108,7 @@ local commonFT = {
   "scss",
   "html",
   "java",
+  "toml",
   "markdown",
   "markdown.mdx",
   "yaml",

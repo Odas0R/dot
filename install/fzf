@@ -2,12 +2,10 @@
 
 set -e
 
-if [[ $OSTYPE == "darwin"* ]]; then
-  brew install fzf
-  # To install useful key bindings and fuzzy completion:
-  $(brew --prefix)/opt/fzf/install
+if [[ ! -d "$HOME/.fzf" ]]; then
+  git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
 else
-  # install with github
-  git clone --depth 1 https://github.com/junegunn/fzf.git $HOME/.fzf
-  $HOME/.fzf/install
+  cd "$HOME/.fzf" && git pull
 fi
+
+"$HOME/.fzf/install"

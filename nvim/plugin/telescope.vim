@@ -2,7 +2,7 @@
 "
 " Press "K" on when cursor on top of telescope
 
-nnoremap <silent> <C-p> <cmd>Telescope git_files<cr>
+nnoremap <silent> <C-p> <cmd>Telescope find_files<cr>
 nnoremap <silent> <C-f> <cmd>Telescope grep_string<cr>
 nnoremap <silent> <C-g> <cmd>Telescope live_grep<cr>
 

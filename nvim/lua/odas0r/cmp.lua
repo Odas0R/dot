@@ -29,7 +29,7 @@ cmp.setup({
     end,
   },
   performance = {
-    trigger_debounce_time = 250
+    trigger_debounce_time = 150
   },
   experimental = {
     ghost_text = true, -- this feature conflict with copilot.vim's preview.
