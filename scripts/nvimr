@@ -9,22 +9,6 @@ fi
 if [[ ! -S "$NVIM_SOCKET" ]]; then
   nvim --listen "$NVIM_SOCKET" "$@"
 else
-  nvim --server "$NVIM_SOCKET" --remote-send "<C-\><C-N>:wincmd p | e $1<CR>"
+  filePath="$(realpath "$1")"
+  nvim --server "$NVIM_SOCKET" --remote-send "<C-\><C-N>:wincmd p | e ${filePath}<CR>"
 fi
-
-# Old Config
-#
-# if [[ ! -f "$NVIM_SOCKET" ]]; then
-#   echo "doesnt have session"
-# else
-#   echo "has session"
-# fi
-
-# if [[ -z "$*" ]]; then
-#   nvim --listen "$NVIM_SOCKET" -c ":wincmd p | enew"
-#   # nvr  -s -l -c enew
-# else
-#   # nvr -s -l "$@"
-#   nvim --server "$NVIM_LISTEN_ADDRESS" --remote-send ":wincmd p<cr>" "$@"
-#   :
-# fi

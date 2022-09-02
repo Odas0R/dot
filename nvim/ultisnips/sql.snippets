@@ -105,29 +105,32 @@ endsnippet
 #
 
 snippet rls "Add row level security for a schema" b
+/*
+ * Add row level security to $1
+ */
 alter table if exists $1 enable row level security;
 endsnippet
 
 snippet rls:select "Add a postgres row level security policy on select for a schema" b
-create policy select_policy on public.$1
+create policy select_policy on $1
 	for select
 		using (${0:auth.uid () = user_id});
 endsnippet
 
 snippet rls:insert "Add a postgres row level security policy on insert for a schema" b
-create policy insert_policy on public.$1
+create policy insert_policy on $1
 	for insert
 		with check (${0:auth.uid () = user_id});
 endsnippet
 
 snippet rls:update "Add a postgres row level security policy on update for a schema" b
-create policy update_policy on public.$1
+create policy update_policy on $1
 	for update
 		using (${0:auth.uid () = user_id});
 endsnippet
 
 snippet rls:delete "Add a postgres row level security policy on delete for a schema" b
-create policy delete_policy on public.$1
+create policy delete_policy on $1
 	for delete
 		using (${0:auth.uid () = user_id});
 endsnippet

@@ -9,8 +9,5 @@ LANG=C pg_format \
   --spaces 2 \
   --comma-start \
   --keyword-case 1 \
-  --nogrouping \
-  --format-type \
-  --wrap-comment \
   --no-extra-line
 
