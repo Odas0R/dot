@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ ! -x "$(command -v go)" ]]; then
+  echo "You need to install go"
+  exit 1
+fi
+
+go install github.com/jesseduffield/lazygit@latest

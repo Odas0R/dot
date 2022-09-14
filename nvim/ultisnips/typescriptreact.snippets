@@ -6,7 +6,7 @@ extends typescript
 priority -49
 
 snippet fc "React Functional Component"
-export default function ${1:`!p snip.rv = snip.basename or "untitled"`}() {
+export const ${1:`!p snip.rv = snip.basename or "untitled"`} = () => {
 	return (
 			<div>$0</div>
 	);
@@ -19,7 +19,7 @@ import { ReactNode } from "react";
 
 export type ${1:`!p snip.rv = snip.basename or "untitled"`}Props = { children: ReactNode };
 
-export default function $1({ children }:$1Props) {
+export const $1 = ({ children }:$1Props) => {
 	return (
 		<div>
 			$2

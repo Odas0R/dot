@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+installer="$1"
+
+[[ -z $installer ]] && echo "usage: newi <package_name>" && exit 1
+
+installerPath="$HOME/github.com/odas0r/dot/install/${installer}"
+
+if [[ -e $installerPath ]]; then
+  read -r -p "${1} already exists. Edit?" yes
+  case "$yes" in
+  y | yes | ok | okay) nvimr "$installerPath" ;;
+  esac
+  exit 0
+fi
+
+tee "$installerPath" <<EOF >/dev/null
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+EOF
+
+chmod +x "$installerPath"
+nvimr "$installerPath"

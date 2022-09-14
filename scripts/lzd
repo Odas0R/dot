@@ -7,11 +7,4 @@ if [[ ! -x "$(command -v lazydocker)" ]]; then
   exit 1
 fi
 
-found="$(find . -regex "\./docker-compose\.ya?ml")"
-
-if [[ -f $found ]]; then 
-  popup lazydocker -c "$found" "$@"
-else
-  popup lazydocker "$@"
-fi
-
+popup lazydocker "$@"

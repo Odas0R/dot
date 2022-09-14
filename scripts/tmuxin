@@ -28,10 +28,6 @@ window=2
 tmux new-window -t "${session}:${window}" -n "server" -c "$workspace"
 tmux send-keys -t "${session}:${window}" "yarn psql" C-m
 
-window=3
-tmux new-window -t "${session}:${window}" -n "docker" -c "$workspace"
-tmux send-keys -t "${session}:${window}" "lazydocker" C-m
-
 tmux select-window -t :+1
 
 # ==================================
@@ -54,10 +50,6 @@ tmux send-keys -t "${session}:${window}" "nvimr-reset" C-m
 window=2
 tmux new-window -t "${session}:${window}" -n "server" -c "$workspace"
 tmux send-keys -t "${session}:${window}" "yarn psql" C-m
-
-window=3
-tmux new-window -t "${session}:${window}" -n "docker" -c "$workspace"
-tmux send-keys -t "${session}:${window}" "lazydocker" C-m
 
 tmux select-window -t :+1
 

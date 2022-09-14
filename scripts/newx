@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-path="$HOME/.local/bin/scripts/${1}"
-
 [[ -z ${1} ]] && echo "usage: newx <name>" && exit 1
+
+path="$HOME/.local/bin/scripts/${1}"
 
 if [[ -e $path ]]; then
   read -r -p "${1} already exists. Edit?" yes
   case "$yes" in
-  y | yes | ok | okay) exec nvimr "$path" ;;
+  y | yes | ok | okay) nvimr "$path" ;;
   esac
   exit 0
 fi
@@ -15,9 +15,9 @@ fi
 tee "$path" <<EOF >/dev/null
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -euo pipefail
 
 EOF
 
 chmod +x "$path"
-nvimr +2 "$path"
+nvimr "$path"
