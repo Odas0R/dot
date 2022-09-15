@@ -7,7 +7,7 @@ KITTY="$HOME/.config/kitty"
 mkdir -p "$KITTY"
 
 # create symlinks for the config & theme files
-ln -sf "$HOME/dot/kitty/kitty.conf" "$KITTY/kitty.conf"
-ln -sf "$HOME/dot/kitty/theme.conf" "$KITTY/theme.conf"
+ln -sf "$DOT_FILES/kitty/kitty.conf" "$KITTY/kitty.conf"
+ln -sf "$DOT_FILES/kitty/themes" "$KITTY/themes"
 
 echo "Kitty setup done! ⭐"

@@ -2,6 +2,8 @@
 
 # shellcheck disable=SC2155
 
+export DOT_FILES="$HOME/github.com/odas0r/dot"
+
 # neovim socket pipe
 export NVIM_SOCKET="$HOME/.cache/nvim/nvim_$(tmux display-message -p '#S').pipe"
 

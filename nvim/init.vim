@@ -144,6 +144,7 @@ Plug 'windwp/nvim-ts-autotag'
 Plug 'ThePrimeagen/harpoon'
 Plug 's1n7ax/nvim-terminal'
 Plug 'mhinz/vim-signify'
+Plug 'rcarriga/nvim-notify'
 
 
 " comments, utilities for documentation
