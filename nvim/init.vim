@@ -145,7 +145,6 @@ Plug 'ThePrimeagen/harpoon'
 Plug 's1n7ax/nvim-terminal'
 Plug 'mhinz/vim-signify'
 Plug 'rcarriga/nvim-notify'
-Plug 'folke/zen-mode.nvim'
 
 " comments, utilities for documentation
 Plug 'numToStr/Comment.nvim'
