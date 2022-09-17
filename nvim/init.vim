@@ -13,6 +13,8 @@ set number
 set ruler
 set showmode
 
+set termguicolors
+
 " set the winbar on top-right instead of bottom-left
 " https://www.youtube.com/watch?v=LKW_SUucO-k
 " set winbar=%=%m\ %f
@@ -151,6 +153,8 @@ Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
 Plug 'jose-elias-alvarez/typescript.nvim'
 Plug 'wakatime/vim-wakatime'
+Plug 'lukas-reineke/indent-blankline.nvim'
+Plug 'mfussenegger/nvim-dap'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }

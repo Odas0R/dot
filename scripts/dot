@@ -13,19 +13,17 @@ if [[ -n $1 ]]; then
   exit 0
 fi
 
-cd "$DOT"
-
 file=$(
-  fzf-tmux -p 95% --multi \
+  fd . "$DOT" | fzf-tmux -p 95% --multi \
     --prompt="Search through your dotfiles > " \
     --preview 'bat --theme=gruvbox-dark --style=numbers --color=always {}'
 )
 
 if [[ -f $file ]]; then
   if [[ ${file: -4} =~ (.png|jpeg|gif) ]]; then
-    open "$DOT/${file}"
+    open "${file}"
     exit 0
   else
-    nvimr "$DOT/${file}"
+    nvimr "${file}"
   fi
 fi
