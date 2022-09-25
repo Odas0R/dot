@@ -81,7 +81,16 @@ local M = {}
 M.search_dotfiles = function()
   require("telescope.builtin").find_files({
     prompt_title = "Dotfiles",
-    cwd = "$HOME/github.com/odas0r/dot",
+    cwd = "$DOT",
+    use_regex = false,
+    hidden = true,
+  })
+end
+
+M.search_dotfiles_grep = function()
+  require("telescope.builtin").live_grep({
+    prompt_title = "Dotfiles",
+    cwd = "$DOT",
     use_regex = false,
     hidden = true,
   })

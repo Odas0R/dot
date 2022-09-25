@@ -7,6 +7,8 @@ set shiftround
 set expandtab
 set autoindent
 
+set relativenumber
+
 set autoread 
 set autowriteall
 set number
@@ -94,6 +96,7 @@ augroup custom_settings
 
   " missing filetype on .astro
   autocmd BufRead,BufEnter *.astro set filetype=astro
+  " autocmd BufRead,BufEnter Caddyfile set filetype=caddy
 augroup end
 
 " 
@@ -107,8 +110,6 @@ nnoremap <leader>vu :so ~/.config/nvim/init.vim<CR>
 
 nnoremap <silent> <leader>s :set spell!<CR>
 nnoremap <silent> <leader>p :set paste!<CR>
-
-nnoremap <silent> <leader><leader>g :!lzg<CR>
 
 nnoremap <C-l> :nohl<CR><C-l>
 
@@ -147,14 +148,14 @@ Plug 'ThePrimeagen/harpoon'
 Plug 's1n7ax/nvim-terminal'
 Plug 'mhinz/vim-signify'
 Plug 'rcarriga/nvim-notify'
+Plug 'isobit/vim-caddyfile'
 
 " comments, utilities for documentation
 Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
 Plug 'jose-elias-alvarez/typescript.nvim'
 Plug 'wakatime/vim-wakatime'
-Plug 'lukas-reineke/indent-blankline.nvim'
-Plug 'mfussenegger/nvim-dap'
+" Plug 'lukas-reineke/indent-blankline.nvim'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }

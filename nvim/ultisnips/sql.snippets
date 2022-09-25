@@ -87,7 +87,7 @@ endsnippet
 
 snippet fk "postgresql constraint foreign key" b
 /*
- * Add foreign key constraint ${1:${VISUAL:fkey}} to table 
+ * Add foreign key constraint ${1:${VISUAL:fkey}} to table
  * ${2:${VISUAL:table_referencing}} (${3:${VISUAL:fkey_ref}}) referencing ${4:${VISUAL:table_to_reference}}
  */ 
 alter table $2
@@ -113,25 +113,25 @@ endsnippet
 
 snippet rls:select "Add a postgres row level security policy on select for a schema" b
 create policy select_policy on $1
-	for select
+	for select ${2:to ${3:role}}
 		using (${0:auth.uid () = user_id});
 endsnippet
 
 snippet rls:insert "Add a postgres row level security policy on insert for a schema" b
 create policy insert_policy on $1
-	for insert
+	for insert ${2:to ${3:role}}
 		with check (${0:auth.uid () = user_id});
 endsnippet
 
 snippet rls:update "Add a postgres row level security policy on update for a schema" b
 create policy update_policy on $1
-	for update
+	for update ${2:to ${3:role}}
 		using (${0:auth.uid () = user_id});
 endsnippet
 
 snippet rls:delete "Add a postgres row level security policy on delete for a schema" b
 create policy delete_policy on $1
-	for delete
+	for delete ${2:to ${3:role}}
 		using (${0:auth.uid () = user_id});
 endsnippet
 
@@ -196,7 +196,7 @@ endsnippet
 #
 
 snippet results_eq "pgtap results_eq unit test function" b
-select 
+select
   results_eq(
     $$
     ${2:${VISUAL:select (1)}}
@@ -209,7 +209,7 @@ select
 endsnippet
 
 snippet set_eq "pgtap set_eq unit test function" b
-select 
+select
   set_eq(
     $$
     ${2:${VISUAL:select (1)}}
@@ -222,7 +222,7 @@ select
 endsnippet
 
 snippet is_empty "pgtap is_empty unit test function" b
-select 
+select
   is_empty(
     $$
     ${2:${VISUAL:select (1)}}
@@ -232,7 +232,7 @@ select
 endsnippet
 
 snippet lives_ok "pgtap lives_ok unit test function" b
-select 
+select
   lives_ok(
     $$
     ${2:${VISUAL:select (1)}}
@@ -242,7 +242,7 @@ select
 endsnippet
 
 snippet throws_ok "pgtap throws_ok unit test function" b
-select 
+select
   throws_ok(
     $$
     ${2:${VISUAL:select (1)}}

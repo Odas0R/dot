@@ -513,3 +513,6 @@ Aframe
 features
 React.useEffect
 zettelkastening
+useImperativeHandle
+useTransition
+hstore

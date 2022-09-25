@@ -1,5 +1,11 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # Find the PID of a server w/ a given port
 
-exec ss -lptn "sport = :${1}"
+if [[ -z $1 ]]; then
+  echo 'argument must be a PORT, e.g 80'
+  exit 1
+  
+fi
+
+sudo lsof -i tcp:"$1"
