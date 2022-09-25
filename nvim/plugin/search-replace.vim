@@ -1,7 +1,9 @@
 " Took this code from here:
 "
 " https://gosukiwi.github.io/vim/2022/04/19/vim-advanced-search-and-replace.html
+" https://thoughtbot.com/blog/faster-grepping-in-vim#search-for-the-word-under-the-cursor
 
+" set the rg as the engine for _greppinnn_
 set grepprg=rg\ --vimgrep
 set grepformat=%f:%l:%c:%m
 
