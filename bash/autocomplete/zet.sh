@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
-if [[ -x "$(command -v zet)" ]]; then
+if [[ -x "$(command -v pomo)" ]]; then
   _cli_bash_autocomplete() {
     if [[ "${COMP_WORDS[0]}" != "source" ]]; then
-      local cur opts base
+      local cur opts
       COMPREPLY=()
       cur="${COMP_WORDS[COMP_CWORD]}"
       if [[ "$cur" == "-"* ]]; then
-        opts=$(${COMP_WORDS[@]:0:$COMP_CWORD} ${cur} --generate-bash-completion)
+        opts=$("${COMP_WORDS[@]:0:$COMP_CWORD}" "${cur}" --generate-bash-completion)
       else
-        opts=$(${COMP_WORDS[@]:0:$COMP_CWORD} --generate-bash-completion)
+        opts=$("${COMP_WORDS[@]:0:$COMP_CWORD}" --generate-bash-completion)
       fi
-      COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+      COMPREPLY=($(compgen -W "${opts}" -- "${cur}"))
       return 0
     fi
   }
 
-  complete -o nospace -F _cli_bash_autocomplete zet
+  complete -o nospace -F _cli_bash_autocomplete pomo
 fi
