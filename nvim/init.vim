@@ -19,10 +19,11 @@ set termguicolors
 
 " set the winbar on top-right instead of bottom-left
 " https://www.youtube.com/watch?v=LKW_SUucO-k
-set winbar=%=%m\ %f
+" set winbar=%=%m\ %f
 set showcmd
 set cmdheight=1
 set laststatus=2
+set cursorline
 
 " experimentation for performance
 set lazyredraw

@@ -14,7 +14,7 @@ augroup terminal_settings
   autocmd BufReadPre * execute ":lua terminal:close()"
   autocmd BufWinEnter * execute ":lua terminal:close()"
 
-	autocmd TermOpen * startinsert | setlocal nonumber norelativenumber
+	autocmd TermOpen * startinsert | setlocal nonumber norelativenumber nocursorline
   autocmd TermLeave * stopinsert
 
   " Ignore various filetypes as those will close terminal automatically
