@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+REPOS_PATH="$HOME/github.com/odas0r"
+
+mkdir -p "$REPOS_PATH"
+
+cliName="$*"
+
+if [[ -z "$cliName" ]]; then
+  echo "Usage: newcli <cli-name>"
+  exit 1
+fi
+
+# read if the user wants to create a new repo
+read -p "Creating new repo on odas0r/${cliName} [y/N]\n" -n 1 -r answer
+
+cd "$REPOS_PATH"
+
+if [[ $answer = "y" ]]; then
+  gh repo create "$cliName" \
+    --public \
+    --template odas0r/cmd \
+    --clone
+fi
+
+echo "Initialized on $REPOS_PATH/$cliName"

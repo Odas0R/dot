@@ -66,11 +66,13 @@ autocmd BufEnter,VimEnter,BufNew,BufWinEnter,BufRead,BufCreate
 function! s:browse_check(path) abort
   if bufnr('%') != expand('<abuf>')
     return
-  endiF
+  endif
+
   " Disable netrw.
   augroup FileExplorer
     autocmd!
   augroup END
+
   execute 'Defx' a:path
 endfunction
 

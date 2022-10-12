@@ -12,9 +12,9 @@ parse_git_branch() {
   fi
 }
 
-# ret=$?
-# PS1=$(if [[ ${ret} = 0 ]]; then echo "👋 "; else echo "🐞 "; fi)
-PS1="=> "
+ret=$?
+PS1=$(if [[ ${ret} = 0 ]]; then echo "🚀 "; else echo "🔥 "; fi)
+# PS1="=> "
 PS1+="$cyan/\W$reset"
 PS1+=" $magenta\$(parse_git_branch)$reset"
 PS1+="$ "

@@ -9,7 +9,7 @@ set autoindent
 
 set relativenumber
 
-set autoread 
+set autoread
 set autowriteall
 set number
 set ruler
@@ -19,14 +19,14 @@ set termguicolors
 
 " set the winbar on top-right instead of bottom-left
 " https://www.youtube.com/watch?v=LKW_SUucO-k
-" set winbar=%=%m\ %f
-" set cmdheight=1
-" set showcmd
-
+set winbar=%=%m\ %f
+set showcmd
+set cmdheight=1
 set laststatus=2
 
 " experimentation for performance
 set lazyredraw
+set synmaxcol=200
 set ttyfast
 
 set numberwidth=2
@@ -44,13 +44,14 @@ set updatetime=100
 set hlsearch
 set incsearch
 set linebreak
-set nowrap 
+set nowrap
 
 " more risky, but cleaner
 set nobackup
 set noswapfile
 set nowritebackup
 
+set completeopt=menuone,noinsert,noselect
 set complete+=kspell
 set shortmess+=c
 set mouse=a
@@ -88,7 +89,7 @@ set wildignore+=**/.supabase/*
 
 "
 " Custom Settings per FileType
-" 
+"
 augroup custom_settings
   au!
   au FileType text setl conceallevel=2 spell norelativenumber tw=72
@@ -96,15 +97,12 @@ augroup custom_settings
 
   " missing filetype on .astro
   autocmd BufRead,BufEnter *.astro set filetype=astro
-  " autocmd BufRead,BufEnter Caddyfile set filetype=caddy
 augroup end
 
-" 
+"
 " Bindings
 "
 let g:mapleader = ","
-
-nnoremap <silent> Q <nop>
 
 nnoremap <leader>vu :so ~/.config/nvim/init.vim<CR>
 
@@ -120,20 +118,20 @@ nnoremap <silent> <leader>bd <cmd>bdelete<cr>
 nnoremap <silent> <leader>bl <cmd>Telescope buffers<cr>
 
 " disable macros
-map qq <nop>
+map <silent> Q <nop>
+map <silent> qq <nop>
 
 "
 " Plugins
-" 
+"
 
-call plug#begin()
+call plug#begin('~/.config/nvim/plugged')
 
 " theme
 Plug 'ellisonleao/gruvbox.nvim'
 
 " treesitter
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-Plug 'nvim-treesitter/playground'
 
 " status line
 Plug 'nvim-lualine/lualine.nvim'
@@ -155,23 +153,17 @@ Plug 'numToStr/Comment.nvim'
 Plug 'JoosepAlviste/nvim-ts-context-commentstring'
 Plug 'jose-elias-alvarez/typescript.nvim'
 Plug 'wakatime/vim-wakatime'
-" Plug 'lukas-reineke/indent-blankline.nvim'
 
 " newtr replacement because newtr sucks
 Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'kristijanhusak/defx-git'
 
 " database
-" fork of https://github.com/tpope/vim-dadbod (I believe this is faster)
-Plug 'kristijanhusak/vim-dadbod'
-Plug 'kristijanhusak/vim-dadbod-completion'
+Plug 'tpope/vim-dadbod'
 
 " lsp, Completion Engine
 Plug 'neovim/nvim-lspconfig'
 Plug 'onsails/lspkind-nvim'
-
-" yank over OSC
-" Plug 'ojroques/vim-oscyank', {'branch': 'main'}
 
 " completion
 Plug 'hrsh7th/nvim-cmp'
@@ -180,7 +172,8 @@ Plug 'hrsh7th/cmp-nvim-lua'
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'quangnguyen30192/cmp-nvim-ultisnips'
-Plug 'tzachar/cmp-tabnine', { 'do': './install.sh' }
+
+Plug 'github/copilot.vim'
 
 " formatter
 Plug 'mhartington/formatter.nvim'
@@ -201,27 +194,7 @@ au FileType * hi SpellBad ctermbg=NONE ctermfg=Red cterm=underline
 au FileType * hi Error ctermbg=NONE ctermfg=Red
 au FileType * hi ErrorMsg ctermbg=NONE ctermfg=Red
 
-hi MatchParen guibg=lightgray
-
-"
-" Completion, UltiSnips
-"
-" read `:help ins-completion`.
-
-set completeopt=menuone,noinsert,noselect
-
-let g:UltinipsExpandTrigger="<tab>"
-let g:UltiSnipsEditSplit="vertical"
-let g:UltiSnipsSnippetDirectories=["~/snippets/ultisnips"]
-let g:UltiSnipsJumpForwardTrigger='<Tab>'
-let g:UltiSnipsJumpBackwardTrigger='<S-Tab>'
-
-" 
-" Database SQL Autocompletion
-" 
-let g:db="postgres://postgres:postgres@localhost:5432/postgres"
-let g:vim_dadbod_completion_mark = 'SQL'
-let g:completion_matching_ignore_case = 1
+hi MatchParen guibg=lightgray guifg=black
 
 lua << EOF
   -- import all configs

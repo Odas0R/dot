@@ -8,7 +8,7 @@ end
 
 -- Setup nvim-cmp.
 local cmp = require("cmp")
-local cmp_ultisnips = require("cmp_nvim_ultisnips.mappings")
+local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
 
 cmp.setup({
   snippet = {
@@ -20,7 +20,7 @@ cmp.setup({
     trigger_debounce_time = 150,
   },
   experimental = {
-    ghost_text = true, -- this feature conflict with copilot.vim's preview.
+    ghost_text = false, -- this feature conflict with copilot.vim's preview.
   },
   window = {
     completion = cmp.config.window.bordered(),
@@ -32,8 +32,14 @@ cmp.setup({
     ["<C-u>"] = cmp.mapping.scroll_docs(-4),
     ["<C-d>"] = cmp.mapping.scroll_docs(4),
     ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
-    ["<C-s>"] = cmp.mapping(function(fallback)
-      cmp_ultisnips.compose({ "expand" })(fallback)
+    ["<C-j>"] = cmp.mapping(function(fallback)
+      cmp_ultisnips_mappings.expand_or_jump_forwards(fallback)
+    end, {
+      "i",
+      "s", --[[ "c" (to enable the mapping in command mode) ]]
+    }),
+    ["<C-k>"] = cmp.mapping(function(fallback)
+      cmp_ultisnips_mappings.jump_backwards(fallback)
     end, {
       "i",
       "s", --[[ "c" (to enable the mapping in command mode) ]]
@@ -49,9 +55,7 @@ cmp.setup({
         keyword_pattern = [[\k\+]],
       },
     },
-    { name = "vim-dadbod-completion" },
     { name = "ultisnips" },
-    { name = "cmp_tabnine" },
   }),
   formatting = {
     format = lspkind.cmp_format({
@@ -60,15 +64,16 @@ cmp.setup({
         nvim_lua = "[Lua]",
         nvim_lsp = "[Lsp]",
         path = "[Path]",
-        ["vim-dadbod-completion"] = "[Sql]",
         ultisnips = "[Snip]",
         buffer = "[Buffer]",
-        cmp_tabnine = "[TabNine]",
       },
     }),
   },
 })
 
 vim.cmd([[
+let g:UltiSnipsEditSplit="vertical"
+let g:UltiSnipsSnippetDirectories=["~/snippets/ultisnips"]
+
 autocmd BufWritePost *.snippets :CmpUltisnipsReloadSnippets
 ]])

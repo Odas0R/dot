@@ -4,7 +4,7 @@ local custom_actions = {}
 
 local function getTableSize(t)
   local count = 0
-  for _, __ in pairs(t) do
+  for _, _ in pairs(t) do
     count = count + 1
   end
   return count
@@ -78,19 +78,22 @@ require("telescope").setup({
 
 local M = {}
 
-M.search_dotfiles = function()
+M.search_repos = function()
   require("telescope.builtin").find_files({
-    prompt_title = "Dotfiles",
-    cwd = "$DOT",
+    prompt_title = "github.com/odas0r",
+    cwd = "/home/odas0r/github.com/odas0r",
+    follow = true,
     use_regex = false,
     hidden = true,
   })
 end
 
-M.search_dotfiles_grep = function()
+
+M.search_repos_grep = function()
   require("telescope.builtin").live_grep({
-    prompt_title = "Dotfiles",
-    cwd = "$DOT",
+    prompt_title = "github.com/odas0r",
+    cwd = "/home/odas0r/github.com/odas0r",
+    follow = true,
     use_regex = false,
     hidden = true,
   })

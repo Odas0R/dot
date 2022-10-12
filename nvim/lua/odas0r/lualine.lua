@@ -1,23 +1,45 @@
-local lsp_status = require("lsp-status")
-lsp_status.register_progress()
-
-lsp_status.config({
-  status_symbol = "",
-  indicator_errors = "E",
-  indicator_warnings = "W",
-  indicator_info = "I",
-  indicator_hint = "?",
-  indicator_ok = "OK",
-})
-
 require("lualine").setup({
-  options = { theme = "gruvbox_dark", section_separators = "", component_separators = "" },
+  options = {
+    theme = "gruvbox_dark",
+    section_separators = "",
+    component_separators = "",
+    disabled_filetypes = {
+      statusline = {},
+      winbar = {},
+    },
+    ignore_focus = {},
+    always_divide_middle = true,
+    globalstatus = false,
+    refresh = {
+      statusline = 1000,
+      tabline = 1000,
+      winbar = 1000,
+    },
+  },
   section_separators = {},
   sections = {
     lualine_a = { "mode" },
     lualine_b = { "branch" },
-    lualine_c = { "filename", lsp_status.status },
-    lualine_x = { "encoding", "filetype" },
+    lualine_x = {
+      {
+        "diagnostics",
+        sources = { "nvim_lsp" },
+        sections = { "error", "warn", "info", "hint" },
+        diagnostics_color = {
+          -- Same values as the general color option can be used here.
+          error = "DiagnosticError", -- Changes diagnostics' error color.
+          warn = "DiagnosticWarn", -- Changes diagnostics' warn color.
+          info = "DiagnosticInfo", -- Changes diagnostics' info color.
+          hint = "DiagnosticHint", -- Changes diagnostics' hint color.
+        },
+        symbols = { error = "E: ", warn = "W: ", info = "I: ", hint = "H: " },
+        colored = true, -- Displays diagnostics status in color if set to true.
+        update_in_insert = true, -- Update diagnostics in insert mode.
+        always_visible = false, -- Show diagnostics even if there are none.
+      },
+      "encoding",
+      "filetype",
+    },
     lualine_y = { "progress" },
     lualine_z = { "location" },
   },

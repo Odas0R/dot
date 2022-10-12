@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ -x "$(command -v pomo)" ]]; then
+if [[ -x "$(command -v zet)" ]]; then
   _cli_bash_autocomplete() {
     if [[ "${COMP_WORDS[0]}" != "source" ]]; then
       local cur opts
@@ -16,5 +16,5 @@ if [[ -x "$(command -v pomo)" ]]; then
     fi
   }
 
-  complete -o nospace -F _cli_bash_autocomplete pomo
+  complete -o nospace -F _cli_bash_autocomplete zet
 fi

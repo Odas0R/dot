@@ -150,7 +150,7 @@ vim.api.nvim_create_autocmd("FocusGained", {
 
 vim.api.nvim_create_autocmd("BufEnter", {
   callback = function()
-    vim.api.nvim_buf_set_keymap(0, "n", "gp", "<cmd>FormatWrite<CR>", { noremap = true, silent = true })
+    vim.api.nvim_buf_set_keymap(0, "n", "gp", "<cmd>Format<CR>", { noremap = true, silent = true })
   end,
   group = group,
 })

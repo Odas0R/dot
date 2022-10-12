@@ -60,7 +60,27 @@ require("lspconfig").astro.setup({
 })
 
 -- npm i -g vscode-langservers-extracted
-require("lspconfig").eslint.setup({})
+require("lspconfig").jsonls.setup({
+  capabilities = capabilities,
+})
+
+-- npm i -g vscode-langservers-extracted
+require("lspconfig").eslint.setup({
+  -- Magically fixes eslint on monorepos? Don't know... Haha!
+  -- https://github.com/neovim/nvim-lspconfig/issues/1427#issuecomment-980783000
+  capabilities = capabilities,
+  flags = {
+    debounce_text_changes,
+  },
+  settings = {
+    useESLintClass = true,
+    packageManager = "yarn",
+    workingDirectories = {
+      { mode = "location" },
+    },
+  },
+  -- root_dir = util.find_git_ancestor,
+})
 
 -- npm i -g vscode-langservers-extracted
 require("lspconfig").cssls.setup({
@@ -133,6 +153,24 @@ require("lspconfig").pylsp.setup({
   },
 })
 
+require("lspconfig").sqls.setup({
+  on_attach = lsp_keymaps,
+  capabilities = capabilities,
+  flags = {
+    debounce_text_changes,
+  },
+  settings = {
+    sqls = {
+      connections = {
+        {
+          driver = 'postgresql',
+          dataSourceName = 'host=127.0.0.1 port=5432 user=postgres password=postgres dbname=postgres sslmode=disable',
+        },
+      },
+    },
+  },
+})
+
 -- go install golang.org/x/tools/gopls@latest
 -- go install golang.org/x/tools/cmd/goimports@latest
 require("lspconfig").gopls.setup({
@@ -194,7 +232,12 @@ require("lspconfig").sumneko_lua.setup({
       },
       workspace = {
         -- Make the server aware of Neovim runtime files
-        library = vim.api.nvim_get_runtime_file("", true),
+        library = {
+          [vim.fn.expand("$VIMRUNTIME/lua")] = true,
+          [vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true,
+        },
+        maxPreload = 100000,
+        preloadFileSize = 10000,
       },
     },
   },

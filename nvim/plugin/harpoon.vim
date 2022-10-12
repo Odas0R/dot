@@ -15,3 +15,4 @@ tnoremap <silent> <leader>3 <C-\><C-n>:lua terminal:close()<CR>:lua require("har
 nnoremap <silent> <leader>4 :lua terminal:close()<CR>:lua require("harpoon.ui").nav_file(4)<CR>:cclose<CR>
 tnoremap <silent> <leader>4 <C-\><C-n>:lua terminal:close()<CR>:lua require("harpoon.ui").nav_file(4)<CR>
 
+autocmd Filetype harpoon setlocal cursorline

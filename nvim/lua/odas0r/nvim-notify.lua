@@ -6,9 +6,9 @@ notify.setup({
   icons = {
     DEBUG = "Debugging",
     ERROR = "Error",
-    INFO = "🛈  Info",
-    TRACE = "✎  Trace",
-    WARN = "⚠ Warning",
+    INFO = "🛈 ",
+    TRACE = "✎ ",
+    WARN = "⚠",
   },
   level = 2,
   minimum_width = 50,

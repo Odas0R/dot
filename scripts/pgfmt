@@ -10,4 +10,3 @@ LANG=C pg_format \
   --comma-start \
   --keyword-case 1 \
   --no-extra-line
-
