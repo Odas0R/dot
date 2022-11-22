@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ -z "${1:-}" ]]; then
+  echo "Usage: $0 <docker_network_id>"
+  exit 1
+fi
+
+docker network inspect -f '{{json .Containers}}' "$1" | jq '.[] | .Name + ":" + .IPv4Address'

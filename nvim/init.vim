@@ -18,7 +18,7 @@ set showmode
 set termguicolors
 
 " set the winbar on top-right instead of bottom-left
-" https://www.youtube.com/watch?v=LKW_SUucO-k
+" https://www.youtube.com/watch?v=LKW_SUucO-k 
 " set winbar=%=%m\ %f
 set showcmd
 set cmdheight=1
@@ -64,7 +64,7 @@ set foldmethod=manual
 set spelllang+=pt_pt
 set encoding=utf-8
 
-" Return to last edit position when opening files
+" Return to last edit position when opening
 au BufReadPost *
       \ if line("'\"") > 0 && line("'\"") <= line("$") |
       \   exe "normal! g`\"" |
@@ -115,8 +115,9 @@ nnoremap <C-l> :nohl<CR><C-l>
 " Buffers management
 nnoremap <silent> <leader>bn <cmd>bnext<cr>
 nnoremap <silent> <leader>bp <cmd>bprevious<cr>
-nnoremap <silent> <leader>bd <cmd>bdelete<cr>
+nnoremap <silent> <leader>q <cmd>bdelete<cr>
 nnoremap <silent> <leader>bl <cmd>Telescope buffers<cr>
+
 
 " disable macros
 map <silent> Q <nop>
@@ -146,8 +147,11 @@ Plug 'windwp/nvim-ts-autotag'
 Plug 'ThePrimeagen/harpoon'
 Plug 's1n7ax/nvim-terminal'
 Plug 'mhinz/vim-signify'
-Plug 'rcarriga/nvim-notify'
 Plug 'isobit/vim-caddyfile'
+
+" image support, is it here?
+Plug 'edluffy/hologram.nvim'
+
 
 " comments, utilities for documentation
 Plug 'numToStr/Comment.nvim'
@@ -161,6 +165,7 @@ Plug 'kristijanhusak/defx-git'
 
 " database
 Plug 'tpope/vim-dadbod'
+Plug 'kristijanhusak/vim-dadbod-completion'
 
 " lsp, Completion Engine
 Plug 'neovim/nvim-lspconfig'

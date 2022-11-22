@@ -56,6 +56,16 @@ export PERL_LOCAL_LIB_ROOT="/home/odas0r/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOC
 export PERL_MB_OPT='--install_base "/home/odas0r/perl5"'
 export PERL_MM_OPT="INSTALL_BASE=/home/odas0r/perl5"
 
+# Android Studio
+export ANDROID_STUDIO_HOME="/home/odas0r/tools/android-studio"
+export ANDROID_SDK_BUILD_TOOLS="$HOME/Android/Sdk/build-tools/33.0.0"
+export ANDROID_SDK_PLATFORM_TOOLS="$HOME/Android/Sdk/platform-tools"
+export ANDROID_SDK_EMULATOR="$HOME/Android/Sdk/emulator"
+
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+
+export DART="/usr/lib/dart/bin"
+
 # Global Path
 PATH="$PATH:/bin:/usr/local/bin:"
 PATH+="$GOROOT/bin:$GOPATH/bin:"
@@ -66,5 +76,11 @@ PATH+="$LOCAL_BIN:$LOCAL_SCRIPTS:"
 PATH+="$LUA_LANGUAGE_SERVER:"
 PATH+="$GNU_UTILS:"
 PATH+="$LD_LIBRARY_PATH:"
+PATH+="$JAVA_HOME/bin:"
+PATH+="$DART:"
+PATH+="$ANDROID_STUDIO_HOME/bin:"
+PATH+="$ANDROID_SDK_BUILD_TOOLS:"
+PATH+="$ANDROID_SDK_PLATFORM_TOOLS:"
+PATH+="$ANDROID_SDK_EMULATOR"
 
 export PATH

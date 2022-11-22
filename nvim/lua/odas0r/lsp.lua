@@ -6,7 +6,7 @@ local buf_set_option = function(bufnr, ...)
   vim.api.nvim_buf_set_option(bufnr, ...)
 end
 
-local lsp_keymaps = function(_, bufnr)
+local on_attach = function(_, bufnr)
   -- Enable completion triggered by <c-x><c-o>
   buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
@@ -28,35 +28,32 @@ local util = require("lspconfig").util
 -- Inject lsp thingy into nvim-cmp
 local capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
-local debounce_text_changes = 150
+local flags = {
+  debounce_text_changes = 200,
+}
 
 -- npm install -g typescript typescript-language-server
 require("typescript").setup({
   debug = false,
   server = {
     on_attach = function(_, bufnr)
-      lsp_keymaps(nil, bufnr)
+      on_attach(nil, bufnr)
 
       -- Mappings.
       local opts = { noremap = true, silent = true }
-
       buf_set_keymap(bufnr, "n", "gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
       buf_set_keymap(bufnr, "n", "gR", "<cmd>TypescriptRenameFile<CR>", opts)
     end,
     capabilities = capabilities,
-    flags = {
-      debounce_text_changes,
-    },
+    flags = flags,
   },
 })
 
 -- npm install -g @astrojs/language-server
 require("lspconfig").astro.setup({
-  on_attach = lsp_keymaps,
+  on_attach = on_attach,
   capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
+  flags = flags,
 })
 
 -- npm i -g vscode-langservers-extracted
@@ -64,31 +61,42 @@ require("lspconfig").jsonls.setup({
   capabilities = capabilities,
 })
 
+-- NOTE: I don't use this anymore, but I'm keeping it here for reference; It
+-- blocks my development/thinking process.
+--
 -- npm i -g vscode-langservers-extracted
-require("lspconfig").eslint.setup({
-  -- Magically fixes eslint on monorepos? Don't know... Haha!
-  -- https://github.com/neovim/nvim-lspconfig/issues/1427#issuecomment-980783000
-  capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
-  settings = {
-    useESLintClass = true,
-    packageManager = "yarn",
-    workingDirectories = {
-      { mode = "location" },
-    },
-  },
-  -- root_dir = util.find_git_ancestor,
-})
+-- require("lspconfig").eslint.setup({
+--   -- Magically fixes eslint on monorepos?
+--   -- https://github.com/neovim/nvim-lspconfig/issues/1427#issuecomment-980783000
+--   capabilities = capabilities,
+--   flags = flags,
+--   settings = {
+--     workingDirectory = { mode = "location" },
+--     codeAction = {
+--       disableRuleComment = {
+--         enable = true,
+--         location = "sameLine",
+--       },
+--       showDocumentation = {
+--         enable = true,
+--       },
+--     },
+--   },
+--   root_dir = util.root_pattern(
+--     ".eslintrc.js",
+--     ".eslintrc.json",
+--     ".eslintrc.yaml",
+--     ".eslintrc.yml",
+--     ".eslintrc",
+--     "package.json"
+--   ),
+-- })
 
 -- npm i -g vscode-langservers-extracted
 require("lspconfig").cssls.setup({
-  on_attach = lsp_keymaps,
+  on_attach = on_attach,
   capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
+  flags = flags,
   settings = {
     scss = {
       lint = {
@@ -105,20 +113,16 @@ require("lspconfig").cssls.setup({
 
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#hls
 require("lspconfig").hls.setup({
-  on_attach = lsp_keymaps,
+  on_attach = on_attach,
   capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
+  flags = flags,
 })
 
 -- npm i -g yaml-language-server
 require("lspconfig").yamlls.setup({
-  on_attach = lsp_keymaps,
+  on_attach = on_attach,
   capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
+  flags = flags,
   settings = {
     schemas = {
       ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
@@ -128,48 +132,55 @@ require("lspconfig").yamlls.setup({
 
 -- npm i -g bash-language-server
 require("lspconfig").bashls.setup({
-  on_attach = lsp_keymaps,
+  on_attach = on_attach,
   capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
+  flags = flags,
 })
 
 --  npm install -g @tailwindcss/language-server
 require("lspconfig").tailwindcss.setup({
-  on_attach = lsp_keymaps,
+  on_attach = on_attach,
   capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
+  flags = flags,
+  settings = {
+    tailwindCSS = {
+      classAttributes = { "class", "className", "classList" },
+      experimental = {
+        classRegex = { "tw`(.+?)`" },
+      },
+    },
   },
 })
 
 -- pip install 'python-lsp-server[all]'
 require("lspconfig").pylsp.setup({
-  on_attach = lsp_keymaps,
+  on_attach = on_attach,
   capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
+  flags = flags,
 })
 
-require("lspconfig").sqls.setup({
-  on_attach = lsp_keymaps,
+require("lspconfig").dartls.setup({
+  on_attach = on_attach,
   capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
-  settings = {
-    sqls = {
-      connections = {
-        {
-          driver = 'postgresql',
-          dataSourceName = 'host=127.0.0.1 port=5432 user=postgres password=postgres dbname=postgres sslmode=disable',
-        },
-      },
-    },
-  },
+  flags = flags,
 })
+
+-- require("lspconfig").sqls.setup({
+--   on_attach = lsp_keymaps,
+--   capabilities = capabilities,
+--   flags = flags,
+--   filetype = { "sql", "mysql" },
+--   settings = {
+--     sqls = {
+--       connections = {
+--         {
+--           driver = "postgresql",
+--           dataSourceName = "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=postgres sslmode=disable",
+--         },
+--       },
+--     },
+--   },
+-- })
 
 -- go install golang.org/x/tools/gopls@latest
 -- go install golang.org/x/tools/cmd/goimports@latest
@@ -185,20 +196,16 @@ require("lspconfig").gopls.setup({
       staticcheck = true,
     },
   },
-  on_attach = lsp_keymaps,
+  on_attach = on_attach,
   capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
+  flags = flags,
 })
 
 -- npm i -g stylelint-lsp
 -- require("lspconfig").stylelint_lsp.setup({
 --   on_attach = on_attach,
 --   capabilities = capabilities,
---   flags = {
---     debounce_text_changes,
---   },
+--   flags = flags,
 --   filetypes = { "css", "less", "scss" },
 -- })
 
@@ -212,11 +219,9 @@ table.insert(runtime_path, "lua/?.lua")
 table.insert(runtime_path, "lua/?/init.lua")
 
 require("lspconfig").sumneko_lua.setup({
-  on_attach = lsp_keymaps,
+  on_attach = on_attach,
   capabilities = capabilities,
-  flags = {
-    debounce_text_changes,
-  },
+  flags = flags,
   cmd = { sumneko_binary_path, "-E", sumneko_root_path .. "/lua-language-server/main.lua" },
   settings = {
     Lua = {

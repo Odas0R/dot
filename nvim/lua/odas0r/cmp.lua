@@ -17,7 +17,7 @@ cmp.setup({
     end,
   },
   performance = {
-    trigger_debounce_time = 150,
+    trigger_debounce_time = 200,
   },
   experimental = {
     ghost_text = false, -- this feature conflict with copilot.vim's preview.
@@ -55,6 +55,7 @@ cmp.setup({
         keyword_pattern = [[\k\+]],
       },
     },
+    { name = "vim-dadbod-completion" },
     { name = "ultisnips" },
   }),
   formatting = {
@@ -64,6 +65,7 @@ cmp.setup({
         nvim_lua = "[Lua]",
         nvim_lsp = "[Lsp]",
         path = "[Path]",
+        ["vim-dadbod-completion"] = "[SQL]",
         ultisnips = "[Snip]",
         buffer = "[Buffer]",
       },

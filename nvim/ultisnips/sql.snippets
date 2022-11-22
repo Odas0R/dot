@@ -100,6 +100,18 @@ alter table $2
 alter table $2 validate constraint $1;
 endsnippet
 
+snippet domain "postgresql create domain if exists" b
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = '${1:${VISUAL:url}}') then
+    create domain $1 as text
+    constraint ${2:${VISUAL:constraint_name}} check (${3:value ~ ''});
+  end if;
+end
+$$;
+endsnippet
+
+
 #
 # Row Level Security
 #
@@ -167,27 +179,46 @@ snippet pgtap "Unit test" b
 \echo ===================================================
 
 begin;
-
-select no_plan();
+select plan(1);
 
 set local search_path = public, auth, extensions;
+
+\echo  '                                   '
+\echo  'Executing before test queries... ⏰'
+\echo  '                                   '
+
+\set user_0 '81df0708-0911-38e8-97b4-e36565538222'
+\set user_1 '4626d5a2-5054-3673-8dc7-aea3fcf051e4'
+
+\echo  '------------------------------'
+\echo  'Sign-In as anon               '
+\echo  '------------------------------'
+
 set local role anon;
+set local "request.jwt.claim.role" to '';
+set local "request.jwt.claim.sub" to '';
 
-	select
-		is_empty(
-			$$
-			select * from public.$1;
-			$$,
-			'anon cannot see any $1'
-		);
+select
+	results_eq(
+		$$
+		select 1
+		$$,
+		$$
+			values (1)
+		$$,
+		'anon can select 1'
+	);
 
--- set local "request.jwt.claim.sub" to :'user_0';
+\echo  '------------------------------'
+\echo  'Sign-In as user_0							' 
+\echo  '------------------------------'
 
+set local role authenticated;
+set local "request.jwt.claim.role" to 'authenticated';
+set local "request.jwt.claim.sub" to :'user_0';
 
 select * from finish();
-
 do $$ begin assert num_failed() = 0; end $$;
-
 rollback;
 endsnippet
 

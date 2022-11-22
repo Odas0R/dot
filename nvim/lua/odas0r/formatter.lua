@@ -155,8 +155,18 @@ vim.api.nvim_create_autocmd("BufEnter", {
   group = group,
 })
 
-vim.api.nvim_create_autocmd("BufWritePre", {
+vim.api.nvim_create_autocmd("BufEnter", {
   pattern = { "*.ts", "*.tsx", "*.js", "*.jsx" },
-  command = "EslintFixAll",
+  callback = function()
+    vim.api.nvim_buf_set_keymap(
+      0,
+      "n",
+      "gp",
+      [[
+      :FormatWrite
+    ]],
+      { noremap = true, silent = true }
+    )
+  end,
   group = group,
 })
