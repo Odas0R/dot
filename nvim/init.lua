@@ -37,10 +37,11 @@ require("lazy").setup({
       require("gruvbox").setup({
         contrast = "dark",
         overrides = {
-          SignColumn = { bg = "#ff9900" },
           Comment = { italic = true },
           HarpoonWindow = { bg = "#282828" },
           HarpoonBorder = { bg = "#282828" },
+          -- Example: https://github.com/mhinz/vim-signify/blob/master/doc/signify.txt#L597
+          SignColumn = { bg = "#282828" },
         },
       })
       vim.cmd.colorscheme("gruvbox")
