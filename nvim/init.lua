@@ -42,6 +42,7 @@ require("lazy").setup({
           HarpoonBorder = { bg = "#282828" },
           -- Example: https://github.com/mhinz/vim-signify/blob/master/doc/signify.txt#L597
           SignColumn = { bg = "#282828" },
+          TermCursorNC = { bg = "#cc241d", fg = "#ffffff" },
         },
       })
       vim.cmd.colorscheme("gruvbox")

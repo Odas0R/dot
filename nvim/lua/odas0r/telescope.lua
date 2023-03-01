@@ -35,24 +35,27 @@ require("telescope").setup({
     sorting_strategy = "ascending",
     mappings = {
       i = {
-        ["<esc>"] = actions.close,
         ["<C-j>"] = actions.move_selection_next,
         ["<C-k>"] = actions.move_selection_previous,
-        ["<C-p>"] = actions.move_selection_previous,
         ["<C-n>"] = actions.move_selection_next,
-        ["<tab>"] = actions.toggle_selection + actions.move_selection_next,
-        ["<s-tab>"] = actions.toggle_selection + actions.move_selection_previous,
+        ["<C-p>"] = actions.move_selection_previous,
         ["<cr>"] = custom_actions.fzf_multi_select,
-        ["<C-a>"] = actions.toggle_all,
-        ["<C-u>"] = false
+        ["<C-q>"] = actions.smart_send_to_qflist + actions.open_qflist,
+        -- disable
+        ["<C-u>"] = false,
       },
       n = {
-        ["<esc>"] = actions.close,
-        ["<tab>"] = actions.toggle_selection + actions.move_selection_next,
-        ["<s-tab>"] = actions.toggle_selection + actions.move_selection_previous,
+        ["l"] = actions.toggle_selection,
+        ["h"] = actions.remove_selection,
         ["<C-p>"] = actions.move_selection_previous,
         ["<C-n>"] = actions.move_selection_next,
         ["<cr>"] = custom_actions.fzf_multi_select,
+        ["L"] = actions.toggle_all,
+        ["H"] = actions.drop_all,
+        ["<esc>"] = actions.close,
+        ["<C-q>"] = actions.smart_send_to_qflist + actions.open_qflist,
+        -- disable
+        ["<C-u>"] = false,
       },
     },
     file_ignore_patterns = {
@@ -87,7 +90,6 @@ M.search_repos = function()
     hidden = true,
   })
 end
-
 
 M.search_repos_grep = function()
   require("telescope.builtin").live_grep({

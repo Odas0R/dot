@@ -20,16 +20,3 @@ endfunction
 
 autocmd User SignifyHunk call s:show_current_hunk()
 ]])
-
-autocmd("FileType", {
-  pattern = "*",
-  callback = function()
-    keymap({ "n", "i" }, "q", function()
-      local winnr = vim.api.nvim_get_current_win()
-      local win_type = vim.api.nvim_win_get_type(winnr)
-      if win_type == "popup" then
-        vim.api.nvim_win_close(winnr, true)
-      end
-    end, { silent = true })
-  end,
-})

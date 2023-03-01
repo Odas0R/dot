@@ -11,15 +11,6 @@ keymap("n", "<C-l>", ":nohl<CR>", { silent = true })
 keymap("n", "<leader>s", ":set spell!<CR>", { silent = true })
 keymap("n", "<leader>p", ":set paste!<CR>", { silent = true })
 
--- Checkbox
-keymap("x", "<leader>x", function()
-  return require("odas0r/checkbox").toggle()
-end, { silent = true })
-
-keymap("v", "<leader>x", function()
-  return require("odas0r/checkbox").toggle_many()
-end, { silent = true })
-
 -- Quickfix
 keymap("n", "<C-j>", ":cnext<CR>", { silent = true })
 keymap("n", "<C-k>", ":cprev<CR>", { silent = true })
@@ -59,6 +50,27 @@ autocmd("BufReadPost", {
   callback = function()
     if vim.fn.line("'\"") > 0 and vim.fn.line("'\"") <= vim.fn.line("$") then
       vim.cmd('normal! g`"')
+    end
+  end,
+})
+
+-- close popup windows with q
+autocmd("WinEnter", {
+  pattern = "*",
+  callback = function()
+    local is_popup = vim.api.nvim_win_get_config(0).relative ~= ""
+
+    if is_popup then
+      keymap({ "n" }, "q", function()
+        -- check if the window is a popup and close it if it is
+        local code = vim.api.nvim_replace_termcodes("<C-w>w", true, false, true)
+        vim.api.nvim_feedkeys(code, "n", false)
+      end, { silent = true })
+    else
+      -- check if there's q mapping and remove it
+      if vim.api.nvim_get_keymap("n")["q"] then
+        vim.api.nvim_del_keymap("n", "q")
+      end
     end
   end,
 })

@@ -1,6 +1,8 @@
-" Documentation: defx
+" -------------------------------------------------------------
 "
-" Press "K" on when cursor on top of defx
+" I didn't refactored this into lua yet, so I'm using vimscript
+"
+" -------------------------------------------------------------
 
 nnoremap \ <cmd>Defx -resume -columns=mark:indent:icon:indent:filename:space:git -search=`expand('%:p')` `expand('%:p:h')`<CR>
 
