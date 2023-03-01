@@ -2,10 +2,6 @@
 
 set -e
 
-if [[ -z "$TMUX" ]]; then
-  nvim "$@"
-fi
-
 if [[ ! -S "$NVIM_SOCKET" ]]; then
   nvim --listen "$NVIM_SOCKET" "$@"
 else

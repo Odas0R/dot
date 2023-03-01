@@ -7,4 +7,11 @@ if [[ ! -x "$(command -v tmux)" ]]; then
   exit 1
 fi
 
-tmux popup -h90% -w95% -E "$@"
+# check if tmux is already running
+if [[ -n "$TMUX" ]]; then
+  tmux popup -h90% -w95% -E "$@"
+else
+  echo "Popup requires tmux to be running..."
+  "$@"
+fi
+

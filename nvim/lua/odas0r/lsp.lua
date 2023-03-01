@@ -26,13 +26,25 @@ end
 local util = require("lspconfig").util
 
 -- Inject lsp thingy into nvim-cmp
-local capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 local flags = {
-  debounce_text_changes = 200,
+  debounce_text_changes = 150,
 }
 
--- npm install -g typescript typescript-language-server
+-- require("lspconfig").tsserver.setup({
+--     cmd = {
+--       "bun",
+--       "run",
+--       "/home/odas0r/.bun/bin/typescript-language-server",
+--       "--stdio",
+--     },
+--   on_attach = on_attach,
+--   capabilities = capabilities,
+--   flags = flags,
+-- })
+
+-- bun add --global typescript-language-server
 require("typescript").setup({
   debug = false,
   server = {
@@ -46,11 +58,31 @@ require("typescript").setup({
     end,
     capabilities = capabilities,
     flags = flags,
+    filetypes = {
+      "javascript",
+      "javascriptreact",
+      "javascript.jsx",
+      "typescript",
+      "typescriptreact",
+      "typescript.tsx",
+    },
+    cmd = {
+      "bun",
+      "run",
+      "/home/odas0r/.bun/bin/typescript-language-server",
+      "--stdio",
+    },
   },
 })
 
 -- npm install -g @astrojs/language-server
 require("lspconfig").astro.setup({
+  cmd = {
+    "bun",
+    "run",
+    "/home/odas0r/.bun/bin/astro-ls",
+    "--stdio",
+  },
   on_attach = on_attach,
   capabilities = capabilities,
   flags = flags,
@@ -139,6 +171,12 @@ require("lspconfig").bashls.setup({
 
 --  npm install -g @tailwindcss/language-server
 require("lspconfig").tailwindcss.setup({
+  cmd = {
+    "bun",
+    "run",
+    "/home/odas0r/.bun/bin/tailwindcss-language-server",
+    "--stdio",
+  },
   on_attach = on_attach,
   capabilities = capabilities,
   flags = flags,
@@ -218,7 +256,7 @@ local runtime_path = vim.split(package.path, ";")
 table.insert(runtime_path, "lua/?.lua")
 table.insert(runtime_path, "lua/?/init.lua")
 
-require("lspconfig").sumneko_lua.setup({
+require("lspconfig").lua_ls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = flags,
@@ -234,6 +272,10 @@ require("lspconfig").sumneko_lua.setup({
       diagnostics = {
         -- Get the language server to recognize the `vim` global
         globals = { "vim" },
+      },
+      -- Do not send telemetry data containing a randomized but unique identifier
+      telemetry = {
+        enable = false,
       },
       workspace = {
         -- Make the server aware of Neovim runtime files

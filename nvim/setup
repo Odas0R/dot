@@ -14,7 +14,7 @@ NVIM="$HOME/.config/nvim"
 mkdir -p "$NVIM"
 
 # setups
-ln -sf "$DOT_NVIM/init.vim" "$NVIM/init.vim"
+ln -sf "$DOT_NVIM/init.lua" "$NVIM/init.lua"
 ln -sf "$DOT_NVIM/spell" "$NVIM/spell"
 
 # setup snippets
@@ -24,12 +24,6 @@ ln -sf "$DOT_NVIM/ultisnips" "$HOME/snippets/ultisnips"
 # setup lua and plugins
 ln -sf "$DOT_NVIM/lua" "$NVIM"
 ln -sf "$DOT_NVIM/plugin" "$NVIM"
-
-# installing plug
-if [[ ! -f "$NVIM/autoload/plug.vim" ]]; then
-  curl -fLo "$NVIM/autoload/plug.vim" --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-fi
 
 printf "To install all vim plugins :PlugInstall!\n"
 

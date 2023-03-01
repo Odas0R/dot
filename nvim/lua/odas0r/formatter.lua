@@ -1,34 +1,29 @@
 local vim = vim
 local formatter = require("formatter")
+local util = require("formatter.util")
 
+-- local prettierConfig = function()
+--   return {
+--     exe = "prettier",
+--     args = {
+--       "--stdin-filepath",
+--       util.escape_path(util.get_current_buffer_file_path()),
+--     },
+--     stdin = true,
+--     try_node_modules = true,
+--   }
+-- end
+
+-- Trying out the faster prettier_d https://github.com/fsouza/prettierd
 local prettierConfig = function()
   return {
-    exe = "prettier",
-    args = {
-      "--stdin-filepath",
-      vim.fn.shellescape(vim.api.nvim_buf_get_name(0)),
-      "--double-quote",
-      "--prose-wrap always",
-    },
+    exe = "prettierd",
+    args = { vim.api.nvim_buf_get_name(0) },
     stdin = true,
   }
 end
 
 local formatterConfig = {
-  astro = {
-    function()
-      return {
-        exe = "prettier",
-        args = {
-          "--stdin-filepath",
-          vim.fn.shellescape(vim.api.nvim_buf_get_name(0)),
-          "--double-quote",
-          "--prose-wrap always",
-        },
-        stdin = true,
-      }
-    end,
-  },
   lua = {
     function()
       return {
@@ -48,8 +43,7 @@ local formatterConfig = {
       return {
         exe = "python3 -m autopep8",
         args = {
-          "--in-place --aggressive --aggressive",
-          vim.fn.fnameescape(vim.api.nvim_buf_get_name(0)),
+          "--in-place --aggressive",
         },
         stdin = false,
       }
@@ -124,6 +118,7 @@ local commonFT = {
   "yaml",
   "xml",
   "svg",
+  "astro",
   "javascript",
   "javascriptreact",
   "typescript",
@@ -150,23 +145,7 @@ vim.api.nvim_create_autocmd("FocusGained", {
 
 vim.api.nvim_create_autocmd("BufEnter", {
   callback = function()
-    vim.api.nvim_buf_set_keymap(0, "n", "gp", "<cmd>Format<CR>", { noremap = true, silent = true })
-  end,
-  group = group,
-})
-
-vim.api.nvim_create_autocmd("BufEnter", {
-  pattern = { "*.ts", "*.tsx", "*.js", "*.jsx" },
-  callback = function()
-    vim.api.nvim_buf_set_keymap(
-      0,
-      "n",
-      "gp",
-      [[
-      :FormatWrite
-    ]],
-      { noremap = true, silent = true }
-    )
+    vim.api.nvim_buf_set_keymap(0, "n", "gp", "<cmd>FormatWrite<CR>", { noremap = true, silent = true })
   end,
   group = group,
 })

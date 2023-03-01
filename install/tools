@@ -1,23 +1,72 @@
 #!/usr/bin/env bash
 
+set -e
+
+#####################################
+# Install via NPM
+#####################################
+if [[ ! -x "$(command -v npm)" ]]; then
+  echo "You need to install npm"
+  exit 1
+fi
+
+# check all pacakges globally: npm list -g --depth=0
 npm install -g \
   yarn \
   typescript \
+  prettier \
+  prettier-plugin-toml \
+  prettier-plugin-astro \
+  prettier-plugin-tailwindcss \
+  @go-task/cli
+
+# Use the LSP servers from the bun runtime, which is way faster
+#
+if [[ ! -x "$(command -v bun)" ]]; then
+  echo "You need to install bun"
+  exit 1
+fi
+
+bun add --global \
   typescript-language-server \
+  @tailwindcss/language-server \
+  @astrojs/language-server \
   vscode-langservers-extracted \
-  yaml-language-server \
   bash-language-server \
-  stylelint-lsp
+  @fsouza/prettierd
 
-sudo apt install shellcheck
-sudo apt install docker-compose
+#####################################
+# Installed via APT
+#####################################
 
-pip install 'python-lsp-server[all]'
+sudo apt install \
+  shellcheck \
+  docker-compose \
+  ripgrep
 
-go install golang.org/x/tools/gopls@latest 
-go install golang.org/x/tools/cmd/goimports@latest 
-go install github.com/jesseduffield/lazydocker@latest
-go install github.com/mattn/efm-langserver@latest
-go install mvdan.cc/sh/v3/cmd/shfmt@latest
+#####################################
+# Installed via PIP
+#####################################
+if [[ ! -x "$(command -v pip)" ]]; then
+  echo "You need to install pip"
+  exit 1
+fi
 
+pip install \
+  'python-lsp-server[all]' \
+  gitlint
 
+#####################################
+# Installed via Go
+#####################################
+if [[ ! -x "$(command -v go)" ]]; then
+  echo "You need to install go"
+  exit 1
+fi
+
+go install \
+  github.com/jesseduffield/lazydocker@latest \
+  github.com/mattn/efm-langserver@latest \
+  mvdan.cc/sh/v3/cmd/shfmt@latest \
+  github.com/jesseduffield/lazygit@latest \
+  github.com/mattn/efm-langserver@latest

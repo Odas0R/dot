@@ -35,6 +35,31 @@ function ${1:function_name} (${2:argument}: ${3:argument_type}) {
 }
 endsnippet
 
+snippet fetch "Fetch with all the goodies" b
+try {
+	const res = await fetch("${1:url}", {
+		method: "${2:GET}",
+	})
+	if (!res.ok) {
+		throw new Error('Bad response', {
+			cause: { res }
+		})
+	}
+	const data = await res.json()
+	// do something with data
+} catch (err: any) {
+	// handle error
+	switch(err.cause.res?.status) {
+		case 404:
+			// handle 404
+			break
+		default:
+			// handle other errors
+			break
+	}
+}
+endsnippet
+
 # Jest Snippets
 
 snippet describe "Jest suite test case" b

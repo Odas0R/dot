@@ -30,11 +30,18 @@ printf "Don't forget to add these:\n"
 echo "export GOPATH=~/go"
 echo 'export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin'
 
-# Installing Golang Dependencies
-# TODO: Add dependencies?
-
 # Remove Download
 sudo rm "$tarFile"
 
 # Print Go Version
 /usr/local/go/bin/go version
+
+########################################
+# Golang Dependencies, Tools
+########################################
+
+go install golang.org/x/tools/gopls@latest
+go install golang.org/x/tools/cmd/goimports@latest
+go install golang.org/x/tools/cmd/gorename@latest
+go install golang.org/x/tools/cmd/godoc@latest
+go install golang.org/x/tools/cmd/gofmt@latest

@@ -5,7 +5,7 @@
 export DOT_FILES="$HOME/github.com/odas0r/dot"
 
 # neovim socket pipe
-export NVIM_SOCKET="$HOME/.cache/nvim/nvim_$(tmux display-message -p '#S').pipe"
+export NVIM_SOCKET="$HOME/.cache/nvim/nvim_socket.pipe"
 
 # Followed this to install openssl 1.1.1, which is needed on some applications.
 # If some problem related to openssl happens this might be the cause, since I
@@ -21,6 +21,9 @@ export LOCAL_BIN="$HOME/.local/bin"
 export LOCAL_SCRIPTS="$HOME/.local/bin/scripts" # $HOME/.local/bin is the PATH for global scripts
 export TOOLS="$HOME/tools"
 
+# bun
+export BUN_INSTALL="$HOME/.bun"
+
 # Dot Path
 export DOT="$HOME/github.com/odas0r/dot"
 
@@ -29,7 +32,7 @@ export DENO_INSTALL="/home/odas0r/.deno"
 
 # NVM (Node Version Manager)
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
 # Java
 # export JAVA_HOME=$(/usr/libexec/java_home -v 17)
@@ -57,6 +60,7 @@ export PERL_MB_OPT='--install_base "/home/odas0r/perl5"'
 export PERL_MM_OPT="INSTALL_BASE=/home/odas0r/perl5"
 
 # Android Studio
+export ANDROID_HOME="$HOME/Android/Sdk"
 export ANDROID_STUDIO_HOME="/home/odas0r/tools/android-studio"
 export ANDROID_SDK_BUILD_TOOLS="$HOME/Android/Sdk/build-tools/33.0.0"
 export ANDROID_SDK_PLATFORM_TOOLS="$HOME/Android/Sdk/platform-tools"
@@ -78,9 +82,11 @@ PATH+="$GNU_UTILS:"
 PATH+="$LD_LIBRARY_PATH:"
 PATH+="$JAVA_HOME/bin:"
 PATH+="$DART:"
+PATH+="$ANDROID_HOME:"
 PATH+="$ANDROID_STUDIO_HOME/bin:"
 PATH+="$ANDROID_SDK_BUILD_TOOLS:"
 PATH+="$ANDROID_SDK_PLATFORM_TOOLS:"
-PATH+="$ANDROID_SDK_EMULATOR"
+PATH+="$ANDROID_SDK_EMULATOR:"
+PATH+="$BUN_INSTALL/bin"
 
 export PATH

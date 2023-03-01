@@ -21,5 +21,5 @@ fi
 export HRULEWIDTH=73
 
 # Define the editor
-export VISUAL=/usr/bin/nvim
+export VISUAL="nvimr"
 export EDITOR="$VISUAL"

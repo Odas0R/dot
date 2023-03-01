@@ -16,9 +16,10 @@ cmp.setup({
       vim.fn["UltiSnips#Anon"](args.body)
     end,
   },
-  performance = {
-    trigger_debounce_time = 200,
-  },
+  -- This does no "performance" improvement, cmp is very fast.
+  -- performance = {
+  --   trigger_debounce_time = 150,
+  -- },
   experimental = {
     ghost_text = false, -- this feature conflict with copilot.vim's preview.
   },
