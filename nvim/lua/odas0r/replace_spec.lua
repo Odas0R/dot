@@ -16,6 +16,25 @@ local function populate_quickfix_list(buffer_data)
   set_quickfix_list(entries)
 end
 
+local function write_to_temp_file(lines)
+  local temp_file_name = os.tmpname()
+  local file, err = io.open(temp_file_name, "w")
+  assert(file, err)
+  for _, line in ipairs(lines) do
+    file:write(line .. "\n")
+  end
+  file:close()
+  return temp_file_name
+end
+
+local function read_temp_file_lines(temp_file_name)
+  local lines = {}
+  for line in io.lines(temp_file_name) do
+    lines[#lines + 1] = line
+  end
+  return lines
+end
+
 describe("Replace Module", function()
   before_each(function()
     vim.cmd([[
@@ -24,37 +43,48 @@ describe("Replace Module", function()
   end)
 
   it("should not modify lines without a matching pattern", function()
-    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "hello world", "world of code" })
+    -- create a file with some lines
+    local file_path = write_to_temp_file({ "hello world", "world of code" })
+    local bufnr = vim.fn.bufadd(file_path)
+
     populate_quickfix_list({
-      { bufnr = 0, words = { "hello world", "world of code" } },
+      { bufnr = bufnr, words = { "hello world", "world of code" } },
     })
 
     vim.cmd([[Replace nonexistent NVIM]])
 
-    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    local lines = read_temp_file_lines(file_path)
     assert.are.same({ "hello world", "world of code" }, lines)
+
+    os.remove(file_path)
   end)
 
   it("should replace matching patterns with the given replacement", function()
-    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "hello world", "world of code" })
+    -- create a file with some lines
+    local file_path = write_to_temp_file({ "hello world", "world of code" })
+    local bufnr = vim.fn.bufadd(file_path)
+
     populate_quickfix_list({
-      { bufnr = 0, words = { "hello world", "world of code" } },
+      { bufnr = bufnr, words = { "hello world", "world of code" } },
     })
 
     vim.cmd([[Replace world NVIM]])
 
-    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    local lines = read_temp_file_lines(file_path)
     assert.are.same({ "hello NVIM", "NVIM of code" }, lines)
+
+    os.remove(file_path)
   end)
 
   it("should replace matching patterns with the given replacement in multiple buffers", function()
-    -- Create three buffers with different contents
-    local buf1 = vim.api.nvim_create_buf(false, true)
-    local buf2 = vim.api.nvim_create_buf(false, true)
-    local buf3 = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_lines(buf1, 0, -1, false, { "hello world", "world of code", "code world" })
-    vim.api.nvim_buf_set_lines(buf2, 0, -1, false, { "world domination", "world peace", "world of music" })
-    vim.api.nvim_buf_set_lines(buf3, 0, -1, false, { "another world", "world of art", "world of science" })
+    local file_path1 = write_to_temp_file({ "hello world", "world of code", "code world" })
+    local buf1 = vim.fn.bufadd(file_path1)
+
+    local file_path2 = write_to_temp_file({ "world domination", "world peace", "world of music" })
+    local buf2 = vim.fn.bufadd(file_path2)
+
+    local file_path3 = write_to_temp_file({ "another world", "world of art", "world of science" })
+    local buf3 = vim.fn.bufadd(file_path3)
 
     populate_quickfix_list({
       { bufnr = buf1, words = { "hello world", "world of code", "code world" } },
@@ -65,24 +95,29 @@ describe("Replace Module", function()
     vim.cmd([[Replace world NVIM]])
 
     -- Check if the replacement occurred correctly in all buffers
-    local lines1 = vim.api.nvim_buf_get_lines(buf1, 0, -1, false)
-    local lines2 = vim.api.nvim_buf_get_lines(buf2, 0, -1, false)
-    local lines3 = vim.api.nvim_buf_get_lines(buf3, 0, -1, false)
+    local lines1 = read_temp_file_lines(file_path1)
+    local lines2 = read_temp_file_lines(file_path2)
+    local lines3 = read_temp_file_lines(file_path3)
 
     assert.are.same({ "hello NVIM", "NVIM of code", "code NVIM" }, lines1)
     assert.are.same({ "NVIM domination", "NVIM peace", "NVIM of music" }, lines2)
     assert.are.same({ "another NVIM", "NVIM of art", "NVIM of science" }, lines3)
+
+    os.remove(file_path1)
+    os.remove(file_path2)
+    os.remove(file_path3)
   end)
 
   it("should replace complex patterns with given replacement, handling whitespace correctly", function()
-    -- Create a buffer with complex text
-    local buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+    local file_path = write_to_temp_file({
+
       "lorem ipsum &^%$*#@! dolor",
       "sit amet, consectetur adipiscing",
       "elit, 1234567890 sed do eiusmod tempor",
       "incididunt ut   labore et dolore magna aliqua.",
     })
+
+    local buf = vim.fn.bufadd(file_path)
 
     populate_quickfix_list({
       {
@@ -99,20 +134,22 @@ describe("Replace Module", function()
     vim.cmd([[Replace 'ut   labore' 'UT LABORE']])
 
     -- Check if the replacement occurred correctly in the buffer
-    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local lines = read_temp_file_lines(file_path)
     assert.are.same({
       "lorem ipsum &^%$*#@! dolor",
       "sit amet, consectetur adipiscing",
       "elit, 1234567890 sed do eiusmod tempor",
       "incididunt UT LABORE et dolore magna aliqua.",
     }, lines)
+
+    os.remove(file_path)
   end)
 
   it("should return an empty list if no matches are found", function()
     populate_quickfix_list({ { bufnr = 0, words = { "apple", "banana", "cherry" } } })
 
     local result = replace.autocomplete("grape")
-    assert.are.same("", result)
+    assert.are.same({}, result)
   end)
 
   it("should return matching words from the quickfix list", function()
@@ -126,10 +163,9 @@ describe("Replace Module", function()
     local result
 
     result = replace.autocomplete("ap")
-    assert.are.same("apple", result)
+    assert.are.same({ "apple" }, result)
 
     result = replace.autocomplete("cher")
-    print(result)
-    assert.are.same("cherry", result)
+    assert.are.same({ "cherry" }, result)
   end)
 end)

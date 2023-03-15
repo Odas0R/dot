@@ -29,16 +29,28 @@ M.replace = function(args)
     return
   end
 
-  pattern = pattern:gsub("/", "\\/")
-  replacement = replacement:gsub("/", "\\/")
-
   local qflist = vim.fn.getqflist()
   for _, item in ipairs(qflist) do
-    local bufnr = item.bufnr
+    local file_path = vim.fn.bufname(item.bufnr)
     local lnum = item.lnum
-    local line = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, false)[1]
-    local modified_line = line:gsub(pattern, replacement)
-    vim.api.nvim_buf_set_lines(bufnr, lnum - 1, lnum, false, { modified_line })
+
+    local lines = {}
+    for line in io.lines(file_path) do
+      lines[#lines + 1] = line
+    end
+
+    local modified_line = lines[lnum]:gsub(pattern, replacement)
+    lines[lnum] = modified_line
+
+    local file = io.open(file_path, "w")
+    if file then
+      for _, line in ipairs(lines) do
+        file:write(line .. "\n")
+      end
+      file:close()
+    else
+      vim.cmd("echo 'Could not open file: " .. file_path .. "'")
+    end
   end
 end
 
