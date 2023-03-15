@@ -83,8 +83,8 @@ local M = {}
 
 M.search_repos = function()
   require("telescope.builtin").find_files({
-    prompt_title = "github.com/odas0r",
-    cwd = "/home/odas0r/github.com/odas0r",
+    prompt_title = "github.com",
+    cwd = "/home/odas0r/github.com",
     follow = true,
     use_regex = false,
     hidden = true,
@@ -93,8 +93,8 @@ end
 
 M.search_repos_grep = function()
   require("telescope.builtin").live_grep({
-    prompt_title = "github.com/odas0r",
-    cwd = "/home/odas0r/github.com/odas0r",
+    prompt_title = "github.com",
+    cwd = "/home/odas0r/github.com",
     follow = true,
     use_regex = false,
     hidden = true,

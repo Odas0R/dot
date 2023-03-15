@@ -34,6 +34,8 @@ export DENO_INSTALL="/home/odas0r/.deno"
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
+export NODE_VERSION=16.19.1
+
 # Java
 # export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 # export JUNIT_HOME="$HOME/java"

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -eo pipefail
 
-installer="$1"
+installer="${1}"
 
 [[ -z $installer ]] && echo "usage: newi <package_name>" && exit 1
 

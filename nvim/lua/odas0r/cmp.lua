@@ -17,9 +17,9 @@ cmp.setup({
     end,
   },
   -- This does no "performance" improvement, cmp is very fast.
-  -- performance = {
-  --   trigger_debounce_time = 150,
-  -- },
+  performance = {
+    trigger_debounce_time = 100,
+  },
   experimental = {
     ghost_text = false, -- this feature conflict with copilot.vim's preview.
   },

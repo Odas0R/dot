@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+cd /tmp
+
+if [[ -d neovim ]]; then
+  git -C neovim pull
+else
+  git clone https://github.com/neovim/neovim
+fi
+
+cd neovim && make CMAKE_BUILD_TYPE=RelWithDebInfo
+
+sudo make install
+
+echo "Done! Run 'nvim' to start neovim."
+echo "nvim is installed at $(which nvim)"

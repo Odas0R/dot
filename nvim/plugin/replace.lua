@@ -1,15 +1,11 @@
-local keymap = vim.keymap.set
+local replace = require("odas0r.replace")
 
-keymap("n", "<leader>r", function()
-  local pattern = vim.fn.input("Replace: ")
-  pattern = pattern:gsub("/", "\\/")
-
-  local replacement = vim.fn.input("With: ")
-  replacement = replacement:gsub("/", "\\/")
-
-  if replacement == "" or pattern == "" then
-    return
-  end
-
-  vim.cmd("cfdo %s/" .. pattern .. "/" .. replacement .. "/ge")
-end, { silent = true })
+vim.api.nvim_create_user_command("Replace", function(opts)
+  replace.replace(opts.fargs[1])
+end, {
+  nargs = 1,
+  desc = "Replace a pattern with another pattern",
+  complete = function(arg_lead, cmd_line, cursor_pos)
+     return replace.autocomplete(arg_lead, cmd_line, cursor_pos)
+  end,
+})

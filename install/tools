@@ -18,7 +18,8 @@ npm install -g \
   prettier-plugin-toml \
   prettier-plugin-astro \
   prettier-plugin-tailwindcss \
-  @go-task/cli
+  @go-task/cli \
+  wrangler
 
 # Use the LSP servers from the bun runtime, which is way faster
 #

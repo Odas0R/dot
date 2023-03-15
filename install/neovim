@@ -12,4 +12,4 @@ fi
 mv nvim.appimage nvim
 chmod u+x ./nvim
 
-sudo mv ./nvim /usr/bin
+sudo mv ./nvim /usr/local/bin

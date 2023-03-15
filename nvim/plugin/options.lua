@@ -34,7 +34,7 @@ vim.opt.synmaxcol = 200
 vim.opt.ttyfast = true
 vim.opt.updatetime = 100
 
-vim.opt.numberwidth = 2
+vim.opt.numberwidth = 1
 vim.opt.fixendofline = false
 vim.opt.foldmethod = "manual"
 vim.opt.showmatch = true

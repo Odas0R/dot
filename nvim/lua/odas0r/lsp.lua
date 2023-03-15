@@ -6,27 +6,39 @@ local buf_set_option = function(bufnr, ...)
   vim.api.nvim_buf_set_option(bufnr, ...)
 end
 
+local keymap_opts = { noremap = true, silent = true }
+
 local on_attach = function(_, bufnr)
   -- Enable completion triggered by <c-x><c-o>
   buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
   -- Mappings.
-  local opts = { noremap = true, silent = true }
 
-  buf_set_keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
-  buf_set_keymap(bufnr, "n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
-  buf_set_keymap(bufnr, "n", "gk", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
-  buf_set_keymap(bufnr, "n", "K", "<cmd>lua vim.diagnostic.goto_prev()<CR>", opts)
-  buf_set_keymap(bufnr, "n", "J", "<cmd>lua vim.diagnostic.goto_next()<CR>", opts)
+  buf_set_keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", keymap_opts)
+  buf_set_keymap(bufnr, "n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", keymap_opts)
+  buf_set_keymap(bufnr, "n", "gk", "<cmd>lua vim.lsp.buf.references()<CR>", keymap_opts)
+  buf_set_keymap(bufnr, "n", "K", "<cmd>lua vim.diagnostic.goto_prev()<CR>", keymap_opts)
+  buf_set_keymap(bufnr, "n", "J", "<cmd>lua vim.diagnostic.goto_next()<CR>", keymap_opts)
 
-  buf_set_keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
-  buf_set_keymap(bufnr, "n", "ga", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
+  buf_set_keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.rename()<CR>", keymap_opts)
+  buf_set_keymap(bufnr, "n", "ga", "<cmd>lua vim.lsp.buf.code_action()<CR>", keymap_opts)
 end
 
 local util = require("lspconfig").util
 
+local default_caps = {
+  workspace = {
+    didChangeWatchedFiles = {
+      dynamicRegistration = true,
+    },
+  },
+}
+
 -- Inject lsp thingy into nvim-cmp
-local capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = vim.tbl_deep_extend("keep", default_caps, require("cmp_nvim_lsp").default_capabilities())
+
+-- set log level to debug for debugging
+-- vim.lsp.set_log_level("DEBUG")
 
 local flags = {
   debounce_text_changes = 150,
@@ -66,12 +78,12 @@ require("typescript").setup({
       "typescriptreact",
       "typescript.tsx",
     },
-    cmd = {
-      "bun",
-      "run",
-      "/home/odas0r/.bun/bin/typescript-language-server",
-      "--stdio",
-    },
+    -- cmd = {
+    --   "bun",
+    --   "run",
+    --   "/home/odas0r/.bun/bin/typescript-language-server",
+    --   "--stdio",
+    -- },
   },
 })
 
@@ -97,32 +109,33 @@ require("lspconfig").jsonls.setup({
 -- blocks my development/thinking process.
 --
 -- npm i -g vscode-langservers-extracted
--- require("lspconfig").eslint.setup({
---   -- Magically fixes eslint on monorepos?
---   -- https://github.com/neovim/nvim-lspconfig/issues/1427#issuecomment-980783000
---   capabilities = capabilities,
---   flags = flags,
---   settings = {
---     workingDirectory = { mode = "location" },
---     codeAction = {
---       disableRuleComment = {
---         enable = true,
---         location = "sameLine",
---       },
---       showDocumentation = {
---         enable = true,
---       },
---     },
---   },
---   root_dir = util.root_pattern(
---     ".eslintrc.js",
---     ".eslintrc.json",
---     ".eslintrc.yaml",
---     ".eslintrc.yml",
---     ".eslintrc",
---     "package.json"
---   ),
--- })
+require("lspconfig").eslint.setup({
+  -- Magically fixes eslint on monorepos?
+  -- https://github.com/neovim/nvim-lspconfig/issues/1427#issuecomment-980783000
+  capabilities = capabilities,
+  flags = flags,
+  settings = {
+    workingDirectory = { mode = "location" },
+    codeAction = {
+      disableRuleComment = {
+        enable = true,
+        location = "sameLine",
+      },
+      showDocumentation = {
+        enable = true,
+      },
+    },
+  },
+  root_dir = util.root_pattern(
+    ".eslintrc.cjs",
+    ".eslintrc.js",
+    ".eslintrc.json",
+    ".eslintrc.yaml",
+    ".eslintrc.yml",
+    ".eslintrc",
+    "package.json"
+  ),
+})
 
 -- npm i -g vscode-langservers-extracted
 require("lspconfig").cssls.setup({
@@ -234,7 +247,13 @@ require("lspconfig").gopls.setup({
       staticcheck = true,
     },
   },
-  on_attach = on_attach,
+  on_attach = function(_, bufnr)
+    on_attach(_, bufnr)
+
+    local cmd = ":silent! !goimports -w %<CR>"
+
+    buf_set_keymap(bufnr, "n", "gi", cmd, { noremap = true, silent = true })
+  end,
   capabilities = capabilities,
   flags = flags,
 })
@@ -246,6 +265,14 @@ require("lspconfig").gopls.setup({
 --   flags = flags,
 --   filetypes = { "css", "less", "scss" },
 -- })
+--
+
+-- ========== Make sure you have: =============
+--
+-- sudo apt install lua5.1
+-- sudo apt install luajit
+-- sudo apt install luarocks
+-- luarocks install busted
 
 -- LSP for lua
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#sumneko_lua
@@ -271,7 +298,9 @@ require("lspconfig").lua_ls.setup({
       },
       diagnostics = {
         -- Get the language server to recognize the `vim` global
-        globals = { "vim" },
+        globals = {
+          "vim",
+        },
       },
       -- Do not send telemetry data containing a randomized but unique identifier
       telemetry = {
@@ -282,6 +311,7 @@ require("lspconfig").lua_ls.setup({
         library = {
           [vim.fn.expand("$VIMRUNTIME/lua")] = true,
           [vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true,
+          [vim.fn.expand("$HOME/.config/nvim/lua/busted-stubs")] = true,
         },
         maxPreload = 100000,
         preloadFileSize = 10000,

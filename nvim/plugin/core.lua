@@ -15,6 +15,26 @@ keymap("n", "<leader>p", ":set paste!<CR>", { silent = true })
 keymap("n", "<C-j>", ":cnext<CR>", { silent = true })
 keymap("n", "<C-k>", ":cprev<CR>", { silent = true })
 
+-- [[
+--     Window Management
+--
+--     <C-w>h/j/k/l: move to window
+--     <C-w>H/J/K/L: resize window
+--     <C-w>\\: split vertically and go to it
+--     <C-w>-: split horizontally
+--     <C-w>x: exchange window with next
+--     <C-w>o: close other windows
+--     <C-w>T: move all windows to new tab
+-- ]]
+
+-- Window management
+keymap("n", "<C-w>\\", ":vsplit<CR> | :wincmd l<CR>", { silent = true })
+keymap("n", "<C-w>-", ":split<CR> | :wincmd b<CR>", { silent = true })
+keymap("n", "<C-w>H", ":vertical resize -5<CR>", { silent = true })
+keymap("n", "<C-w>J", ":resize +5<CR>", { silent = true })
+keymap("n", "<C-w>K", ":resize -5<CR>", { silent = true })
+keymap("n", "<C-w>L", ":vertical resize +5<CR>", { silent = true })
+
 -----------------------------------------
 -- Autocommands
 -----------------------------------------

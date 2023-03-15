@@ -1,6 +1,7 @@
 -----------------------------------------
 -- Lazy package manager installer
 -----------------------------------------
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -43,6 +44,10 @@ require("lazy").setup({
           -- Example: https://github.com/mhinz/vim-signify/blob/master/doc/signify.txt#L597
           SignColumn = { bg = "#282828" },
           TermCursorNC = { bg = "#cc241d", fg = "#ffffff" },
+
+          -- markdown
+          markdownH1 = { link = "GruvboxYellowBold", bold = true },
+          markdownH2 = { link = "GruvboxYellowBold", bold = true },
         },
       })
       vim.cmd.colorscheme("gruvbox")
@@ -83,9 +88,28 @@ require("lazy").setup({
     cmd = "Copilot",
     event = "InsertEnter",
     config = function()
-      vim.g.copilot_node_command = "/home/odas0r/.nvm/versions/node/v16.17.1/bin/node"
+      vim.g.copilot_node_command = "/home/odas0r/.nvm/versions/node/v16.19.1/bin/node"
       keymap({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)", { silent = true })
       keymap({ "i", "n" }, "<leader>k", "<Plug>(copilot-next)", { silent = true })
+    end,
+  },
+  {
+    "nmac427/guess-indent.nvim",
+    config = function()
+      require("guess-indent").setup({
+        auto_cmd = true, -- Set to false to disable automatic execution
+        filetype_exclude = { -- A list of filetypes for which the auto command gets disabled
+          "netrw",
+          "defx",
+          "tutor",
+        },
+        buftype_exclude = { -- A list of buffer types for which the auto command gets disabled
+          "help",
+          "nofile",
+          "terminal",
+          "prompt",
+        },
+      })
     end,
   },
 
@@ -107,8 +131,6 @@ require("lazy").setup({
   -- Completion
   {
     "hrsh7th/nvim-cmp",
-    -- load cmp on InsertEnter
-    event = "InsertEnter",
     dependencies = {
       "hrsh7th/cmp-nvim-lua",
       "hrsh7th/cmp-nvim-lsp",
@@ -125,7 +147,7 @@ require("lazy").setup({
   { "sirver/UltiSnips" },
 
   -- " writing
-  { "preservim/vim-markdown" },
+  -- { "preservim/vim-markdown" },
 }, {
   performance = {
     rtp = {

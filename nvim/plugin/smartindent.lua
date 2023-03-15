@@ -14,6 +14,8 @@ local function indentWithI()
   end
 end
 
-keymap("n", "i", function()
-  return indentWithI()
-end, { expr = true })
+-- NOTE: replaced with "nmac427/guess-indent.nvim"
+--
+-- keymap("n", "i", function()
+--   return indentWithI()
+-- end, { expr = true })

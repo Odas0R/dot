@@ -69,14 +69,17 @@ local formatterConfig = {
     end,
     prettierConfig,
   },
-  go = {
+  jsonc = {
     function()
       return {
-        exe = "goimports",
+        exe = "fixjson",
         args = { "-w" },
-        stdin = false,
+        stdin = true,
       }
     end,
+    prettierConfig,
+  },
+  go = {
     function()
       return {
         exe = "gofmt",
@@ -136,16 +139,18 @@ formatter.setup({
 -----------------------------------
 -- Augroup Formatter
 -----------------------------------
+local keymap = vim.keymap.set
 
-local group = vim.api.nvim_create_augroup("Formatter", { clear = true })
 vim.api.nvim_create_autocmd("FocusGained", {
-  command = "checktime",
-  group = group,
+  callback = function()
+    vim.cmd([[
+      checktime
+    ]])
+  end,
 })
 
 vim.api.nvim_create_autocmd("BufEnter", {
   callback = function()
-    vim.api.nvim_buf_set_keymap(0, "n", "gp", "<cmd>FormatWrite<CR>", { noremap = true, silent = true })
+    keymap("n", "gp", "<cmd>FormatWrite<CR>", { silent = true })
   end,
-  group = group,
 })
