@@ -1,8 +1,3 @@
--- ISSUES
---
--- 1. Can be slow when there are a lot of lines in the quickfix list.
--- 2. Cannot <C-c> out of the replace command.
-
 local M = {}
 
 -- TODO: is not perfect can be perfected but does its job :)
