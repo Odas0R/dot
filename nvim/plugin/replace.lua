@@ -6,6 +6,6 @@ end, {
   nargs = 1,
   desc = "Replace a pattern with another pattern",
   complete = function(arg_lead, cmd_line, cursor_pos)
-     return replace.autocomplete(arg_lead, cmd_line, cursor_pos)
+    return replace.autocomplete(arg_lead, cmd_line, cursor_pos)
   end,
 })
