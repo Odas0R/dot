@@ -1,3 +1,8 @@
+-- ISSUES
+--
+-- 1. Can be slow when there are a lot of lines in the quickfix list.
+-- 2. Cannot <C-c> out of the replace command.
+
 local M = {}
 
 -- TODO: is not perfect can be perfected but does its job :)
@@ -18,6 +23,34 @@ M.get_unique_words = function(qflist)
   return unique_words
 end
 
+local function replace_in_file(file_path, pattern, replacement, qflist)
+  -- Read the entire file content
+  local content = {}
+  for line in io.lines(file_path) do
+    content[#content + 1] = line
+  end
+
+  -- Perform replacements in memory
+  for _, item in ipairs(qflist) do
+    if vim.fn.bufname(item.bufnr) == file_path then
+      local lnum = item.lnum
+      local modified_line = content[lnum]:gsub(pattern, replacement)
+      content[lnum] = modified_line
+    end
+  end
+
+  -- Write the modified content back to the file
+  local file = io.open(file_path, "w")
+  if file then
+    for _, line in ipairs(content) do
+      file:write(line .. "\n")
+    end
+    file:close()
+  else
+    vim.cmd("echo 'Could not open file: " .. file_path .. "'")
+  end
+end
+
 M.replace = function(args)
   local pattern, replacement = args:match("^['\"](.-)['\"]%s+['\"](.-)['\"]$")
   if not pattern or not replacement then
@@ -30,26 +63,38 @@ M.replace = function(args)
   end
 
   local qflist = vim.fn.getqflist()
+
+  -- Group qflist items by file path
+  local files = {}
   for _, item in ipairs(qflist) do
     local file_path = vim.fn.bufname(item.bufnr)
-    local lnum = item.lnum
-
-    local lines = {}
-    for line in io.lines(file_path) do
-      lines[#lines + 1] = line
+    if not files[file_path] then
+      files[file_path] = {}
     end
+    table.insert(files[file_path], item)
+  end
 
-    local modified_line = lines[lnum]:gsub(pattern, replacement)
-    lines[lnum] = modified_line
+  -- Create coroutines for each file replacement
+  local coroutines = {}
+  for file_path, items in pairs(files) do
+    local co = coroutine.create(function()
+      replace_in_file(file_path, pattern, replacement, items)
+    end)
+    table.insert(coroutines, co)
+  end
 
-    local file = io.open(file_path, "w")
-    if file then
-      for _, line in ipairs(lines) do
-        file:write(line .. "\n")
+  -- Run coroutines concurrently
+  local running = true
+  while running do
+    running = false
+    for _, co in ipairs(coroutines) do
+      if coroutine.status(co) ~= "dead" then
+        running = true
+        local _, err = coroutine.resume(co)
+        if err then
+          vim.cmd("echo 'Error: " .. err .. "'")
+        end
       end
-      file:close()
-    else
-      vim.cmd("echo 'Could not open file: " .. file_path .. "'")
     end
   end
 end
