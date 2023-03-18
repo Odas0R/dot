@@ -1,4 +1,4 @@
-local replace = require("odas0r.replace")
+local replace = require("replace")
 
 vim.api.nvim_create_user_command("Replace", function(opts)
   replace.replace(opts.fargs[1])
