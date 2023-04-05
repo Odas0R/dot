@@ -79,26 +79,33 @@ require("telescope").setup({
   },
 })
 
-local M = {}
+local keymap = vim.keymap.set
 
-M.search_repos = function()
-  require("telescope.builtin").find_files({
+keymap("n", "<leader>bl", function()
+  return require("telescope.builtin").buffers()
+end, { silent = true })
+keymap("n", "<C-p>", function()
+  return require("telescope.builtin").find_files()
+end, { silent = true })
+keymap("n", "<C-g>", function()
+  return require("telescope.builtin").live_grep()
+end, { silent = true })
+
+keymap("n", "<leader>fe", function()
+  return require("telescope.builtin").find_files({
     prompt_title = "github.com",
     cwd = "/home/odas0r/github.com",
     follow = true,
     use_regex = false,
     hidden = true,
   })
-end
-
-M.search_repos_grep = function()
-  require("telescope.builtin").live_grep({
+end, { silent = true })
+keymap("n", "<leader>fg", function()
+  return require("telescope.builtin").live_grep({
     prompt_title = "github.com",
     cwd = "/home/odas0r/github.com",
     follow = true,
     use_regex = false,
     hidden = true,
   })
-end
-
-return M
+end, { silent = true })
