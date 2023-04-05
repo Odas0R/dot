@@ -29,28 +29,27 @@ local keymap = vim.keymap.set
 
 -- https://github.com/folke/lazy.nvim#-plugin-spec
 require("lazy").setup({
-
-  -- Theme Gruvbox
+  -- Theme Tokyonight
   {
-    "ellisonleao/gruvbox.nvim", -- theme
+    "folke/tokyonight.nvim",
     priority = 1000,
     config = function()
-      require("gruvbox").setup({
-        contrast = "dark",
-        overrides = {
-          Comment = { italic = true },
-          HarpoonWindow = { bg = "#282828" },
-          HarpoonBorder = { bg = "#282828" },
-          -- Example: https://github.com/mhinz/vim-signify/blob/master/doc/signify.txt#L597
-          SignColumn = { bg = "#282828" },
-          TermCursorNC = { bg = "#cc241d", fg = "#ffffff" },
-
-          -- markdown
-          markdownH1 = { link = "GruvboxYellowBold", bold = true },
-          markdownH2 = { link = "GruvboxYellowBold", bold = true },
-        },
+      require("tokyonight").setup({
+        -- use the night style
+        style = "night",
+        -- Change the "hint" color to the "orange" color, and make the "error" color bright red
+        on_colors = function(colors)
+          colors.error = "#ff0000"
+        end,
       })
-      vim.cmd.colorscheme("gruvbox")
+
+      vim.cmd.colorscheme("tokyonight")
+    end,
+  },
+  {
+    "wuelnerdotexe/vim-astro",
+    config = function()
+      vim.g.astro_typescript = "enable"
     end,
   },
 
@@ -165,4 +164,3 @@ require("lazy").setup({
 
 -- import local plugins
 require("odas0r")
-require("plenary.reload").reload_module("odas0r", true)

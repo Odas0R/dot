@@ -19,6 +19,8 @@ M.get_unique_words = function(qflist)
 end
 
 local function replace_in_file(file_path, pattern, replacement, qflist)
+  local escaped_pattern = pattern:gsub("([%-])", "%%%1")
+
   -- Read the entire file content
   local content = {}
   for line in io.lines(file_path) do
@@ -29,7 +31,7 @@ local function replace_in_file(file_path, pattern, replacement, qflist)
   for _, item in ipairs(qflist) do
     if vim.fn.bufname(item.bufnr) == file_path then
       local lnum = item.lnum
-      local modified_line = content[lnum]:gsub(pattern, replacement)
+      local modified_line = content[lnum]:gsub(escaped_pattern, replacement)
       content[lnum] = modified_line
     end
   end

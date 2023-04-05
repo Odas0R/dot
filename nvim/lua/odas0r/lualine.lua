@@ -1,6 +1,6 @@
 require("lualine").setup({
   options = {
-    theme = "gruvbox_dark",
+    theme = "tokyonight",
     section_separators = "",
     component_separators = "",
     disabled_filetypes = {

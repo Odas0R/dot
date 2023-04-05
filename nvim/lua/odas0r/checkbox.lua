@@ -1,4 +1,5 @@
 local api = vim.api
+local keymap = vim.keymap.set
 
 local states = {
   unchecked = " ",
@@ -54,7 +55,11 @@ local function toggle_many()
   api.nvim_buf_set_lines(0, s_start, s_end, 0, lines)
 end
 
-return {
-  toggle = toggle,
-  toggle_many = toggle_many,
-}
+-- Checkbox
+keymap("x", "<leader>x", function()
+  toggle()
+end, { silent = true })
+
+keymap("v", "<leader>x", function()
+  toggle_many()
+end, { silent = true })

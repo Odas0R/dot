@@ -108,6 +108,24 @@ describe("Replace Module", function()
     os.remove(file_path3)
   end)
 
+  it("should replace matching patterns with the given replacement in multiple buffers using ,;.:-_Çºª+*~^´`?'»«=)(/\\'", function()
+    local file_path1 = write_to_temp_file({ "text-10xl", "text$", "!null" })
+    local buf1 = vim.fn.bufadd(file_path1)
+
+    populate_quickfix_list({
+      { bufnr = buf1, words = { "text-10xl", "text$", "!null" } },
+    })
+
+    vim.cmd([[Replace text-10xl text-20xl]])
+
+    -- Check if the replacement occurred correctly in all buffers
+    local lines1 = read_temp_file_lines(file_path1)
+
+    assert.are.same({ "text-20xl", "text$", "!null" }, lines1)
+
+    os.remove(file_path1)
+  end)
+
   it("should replace complex patterns with given replacement, handling whitespace correctly", function()
     local file_path = write_to_temp_file({
 

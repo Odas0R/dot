@@ -36,6 +36,12 @@ export NVM_DIR="$HOME/.nvm"
 
 export NODE_VERSION=16.19.1
 
+# moon monorepo manager
+export MOON_BIN="$HOME/.moon/bin"
+
+# pnpm package manager
+export PNPM_HOME="/home/odas0r/.local/share/pnpm"
+
 # Java
 # export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 # export JUNIT_HOME="$HOME/java"
@@ -89,6 +95,8 @@ PATH+="$ANDROID_STUDIO_HOME/bin:"
 PATH+="$ANDROID_SDK_BUILD_TOOLS:"
 PATH+="$ANDROID_SDK_PLATFORM_TOOLS:"
 PATH+="$ANDROID_SDK_EMULATOR:"
-PATH+="$BUN_INSTALL/bin"
+PATH+="$BUN_INSTALL/bin:"
+PATH+="$MOON_BIN:"
+PATH+="$PNPM_HOME"
 
 export PATH

@@ -78,12 +78,12 @@ require("typescript").setup({
       "typescriptreact",
       "typescript.tsx",
     },
-    -- cmd = {
-    --   "bun",
-    --   "run",
-    --   "/home/odas0r/.bun/bin/typescript-language-server",
-    --   "--stdio",
-    -- },
+    cmd = {
+      "bun",
+      "run",
+      "/home/odas0r/.bun/bin/typescript-language-server",
+      "--stdio",
+    },
   },
 })
 
@@ -164,16 +164,16 @@ require("lspconfig").hls.setup({
 })
 
 -- npm i -g yaml-language-server
-require("lspconfig").yamlls.setup({
-  on_attach = on_attach,
-  capabilities = capabilities,
-  flags = flags,
-  settings = {
-    schemas = {
-      ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
-    },
-  },
-})
+-- require("lspconfig").yamlls.setup({
+--   on_attach = on_attach,
+--   capabilities = capabilities,
+--   flags = flags,
+--   settings = {
+--     schemas = {
+--       ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
+--     },
+--   },
+-- })
 
 -- npm i -g bash-language-server
 require("lspconfig").bashls.setup({
