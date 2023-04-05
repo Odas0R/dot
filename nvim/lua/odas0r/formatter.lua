@@ -1,48 +1,49 @@
 local vim = vim
 local formatter = require("formatter")
 
-local function fileExists(path)
-  local stat = vim.loop.fs_stat(path)
-  return stat and (stat.type == "file" or stat.type == "directory")
-end
+-- local function fileExists(path)
+--   local stat = vim.loop.fs_stat(path)
+--   return stat and (stat.type == "file" or stat.type == "directory")
+-- end
 
-local function isGitRoot(path)
-  return fileExists(path .. "/.git")
-end
+-- local function isGitRoot(path)
+--   return fileExists(path .. "/.git")
+-- end
 
-local function findConfigFile(configFiles, path)
-  for _, configFile in ipairs(configFiles) do
-    if fileExists(path .. "/" .. configFile) then
-      return path .. "/" .. configFile
-    end
-  end
-  return nil
-end
+-- local function findConfigFile(configFiles, path)
+--   for _, configFile in ipairs(configFiles) do
+--     if fileExists(path .. "/" .. configFile) then
+--       return path .. "/" .. configFile
+--     end
+--   end
+--   return nil
+-- end
 
-local function getParentDir(path)
-  return vim.fn.fnamemodify(path, ":h")
-end
+-- local function getParentDir(path)
+--   return vim.fn.fnamemodify(path, ":h")
+-- end
 
-local function recursivePath(configFiles)
-  local path = vim.api.nvim_buf_get_name(0) -- Get the current file path
+-- local function recursivePath(configFiles)
+--   local path = vim.api.nvim_buf_get_name(0) -- Get the current file path
+--
+--   print("haha ", path)
+--
+--   while not isGitRoot(path) do
+--     local configFile = findConfigFile(configFiles, path)
+--     if configFile then
+--       return configFile
+--     end
+--
+--     local parent = getParentDir(path)
+--     if parent == path then
+--       break
+--     end
+--     path = parent
+--   end
+--   return nil
+-- end
 
-  print("haha ", path)
-
-  while not isGitRoot(path) do
-    local configFile = findConfigFile(configFiles, path)
-    if configFile then
-      return configFile
-    end
-    local parent = getParentDir(path)
-    if parent == path then
-      break
-    end
-    path = parent
-  end
-  return nil
-end
-
-print(recursivePath({ ".prettierrc", "prettier.config.cjs", ".prettierrc.cjs" }))
+-- print(recursivePath({ ".prettierrc", "prettier.config.cjs", ".prettierrc.cjs" }))
 
 -- Trying out the faster prettier_d https://github.com/fsouza/prettierd
 local prettierConfig = function()

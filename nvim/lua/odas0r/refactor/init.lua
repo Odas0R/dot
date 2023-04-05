@@ -1,6 +1,7 @@
-local keymap = vim.keymap.set
-local refactor = require("refactor")
+local refactor = require("odas0r.refactor.refactor")
 
-keymap('v', '<C-n>', function ()
+local keymap = vim.keymap.set
+
+keymap("v", "<C-n>", function()
   refactor.selected_to_new_file()
 end, { noremap = true, silent = true })

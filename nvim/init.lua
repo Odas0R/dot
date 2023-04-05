@@ -159,7 +159,7 @@ require("lazy").setup({
       },
     },
   },
-  install = { colorscheme = { "gruvbox" } },
+  install = { colorscheme = { "tokyonight" } },
 })
 
 -- import local plugins
