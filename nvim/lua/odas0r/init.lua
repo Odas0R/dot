@@ -19,6 +19,7 @@ require("odas0r.treesitter")
 -- internal packages
 require("odas0r.replace")
 require("odas0r.refactor")
+require("odas0r.buffers")
 
 -- utils, globals
 require("odas0r.utils")

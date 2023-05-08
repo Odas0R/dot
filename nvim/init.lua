@@ -2,6 +2,11 @@
 -- Lazy package manager installer
 -----------------------------------------
 
+-- Interesting videos & articles
+--
+-- https://www.youtube.com/watch?v=2ahI8lYUYgw
+-- https://neovim.io/doc/user/lua-guide.html#lua-guide
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -30,26 +35,65 @@ local keymap = vim.keymap.set
 -- https://github.com/folke/lazy.nvim#-plugin-spec
 require("lazy").setup({
   -- Theme Tokyonight
+  -- {
+  --   "folke/tokyonight.nvim",
+  --   priority = 1000,
+  --   config = function()
+  --     require("tokyonight").setup({
+  --       -- use the night style
+  --       style = "night",
+  --       transparent = true, -- Enable this to disable setting the background color
+  --       terminal_colors = true, -- Configure the colors used when opening a `:terminal` in Neovim
+  --       -- Style to be applied to different syntax groups
+  --       -- Value is any valid attr-list value for `:help nvim_set_hl`
+  --       comments = { italic = true },
+  --       keywords = { italic = true },
+  --       functions = {
+  --         bold = true,
+  --       },
+  --       -- Change the "hint" color to the "orange" color, and make the "error" color bright red
+  --       on_colors = function(colors)
+  --         colors.error = "#ff0000"
+  --       end,
+  --     })
+  --
+  --     vim.cmd.colorscheme("tokyonight")
+  --   end,
+  -- },
+
   {
-    "folke/tokyonight.nvim",
+    "ellisonleao/gruvbox.nvim",
     priority = 1000,
     config = function()
-      require("tokyonight").setup({
-        -- use the night style
-        style = "night",
-        -- Change the "hint" color to the "orange" color, and make the "error" color bright red
-        on_colors = function(colors)
-          colors.error = "#ff0000"
-        end,
-      })
+      require("gruvbox").setup({
+        undercurl = true,
+        underline = true,
+        bold = true,
+        italic = {
+          strings = true,
+          comments = true,
+          operators = false,
+          folds = true,
+        },
+        strikethrough = true,
+        invert_selection = false,
+        invert_signs = false,
+        invert_tabline = false,
+        invert_intend_guides = false,
+        inverse = true, -- invert background for search, diffs, statuslines and errors
+        contrast = "", -- can be "hard", "soft" or empty string
+        palette_overrides = {},
+        overrides = {
+          -- https://github.com/ellisonleao/gruvbox.nvim/blob/main/lua/gruvbox/groups.lua
 
-      vim.cmd.colorscheme("tokyonight")
-    end,
-  },
-  {
-    "wuelnerdotexe/vim-astro",
-    config = function()
-      vim.g.astro_typescript = "enable"
+          -- Identifiers should be white for better readibility, but not too
+          -- bright, the blue is terrible.
+          Identifier = { link = "GruvboxFg" },
+        },
+        dim_inactive = false,
+        transparent_mode = false,
+      })
+      vim.cmd("colorscheme gruvbox")
     end,
   },
 

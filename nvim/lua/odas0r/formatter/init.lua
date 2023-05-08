@@ -1,55 +1,17 @@
 local vim = vim
 local formatter = require("formatter")
+local util = require("lspconfig").util
 
--- local function fileExists(path)
---   local stat = vim.loop.fs_stat(path)
---   return stat and (stat.type == "file" or stat.type == "directory")
--- end
-
--- local function isGitRoot(path)
---   return fileExists(path .. "/.git")
--- end
-
--- local function findConfigFile(configFiles, path)
---   for _, configFile in ipairs(configFiles) do
---     if fileExists(path .. "/" .. configFile) then
---       return path .. "/" .. configFile
---     end
---   end
---   return nil
--- end
-
--- local function getParentDir(path)
---   return vim.fn.fnamemodify(path, ":h")
--- end
-
--- local function recursivePath(configFiles)
---   local path = vim.api.nvim_buf_get_name(0) -- Get the current file path
+-- TODO: Add monorepo support
 --
---   print("haha ", path)
---
---   while not isGitRoot(path) do
---     local configFile = findConfigFile(configFiles, path)
---     if configFile then
---       return configFile
---     end
---
---     local parent = getParentDir(path)
---     if parent == path then
---       break
---     end
---     path = parent
---   end
---   return nil
--- end
-
--- print(recursivePath({ ".prettierrc", "prettier.config.cjs", ".prettierrc.cjs" }))
-
 -- Trying out the faster prettier_d https://github.com/fsouza/prettierd
+
 local prettierConfig = function()
   return {
     exe = "prettierd",
-    args = { vim.api.nvim_buf_get_name(0) },
+    args = {
+      vim.api.nvim_buf_get_name(0),
+    },
     stdin = true,
   }
 end
@@ -188,6 +150,6 @@ vim.api.nvim_create_autocmd("FocusGained", {
 
 vim.api.nvim_create_autocmd("BufEnter", {
   callback = function()
-    keymap("n", "gp", "<cmd>FormatWrite<CR>", { silent = true })
+    keymap("n", "gp", "<cmd>FormatWrite<CR>", { silent = false })
   end,
 })

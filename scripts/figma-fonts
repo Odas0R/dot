@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ ! -d "$TOOLS/figma-linux-font-helper" ]]; then
+  echo "Install figma-linux-font-helper first..."
+  exit 1
+fi
+
+python3 "$TOOLS/figma-linux-font-helper/server.py"
