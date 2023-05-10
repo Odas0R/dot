@@ -56,7 +56,7 @@ local flags = {
 --   flags = flags,
 -- })
 
--- bun add --global typescript-language-server
+-- bun add -g typescript-language-server
 require("typescript").setup({
   debug = false,
   server = {
@@ -88,6 +88,7 @@ require("typescript").setup({
 })
 
 -- npm install -g @astrojs/language-server
+-- bun add -g @astrojs/language-server
 require("lspconfig").astro.setup({
   cmd = {
     "bun",
@@ -101,14 +102,13 @@ require("lspconfig").astro.setup({
 })
 
 -- npm i -g vscode-langservers-extracted
+-- bun add -g vscode-langservers-extracted
 require("lspconfig").jsonls.setup({
   capabilities = capabilities,
 })
 
--- NOTE: I don't use this anymore, but I'm keeping it here for reference; It
--- blocks my development/thinking process.
---
 -- npm i -g vscode-langservers-extracted
+-- bun add -g vscode-langservers-extracted
 require("lspconfig").eslint.setup({
   -- Magically fixes eslint on monorepos?
   -- https://github.com/neovim/nvim-lspconfig/issues/1427#issuecomment-980783000
@@ -164,6 +164,7 @@ require("lspconfig").hls.setup({
 })
 
 -- npm i -g yaml-language-server
+-- bun add -g yaml-language-server
 -- require("lspconfig").yamlls.setup({
 --   on_attach = on_attach,
 --   capabilities = capabilities,
@@ -176,6 +177,7 @@ require("lspconfig").hls.setup({
 -- })
 
 -- npm i -g bash-language-server
+-- bun add -g bash-language-server
 require("lspconfig").bashls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
@@ -183,6 +185,7 @@ require("lspconfig").bashls.setup({
 })
 
 --  npm install -g @tailwindcss/language-server
+--  bun add -g @tailwindcss/language-server
 require("lspconfig").tailwindcss.setup({
   cmd = {
     "bun",

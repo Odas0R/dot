@@ -25,6 +25,10 @@ end
 require("telescope").load_extension("fzf")
 require("telescope").setup({
   defaults = {
+    -- testing
+    preview = {
+      treesitter = false,
+    },
     layout_strategy = "horizontal",
     layout_config = {
       height = 0.95,

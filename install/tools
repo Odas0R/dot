@@ -42,7 +42,6 @@ bun add --global \
 
 sudo apt install \
   shellcheck \
-  docker-compose \
   ripgrep
 
 #####################################
