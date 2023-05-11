@@ -56,9 +56,10 @@ local function toggle_many()
 end
 
 -- Checkbox
-keymap("x", "<leader>x", function()
-  toggle()
-end, { silent = true })
+keymap("n", "<leader>x", function()
+  vim.print("toggle")
+  -- toggle()
+end, { silent = false })
 
 keymap("v", "<leader>x", function()
   toggle_many()

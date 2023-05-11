@@ -111,4 +111,16 @@ M.autocomplete = function(arg_lead, cmd_line, cursor_pos)
   return matches
 end
 
+local utils = require("odas0r.utils")
+utils.cmd("Replace", function(opts)
+  M.replace(opts.fargs[1])
+end, {
+  nargs = 1,
+  desc = "Replace a pattern with another pattern",
+  complete = function(arg_lead, cmd_line, cursor_pos)
+    return M.autocomplete(arg_lead, cmd_line, cursor_pos)
+  end,
+})
+
 return M
+

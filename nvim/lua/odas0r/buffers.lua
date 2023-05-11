@@ -1,3 +1,5 @@
+local utils = require("odas0r.utils")
+
 local id = vim.api.nvim_create_augroup("startup", {
   clear = false,
 })
@@ -7,7 +9,7 @@ local persistbuffer = function(bufnr)
   vim.fn.setbufvar(bufnr, "bufpersist", 1)
 end
 
-vim.api.nvim_create_autocmd({ "BufRead" }, {
+utils.autocmd({ "BufRead" }, {
   group = id,
   pattern = { "*" },
   callback = function()
@@ -21,7 +23,7 @@ vim.api.nvim_create_autocmd({ "BufRead" }, {
   end,
 })
 
-vim.keymap.set("n", "<leader>bd", function()
+utils.keymap("n", "<leader>b", function()
   local curbufnr = vim.api.nvim_get_current_buf()
   local buflist = vim.api.nvim_list_bufs()
   for _, bufnr in ipairs(buflist) do

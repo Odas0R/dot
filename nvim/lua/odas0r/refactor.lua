@@ -1,6 +1,4 @@
-local M = {}
-
-M.selected_to_new_file = function()
+local selected_to_new_file = function ()
   local buf = vim.api.nvim_get_current_buf()
 
   local pos_cursor = vim.fn.getpos(".")
@@ -46,4 +44,8 @@ M.selected_to_new_file = function()
   vim.api.nvim_buf_set_option(new_buf, "filetype", filetype)
 end
 
-return M
+local utils = require("odas0r.utils")
+
+utils.keymap("v", "<C-n>", function()
+  selected_to_new_file()
+end, { noremap = true, silent = true })

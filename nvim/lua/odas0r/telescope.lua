@@ -85,9 +85,6 @@ require("telescope").setup({
 
 local keymap = vim.keymap.set
 
-keymap("n", "<leader>bl", function()
-  return require("telescope.builtin").buffers()
-end, { silent = true })
 keymap("n", "<C-p>", function()
   return require("telescope.builtin").find_files()
 end, { silent = true })

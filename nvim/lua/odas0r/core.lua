@@ -1,19 +1,18 @@
-local keymap = vim.keymap.set
-local autocmd = vim.api.nvim_create_autocmd
+local utils = require("odas0r.utils")
 
 -----------------------------------------
 -- Mappings
 -----------------------------------------
 
 -- General
-keymap("n", "<leader>vu", ":so " .. vim.env.HOME .. "/.config/nvim/init.lua<CR>")
-keymap("n", "<C-l>", ":nohl<CR>", { silent = true })
-keymap("n", "<leader>s", ":set spell!<CR>", { silent = true })
-keymap("n", "<leader>p", ":set paste!<CR>", { silent = true })
+utils.keymap("n", "<leader>vu", ":so " .. vim.env.HOME .. "/.config/nvim/init.lua<CR>")
+utils.keymap("n", "<C-l>", ":nohl<CR>", { silent = true })
+utils.keymap("n", "<leader>s", ":set spell!<CR>", { silent = true })
+utils.keymap("n", "<leader>p", ":set paste!<CR>", { silent = true })
 
 -- Quickfix
-keymap("n", "<C-j>", ":cnext<CR>", { silent = true })
-keymap("n", "<C-k>", ":cprev<CR>", { silent = true })
+utils.keymap("n", "<C-j>", ":cnext<CR>", { silent = true })
+utils.keymap("n", "<C-k>", ":cprev<CR>", { silent = true })
 
 -- [[
 --     Window Management
@@ -28,21 +27,21 @@ keymap("n", "<C-k>", ":cprev<CR>", { silent = true })
 -- ]]
 
 -- Window management
-keymap("n", "<C-w>\\", ":vsplit<CR> | :wincmd l<CR>", { silent = true })
-keymap("n", "<C-w>-", ":split<CR> | :wincmd b<CR>", { silent = true })
-keymap("n", "<C-w>H", ":vertical resize -5<CR>", { silent = true })
-keymap("n", "<C-w>J", ":resize +5<CR>", { silent = true })
-keymap("n", "<C-w>K", ":resize -5<CR>", { silent = true })
-keymap("n", "<C-w>L", ":vertical resize +5<CR>", { silent = true })
+utils.keymap("n", "<C-w>\\", ":vsplit<CR> | :wincmd l<CR>", { silent = true })
+utils.keymap("n", "<C-w>-", ":split<CR> | :wincmd b<CR>", { silent = true })
+utils.keymap("n", "<C-w>H", ":vertical resize -5<CR>", { silent = true })
+utils.keymap("n", "<C-w>J", ":resize +5<CR>", { silent = true })
+utils.keymap("n", "<C-w>K", ":resize -5<CR>", { silent = true })
+utils.keymap("n", "<C-w>L", ":vertical resize +5<CR>", { silent = true })
 
 -- Development (Plugins)
-vim.api.nvim_create_user_command("Reload", function(opts)
+utils.cmd("Reload", function(opts)
   local name = opts.fargs[1]
 
   -- call the helper method to reload the module
   -- and give some feedback
   R(name)
-  P(name .. " RELOADED!!!")
+  -- P(name .. " RELOADED!!!")
 end, {
   nargs = 1,
 })
@@ -50,31 +49,61 @@ end, {
 -----------------------------------------
 -- Autocommands
 -----------------------------------------
+local group = vim.api.nvim_create_augroup("ReloadConfig", {
+  clear = true,
+})
+
+utils.autocmd("BufWritePost", {
+  group = group,
+  pattern = "*.lua",
+  callback = function()
+    local bufname = vim.api.nvim_buf_get_name(0)
+    local directories = {}
+
+    for dir in vim.fs.parents(bufname) do
+      -- if dir contains /odas0r then we found the root directory
+      if vim.fs.basename(dir) == "odas0r" then
+        directories[#directories + 1] = vim.fs.basename(dir)
+        break
+      else
+        directories[#directories + 1] = vim.fs.basename(dir)
+      end
+    end
+
+    -- if there's no "odas0r" on directories, return
+    if not vim.tbl_contains(directories, "odas0r") then
+      return
+    end
+
+    if #directories == 1 and directories[1] == "odas0r" then
+      local module = "odas0r" .. "." .. vim.fs.basename(bufname):gsub(".lua", "")
+      vim.cmd("Reload " .. module)
+    end
+
+    if #directories > 1 then
+      local module = table.concat(utils.reverse(directories), ".")
+      vim.cmd("Reload " .. module)
+    end
+  end,
+})
 
 -- dont list quickfix buffers
-autocmd("FileType", {
+utils.autocmd("FileType", {
   pattern = "qf",
   callback = function()
     vim.opt_local.buflisted = false
   end,
 })
 
-autocmd("BufRead", {
+utils.autocmd("BufRead", {
   pattern = "*.env*",
   callback = function()
     vim.opt_local.filetype = "config"
   end,
 })
 
-autocmd({ "BufRead", "BufEnter" }, {
-  pattern = "*.astro",
-  callback = function()
-    vim.opt_local.filetype = "astro"
-  end,
-})
-
 -- return to last edit position when opening
-autocmd("BufReadPost", {
+utils.autocmd("BufReadPost", {
   pattern = "*",
   callback = function()
     if vim.fn.line("'\"") > 0 and vim.fn.line("'\"") <= vim.fn.line("$") then
@@ -83,28 +112,7 @@ autocmd("BufReadPost", {
   end,
 })
 
--- close popup windows with q
-autocmd("WinEnter", {
-  pattern = "*",
-  callback = function()
-    local is_popup = vim.api.nvim_win_get_config(0).relative ~= ""
-
-    if is_popup then
-      keymap({ "n" }, "q", function()
-        -- check if the window is a popup and close it if it is
-        local code = vim.api.nvim_replace_termcodes("<C-w>w", true, false, true)
-        vim.api.nvim_feedkeys(code, "n", false)
-      end, { silent = true })
-    else
-      -- check if there's q mapping and remove it
-      if vim.api.nvim_get_keymap("n")["q"] then
-        vim.api.nvim_del_keymap("n", "q")
-      end
-    end
-  end,
-})
-
-autocmd({ "BufEnter" }, {
+utils.autocmd({ "BufEnter" }, {
   pattern = { "*.md", "*.txt" },
   callback = function()
     vim.opt_local.conceallevel = 1
@@ -115,9 +123,6 @@ autocmd({ "BufEnter" }, {
     vim.opt_local.foldlevel = 99
     vim.opt_local.wrap = true
     vim.opt_local.linebreak = true
-
-    vim.cmd(":highlight SignColumn ctermbg=NONE cterm=NONE guibg=NONE gui=NONE")
     vim.cmd(":SignifyDisable")
-    vim.print("Signify disabled")
   end,
 })

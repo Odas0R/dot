@@ -1,4 +1,3 @@
-local vim = vim
 local formatter = require("formatter")
 local util = require("lspconfig").util
 
