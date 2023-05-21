@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Get the latest SQLite version number
+SQLITE_VERSION=$(curl -s https://www.sqlite.org/download.html | grep -oP '(?<=sqlite-autoconf-)[0-9]+' | head -1)
+if [[ -z "$SQLITE_VERSION" ]]; then
+  echo "Failed to get SQLite version number"
+  exit 1
+fi
+
+echo "==========================================="
+echo "Installing SQLite version ${SQLITE_VERSION}"
+echo -e "===========================================\n"
+
+cd /tmp
+
+curl "https://www.sqlite.org/2023/sqlite-autoconf-${SQLITE_VERSION}.tar.gz" -o sqlite.tar.gz
+
+# Extract the source code
+tar -xzf sqlite.tar.gz
+
+# Go into the extracted source code directory
+cd "sqlite-autoconf-${SQLITE_VERSION}"
+
+# Configure the build
+# CFLAGS="-DSQLITE_ENABLE_FTS5 -DSQLITE_ENABLE_JSON1 -DSQLITE_ENABLE_RTREE -DSQLITE_ENABLE_COLUMN_METADATA" ./configure
+./configure
+
+# Compile the code
+make
+
+# remove the old binary
+sudo rm /usr/local/bin/sqlite3
+
+# Install SQLite (requires root)
+sudo make install
+
+# Clean up
+cd ..
+rm -r "sqlite-autoconf-${SQLITE_VERSION}/"
+rm sqlite.tar.gz
+
+# Print SQLite version
+sqlite --version

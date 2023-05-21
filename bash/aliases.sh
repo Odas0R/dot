@@ -5,9 +5,6 @@ alias nv="nvimr"
 alias nvr="nvimr"
 alias nv="nvimr"
 
-alias sql="sqlite3"
-alias sqlite="sqlite3"
-
 # Utils
 alias ..="cd .."
 alias ls="ls --format=single-column --classify --color --group-directories-first"

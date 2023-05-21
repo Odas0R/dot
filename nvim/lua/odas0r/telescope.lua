@@ -22,7 +22,6 @@ function custom_actions.fzf_multi_select(prompt_bufnr)
   end
 end
 
-require("telescope").load_extension("fzf")
 require("telescope").setup({
   defaults = {
     -- testing
@@ -33,7 +32,7 @@ require("telescope").setup({
     layout_config = {
       height = 0.95,
       width = 0.95,
-      prompt_position = "bottom",
+      prompt_position = "top",
       preview_width = 0.6,
     },
     sorting_strategy = "ascending",
@@ -45,8 +44,10 @@ require("telescope").setup({
         ["<C-p>"] = actions.move_selection_previous,
         ["<cr>"] = custom_actions.fzf_multi_select,
         ["<C-q>"] = actions.smart_send_to_qflist + actions.open_qflist,
+        ["<C-u>"] = actions.preview_scrolling_up,
+        ["<C-d>"] = actions.preview_scrolling_down,
         -- disable
-        ["<C-u>"] = false,
+        -- ["<C-u>"] = false,
       },
       n = {
         ["l"] = actions.toggle_selection,
@@ -58,8 +59,11 @@ require("telescope").setup({
         ["H"] = actions.drop_all,
         ["<esc>"] = actions.close,
         ["<C-q>"] = actions.smart_send_to_qflist + actions.open_qflist,
+
+        ["<C-u>"] = actions.preview_scrolling_up,
+        ["<C-d>"] = actions.preview_scrolling_down,
         -- disable
-        ["<C-u>"] = false,
+        -- ["<C-u>"] = false,
       },
     },
     file_ignore_patterns = {
@@ -76,20 +80,34 @@ require("telescope").setup({
     },
   },
   extensions = {
+    -- @source: https://github.com/nvim-telescope/telescope-fzf-native.nvim#telescope-setup-and-configuration
     fzf = {
-      fuzzy = true,
-      case_mode = "smart_case",
+      fuzzy = true, -- false will only do exact matching
+      override_generic_sorter = true, -- override the generic sorter
+      override_file_sorter = true, -- override the file sorter
+      case_mode = "smart_case", -- or "ignore_case" or "respect_case"
     },
   },
 })
 
+-- To get fzf loaded and working with telescope, you need to call
+-- load_extension, somewhere after setup function:
+require("telescope").load_extension("fzf")
+
 local keymap = vim.keymap.set
 
 keymap("n", "<C-p>", function()
-  return require("telescope.builtin").find_files()
+  return require("telescope.builtin").find_files({
+    prompt_title = "Query",
+  })
 end, { silent = true })
 keymap("n", "<C-g>", function()
-  return require("telescope.builtin").live_grep()
+  return require("telescope.builtin").live_grep({
+    prompt_title = "Query",
+  })
+end, { silent = true })
+keymap("n", "<C-h>", function()
+  return require("telescope.builtin").help_tags()
 end, { silent = true })
 
 keymap("n", "<leader>fe", function()

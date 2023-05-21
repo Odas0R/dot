@@ -200,7 +200,10 @@ require("lspconfig").tailwindcss.setup({
     tailwindCSS = {
       classAttributes = { "class", "className", "classList" },
       experimental = {
-        classRegex = { "tw`(.+?)`" },
+        classRegex = {
+          "tw`(.+?)`",
+          'styled(.+?"(.+?)".+)',
+        },
       },
     },
   },

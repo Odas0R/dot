@@ -1,12 +1,12 @@
 [user]
-  name = odas0r
-  email = g.rosado@campus.fct.unl.pt
+    name = odas0r
+    email = g.rosado@campus.fct.unl.pt
 [push]
-  followTags = true
+    followTags = true
 	default = current
 [core]
-  editor = nvimr
-	autocrlf = false
+    editor = nvim
+    autocrlf = false
 [init]
 	defaultBranch = main
 [diff]

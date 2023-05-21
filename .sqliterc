@@ -1,0 +1,28 @@
+-- SQLite configuration file
+
+-- Increase the output width
+.width 80
+
+-- Set the output mode to 'column' to display results in a table format
+.mode column
+
+-- Set the prompt
+.prompt "sqlite> " "   ...> "
+
+-- Show the time for each command execution
+.timer on
+
+-- Set headers on by default
+.headers on
+
+-- Show the current values for various settings
+.show
+
+-- Set the null value display
+.nullvalue "[NULL]"
+
+-- Set the separator
+.separator ","
+
+-- Enable extended result codes
+.eqp on

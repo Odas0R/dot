@@ -15,6 +15,8 @@ require("odas0r.nvim-terminal")
 require("odas0r.signify")
 require("odas0r.telescope")
 require("odas0r.treesitter")
+require("odas0r.exec")
+require("odas0r.zet")
 
 -- internal packages
 require("odas0r.replace")

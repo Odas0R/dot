@@ -5,7 +5,13 @@
 export DOT_FILES="$HOME/github.com/odas0r/dot"
 
 # neovim socket pipe
-export NVIM_SOCKET="$HOME/.cache/nvim/nvim_socket.pipe"
+#
+# Will create a unique Neovim socket for each terminal process, not just each
+# terminal window.
+panel_pid=$(kitty @ ls | jq '.[] | .tabs[] | .windows[] | select(.is_focused == true) | .pid')
+panel_title=$(kitty @ ls | jq '.[] | .tabs[] | .windows[] | select(.is_focused == true) | .title')
+
+export NVIM_SOCKET="$HOME/.cache/nvim/nvim_socket.$panel_pid-$panel_title.pipe"
 
 # Followed this to install openssl 1.1.1, which is needed on some applications.
 # If some problem related to openssl happens this might be the cause, since I

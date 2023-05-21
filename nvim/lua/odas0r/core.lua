@@ -1,4 +1,5 @@
 local utils = require("odas0r.utils")
+local a = require("plenary.async")
 
 -----------------------------------------
 -- Mappings
@@ -61,6 +62,10 @@ utils.autocmd("BufWritePost", {
     local directories = {}
 
     for dir in vim.fs.parents(bufname) do
+      if vim.fs.basename(dir) == "dot" then
+        return
+      end
+
       -- if dir contains /odas0r then we found the root directory
       if vim.fs.basename(dir) == "odas0r" then
         directories[#directories + 1] = vim.fs.basename(dir)
@@ -115,7 +120,7 @@ utils.autocmd("BufReadPost", {
 utils.autocmd({ "BufEnter" }, {
   pattern = { "*.md", "*.txt" },
   callback = function()
-    vim.opt_local.conceallevel = 1
+    vim.opt_local.conceallevel = 0
     vim.opt_local.spell = false
     vim.opt_local.number = false
     vim.opt_local.relativenumber = false
@@ -124,5 +129,22 @@ utils.autocmd({ "BufEnter" }, {
     vim.opt_local.wrap = true
     vim.opt_local.linebreak = true
     vim.cmd(":SignifyDisable")
+  end,
+})
+
+utils.autocmd({ "BufEnter" }, {
+  pattern = { "*" },
+  callback = function()
+    local buf_path = vim.fn.expand("%:p")
+    local filename = "/home/odas0r/.nvim-buf" -- replace this with your file's path
+
+    a.run(function()
+      local err, fd = a.uv.fs_open(filename, "w", 438)
+      assert(not err, err)
+      err = a.uv.fs_write(fd, buf_path, -1)
+      assert(not err, err)
+      err = a.uv.fs_close(fd)
+      assert(not err, err)
+    end)
   end,
 })

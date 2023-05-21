@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ ! -x "$(command -v sqlite3)" ]]; then
+  echo "You need to install sqlite3"
+  exit 1
+fi
+
+/usr/local/bin/sqlite3 "$@"

@@ -30,37 +30,10 @@ vim.g.mapleader = ","
 -- Configs
 -----------------------------------------
 
-local keymap = vim.keymap.set
+local utils = require("odas0r.utils")
 
 -- https://github.com/folke/lazy.nvim#-plugin-spec
 require("lazy").setup({
-  -- Theme Tokyonight
-  -- {
-  --   "folke/tokyonight.nvim",
-  --   priority = 1000,
-  --   config = function()
-  --     require("tokyonight").setup({
-  --       -- use the night style
-  --       style = "night",
-  --       transparent = true, -- Enable this to disable setting the background color
-  --       terminal_colors = true, -- Configure the colors used when opening a `:terminal` in Neovim
-  --       -- Style to be applied to different syntax groups
-  --       -- Value is any valid attr-list value for `:help nvim_set_hl`
-  --       comments = { italic = true },
-  --       keywords = { italic = true },
-  --       functions = {
-  --         bold = true,
-  --       },
-  --       -- Change the "hint" color to the "orange" color, and make the "error" color bright red
-  --       on_colors = function(colors)
-  --         colors.error = "#ff0000"
-  --       end,
-  --     })
-  --
-  --     vim.cmd.colorscheme("tokyonight")
-  --   end,
-  -- },
-
   {
     "ellisonleao/gruvbox.nvim",
     priority = 1000,
@@ -128,12 +101,25 @@ require("lazy").setup({
   { "JoosepAlviste/nvim-ts-context-commentstring" }, -- use TS for comment.nvim
   {
     "github/copilot.vim",
-    cmd = "Copilot",
-    event = "InsertEnter",
+    -- cmd = "Copilot",
+    -- event = "InsertEnter",
     config = function()
       vim.g.copilot_node_command = "/home/odas0r/.nvm/versions/node/v16.19.1/bin/node"
-      keymap({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)", { silent = true })
-      keymap({ "i", "n" }, "<leader>k", "<Plug>(copilot-next)", { silent = true })
+      vim.g.copilot_filetypes = {
+        ["*"] = false,
+        ["javascript"] = true,
+        ["typescript"] = true,
+        ["vue"] = true,
+        ["lua"] = true,
+        ["html"] = true,
+        ["sh"] = true,
+        ["bash"] = true,
+        ["go"] = true,
+        ["java"] = true,
+      }
+
+      utils.keymap({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)", { silent = true, noremap = true })
+      utils.keymap({ "i", "n" }, "<leader>k", "<Plug>(copilot-next)", { silent = true, noremap = true })
     end,
   },
   {
@@ -203,7 +189,7 @@ require("lazy").setup({
       },
     },
   },
-  install = { colorscheme = { "tokyonight" } },
+  install = { colorscheme = { "gruvbox" } },
 })
 
 -- import local plugins
