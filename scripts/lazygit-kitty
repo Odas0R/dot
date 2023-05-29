@@ -10,6 +10,7 @@ set -euo pipefail
 # variable.
 if [[ ! -S "$NVIM_SOCKET" ]] || [[ ! -f "$HOME/.nvim-buf" ]]; then
   lazygit "$@"
+  exit 0
 fi
 
 currentBufferPath="$(cat "$HOME/.nvim-buf")"

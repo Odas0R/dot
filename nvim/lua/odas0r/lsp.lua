@@ -45,18 +45,11 @@ local flags = {
 }
 
 -- require("lspconfig").tsserver.setup({
---     cmd = {
---       "bun",
---       "run",
---       "/home/odas0r/.bun/bin/typescript-language-server",
---       "--stdio",
---     },
 --   on_attach = on_attach,
 --   capabilities = capabilities,
 --   flags = flags,
 -- })
 
--- bun add -g typescript-language-server
 require("typescript").setup({
   debug = false,
   server = {
@@ -78,37 +71,22 @@ require("typescript").setup({
       "typescriptreact",
       "typescript.tsx",
     },
-    cmd = {
-      "bun",
-      "run",
-      "/home/odas0r/.bun/bin/typescript-language-server",
-      "--stdio",
-    },
   },
 })
 
 -- npm install -g @astrojs/language-server
--- bun add -g @astrojs/language-server
 require("lspconfig").astro.setup({
-  cmd = {
-    "bun",
-    "run",
-    "/home/odas0r/.bun/bin/astro-ls",
-    "--stdio",
-  },
   on_attach = on_attach,
   capabilities = capabilities,
   flags = flags,
 })
 
 -- npm i -g vscode-langservers-extracted
--- bun add -g vscode-langservers-extracted
 require("lspconfig").jsonls.setup({
   capabilities = capabilities,
 })
 
 -- npm i -g vscode-langservers-extracted
--- bun add -g vscode-langservers-extracted
 require("lspconfig").eslint.setup({
   -- Magically fixes eslint on monorepos?
   -- https://github.com/neovim/nvim-lspconfig/issues/1427#issuecomment-980783000
@@ -164,7 +142,6 @@ require("lspconfig").hls.setup({
 })
 
 -- npm i -g yaml-language-server
--- bun add -g yaml-language-server
 -- require("lspconfig").yamlls.setup({
 --   on_attach = on_attach,
 --   capabilities = capabilities,
@@ -177,7 +154,6 @@ require("lspconfig").hls.setup({
 -- })
 
 -- npm i -g bash-language-server
--- bun add -g bash-language-server
 require("lspconfig").bashls.setup({
   on_attach = on_attach,
   capabilities = capabilities,
@@ -185,14 +161,7 @@ require("lspconfig").bashls.setup({
 })
 
 --  npm install -g @tailwindcss/language-server
---  bun add -g @tailwindcss/language-server
 require("lspconfig").tailwindcss.setup({
-  cmd = {
-    "bun",
-    "run",
-    "/home/odas0r/.bun/bin/tailwindcss-language-server",
-    "--stdio",
-  },
   on_attach = on_attach,
   capabilities = capabilities,
   flags = flags,

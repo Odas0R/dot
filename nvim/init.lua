@@ -61,7 +61,7 @@ require("lazy").setup({
 
           -- Identifiers should be white for better readibility, but not too
           -- bright, the blue is terrible.
-          Identifier = { link = "GruvboxFg" },
+          Identifier = { link = "GruvboxFg1" },
         },
         dim_inactive = false,
         transparent_mode = false,
@@ -116,6 +116,9 @@ require("lazy").setup({
         ["bash"] = true,
         ["go"] = true,
         ["java"] = true,
+        ["json"] = true,
+        ["jsonc"] = true,
+        ["make"] = true,
       }
 
       utils.keymap({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)", { silent = true, noremap = true })

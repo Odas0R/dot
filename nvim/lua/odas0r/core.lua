@@ -121,14 +121,13 @@ utils.autocmd({ "BufEnter" }, {
   pattern = { "*.md", "*.txt" },
   callback = function()
     vim.opt_local.conceallevel = 0
-    vim.opt_local.spell = false
+    vim.opt_local.spell = true
     vim.opt_local.number = false
     vim.opt_local.relativenumber = false
     vim.opt_local.tw = 79
     vim.opt_local.foldlevel = 99
     vim.opt_local.wrap = true
     vim.opt_local.linebreak = true
-    vim.cmd(":SignifyDisable")
   end,
 })
 

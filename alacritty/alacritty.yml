@@ -16,23 +16,23 @@ env:
 # ----------------------
 font:
   # Font Size
-  size: 11 
+  size: 15
   offset:
-    x: -1
+    x: 0
     y: 1
 
   normal:
     family: JetBrains Mono
-    style: Light
+    style: Regular
   bold:
     family: JetBrains Mono
     style: Medium
   italic:
     family: JetBrains Mono
-    style: Light Italic
+    style: Italic
   bold_italic:
     family: JetBrains Mono
-    style: SemiBold Italic
+    style: Medium Italic
 # ----------------------
 # Window Padding
 # ----------------------
@@ -63,21 +63,21 @@ visual_bell:
 # THEME: Gruvbox
 # ----------------------
 #
-# Source: https://github.com/alacritty/alacritty/wiki/Color-schemes 
+# Source: https://github.com/alacritty/alacritty/wiki/Color-schemes
 
 colors:
   primary:
     # hard contrast background - '#1d2021'
-    background:        &gruvbox_dark_bg '#282828'
+    background: &gruvbox_dark_bg "#282828"
     # soft contrast background - '#32302f'
-    foreground:        '#ebdbb2'
-    bright_foreground: '#fbf1c7'
-    dim_foreground:    '#a89984'
+    foreground: "#ebdbb2"
+    bright_foreground: "#fbf1c7"
+    dim_foreground: "#a89984"
   cursor:
-    text:   CellBackground
+    text: CellBackground
     cursor: CellForeground
   vi_mode_cursor:
-    text:   CellBackground
+    text: CellBackground
     cursor: CellForeground
   # search:
   #   matches:
@@ -93,56 +93,56 @@ colors:
   #   foreground: None
   #   background: None
   selection:
-    text:       CellBackground
+    text: CellBackground
     background: CellForeground
   bright:
-    black:   '#928374'
-    red:     '#fb4934'
-    green:   '#b8bb26'
-    yellow:  '#fabd2f'
-    blue:    '#83a598'
-    magenta: '#d3869b'
-    cyan:    '#8ec07c'
-    white:   '#ebdbb2'
+    black: "#928374"
+    red: "#fb4934"
+    green: "#b8bb26"
+    yellow: "#fabd2f"
+    blue: "#83a598"
+    magenta: "#d3869b"
+    cyan: "#8ec07c"
+    white: "#ebdbb2"
   normal:
-    black:   *gruvbox_dark_bg
-    red:     '#cc241d'
-    green:   '#98971a'
-    yellow:  '#d79921'
-    blue:    '#458588'
-    magenta: '#b16286'
-    cyan:    '#689d6a'
-    white:   '#a89984'
+    black: *gruvbox_dark_bg
+    red: "#cc241d"
+    green: "#98971a"
+    yellow: "#d79921"
+    blue: "#458588"
+    magenta: "#b16286"
+    cyan: "#689d6a"
+    white: "#a89984"
   dim:
-    black:   '#32302f'
-    red:     '#9d0006'
-    green:   '#79740e'
-    yellow:  '#b57614'
-    blue:    '#076678'
-    magenta: '#8f3f71'
-    cyan:    '#427b58'
-    white:   '#928374'
+    black: "#32302f"
+    red: "#9d0006"
+    green: "#79740e"
+    yellow: "#b57614"
+    blue: "#076678"
+    magenta: "#8f3f71"
+    cyan: "#427b58"
+    white: "#928374"
   # indexed_colors: []
 
 # ----------------------
 # Keybindings
 # ----------------------
 key_bindings:
-- { key: T,        mods: Control,       command: { program: "alacritty" }    }
-# copy-paste
-- { key: V,        mods: Control,       action: Paste                        }
-- { key: C,        mods: Control,       action: Copy                         }
-# control + shift + c -> interrupt
-- { key: C,        mods: Control|Shift, chars: "\x03"                        }
+  - { key: T, mods: Control, command: { program: "alacritty" } }
+  # copy-paste
+  - { key: V, mods: Control, action: Paste }
+  - { key: C, mods: Control, action: Copy }
+  # control + shift + c -> interrupt
+  - { key: C, mods: Control|Shift, chars: "\x03" }
 
-- { key: Paste,                         action: Paste                        }
-- { key: Copy,                          action: Copy                         }
-- { key: L,        mods: Control,       action: ClearLogNotice               }
-- { key: L,        mods: Control,       chars: "\x0c"                        }
-- { key: PageUp,   mods: Shift,         action: ScrollPageUp,   mode: ~Alt   }
-- { key: PageDown, mods: Shift,         action: ScrollPageDown, mode: ~Alt   }
-- { key: Home,     mods: Shift,         action: ScrollToTop,    mode: ~Alt   }
-- { key: End,      mods: Shift,         action: ScrollToBottom, mode: ~Alt   }
+  - { key: Paste, action: Paste }
+  - { key: Copy, action: Copy }
+  - { key: L, mods: Control, action: ClearLogNotice }
+  - { key: L, mods: Control, chars: "\x0c" }
+  - { key: PageUp, mods: Shift, action: ScrollPageUp, mode: ~Alt }
+  - { key: PageDown, mods: Shift, action: ScrollPageDown, mode: ~Alt }
+  - { key: Home, mods: Shift, action: ScrollToTop, mode: ~Alt }
+  - { key: End, mods: Shift, action: ScrollToBottom, mode: ~Alt }
 
 mouse:
   # Click settings
@@ -158,22 +158,22 @@ mouse:
 
   # URL launcher
   # url:
-    # This program is executed when clicking on a text which is recognized as a URL.
-    # The URL is always added to the command as the last parameter.
-    #
-    # When set to `None`, URL launching will be disabled completely.
-    #
-    # Default:
-    #   - (macOS) open
-    #   - (Linux) xdg-open
-    #   - (Windows) explorer
-    # launcher:
-    #   program: xdg-open
-    #   args: []
+  # This program is executed when clicking on a text which is recognized as a URL.
+  # The URL is always added to the command as the last parameter.
+  #
+  # When set to `None`, URL launching will be disabled completely.
+  #
+  # Default:
+  #   - (macOS) open
+  #   - (Linux) xdg-open
+  #   - (Windows) explorer
+  # launcher:
+  #   program: xdg-open
+  #   args: []
 
-    # These are the modifiers that need to be held down for opening URLs when clicking
-    # on them. The available modifiers are documented in the key binding section.
-    # modifiers: Control|Shift
+  # These are the modifiers that need to be held down for opening URLs when clicking
+  # on them. The available modifiers are documented in the key binding section.
+  # modifiers: Control|Shift
 # shell:
 #   program: /bin/bash
 #   args:
