@@ -27,9 +27,6 @@ export LOCAL_BIN="$HOME/.local/bin"
 export LOCAL_SCRIPTS="$HOME/.local/bin/scripts" # $HOME/.local/bin is the PATH for global scripts
 export TOOLS="$HOME/tools"
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-
 # Dot Path
 export DOT="$HOME/github.com/odas0r/dot"
 
@@ -41,9 +38,6 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
 export NODE_VERSION=16.19.1
-
-# moon monorepo manager
-export MOON_BIN="$HOME/.moon/bin"
 
 # pnpm package manager
 export PNPM_HOME="/home/odas0r/.local/share/pnpm"
@@ -82,7 +76,7 @@ export ANDROID_SDK_EMULATOR="$HOME/Android/Sdk/emulator"
 
 export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
-export DART="/usr/lib/dart/bin"
+export FLUTTER_BIN="$HOME/flutter/bin"
 
 # Global Path
 PATH="$PATH:/bin:/usr/local/bin:"
@@ -95,14 +89,12 @@ PATH+="$LUA_LANGUAGE_SERVER:"
 PATH+="$GNU_UTILS:"
 PATH+="$LD_LIBRARY_PATH:"
 PATH+="$JAVA_HOME/bin:"
-PATH+="$DART:"
+PATH+="$FLUTTER_BIN:"
 PATH+="$ANDROID_HOME:"
 PATH+="$ANDROID_STUDIO_HOME/bin:"
 PATH+="$ANDROID_SDK_BUILD_TOOLS:"
 PATH+="$ANDROID_SDK_PLATFORM_TOOLS:"
 PATH+="$ANDROID_SDK_EMULATOR:"
-PATH+="$BUN_INSTALL/bin:"
-PATH+="$MOON_BIN:"
 PATH+="$PNPM_HOME"
 
 export PATH

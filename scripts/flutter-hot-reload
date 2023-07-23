@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# get pid of the running flutter process
+pid=$(ps aux | grep '[f]lutter.*run' | awk '{print $2}')
+
+# get the kitty window id of the running flutter process
+kitty_ls_output=$(kitty @ --to=$KITTY_LISTEN_ON ls)
+
+# we're navigating to .[].tabs[].windows[] to reflect the structure in your output
+kitty_id=$(echo "$kitty_ls_output" | jq -r ".[].tabs[].windows[] | select(.foreground_processes[].pid == $pid) | .id")
+
+# send 'r\n' to the flutter process
+kitty @ --to=$KITTY_LISTEN_ON send-text --match=id:$kitty_id 'r\n'

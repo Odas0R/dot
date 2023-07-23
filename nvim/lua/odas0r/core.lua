@@ -92,6 +92,13 @@ utils.autocmd("BufWritePost", {
   end,
 })
 
+utils.autocmd("BufWritePost", {
+  pattern = "*.dart",
+  callback = function()
+    vim.cmd("silent !flutter-hot-reload")
+  end,
+})
+
 -- dont list quickfix buffers
 utils.autocmd("FileType", {
   pattern = "qf",
@@ -147,3 +154,13 @@ utils.autocmd({ "BufEnter" }, {
     end)
   end,
 })
+
+-- Custom filetypes
+
+vim.filetype.add({
+  extension = {
+    mdx = "mdx",
+  },
+})
+local ft_to_parser = require("nvim-treesitter.parsers").filetype_to_parsername
+ft_to_parser.mdx = "markdown"

@@ -71,6 +71,22 @@ local formatterConfig = {
     end,
     prettierConfig,
   },
+  dart = {
+    -- function()
+    --   return {
+    --     exe = "dart",
+    --     args = { "fix", "--apply" },
+    --     stdin = true,
+    --   }
+    -- end,
+    function()
+      return {
+        exe = "dart",
+        args = { "format" },
+        stdin = true,
+      }
+    end,
+  },
   go = {
     function()
       return {

@@ -22,6 +22,7 @@ mkdir -p "$HOME/snippets"
 ln -sf "$DOT_NVIM/ultisnips" "$HOME/snippets/ultisnips"
 
 # setup lua and plugins
+ln -sf "$DOT_NVIM/after" "$NVIM"
 ln -sf "$DOT_NVIM/lua" "$NVIM"
 ln -sf "$DOT_NVIM/plugin" "$NVIM"
 

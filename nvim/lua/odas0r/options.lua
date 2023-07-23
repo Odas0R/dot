@@ -2,7 +2,6 @@
 -- Options
 -----------------------------------------
 
-vim.opt.background = "dark"
 vim.opt.tw = 79
 vim.opt.fo = "cq"
 vim.opt.wm = 0

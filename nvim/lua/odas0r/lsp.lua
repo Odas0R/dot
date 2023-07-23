@@ -50,6 +50,7 @@ local flags = {
 --   flags = flags,
 -- })
 
+-- npm install -g typescript typescript-language-server
 require("typescript").setup({
   debug = false,
   server = {
@@ -74,11 +75,19 @@ require("typescript").setup({
   },
 })
 
+-- local root_path = (util.root_pattern("package.json", "tsconfig.json", ".git")(vim.fn.getcwd()) or "")
+--   .. "/node_modules/typescript/lib/tsserverlibrary.js"
+
 -- npm install -g @astrojs/language-server
 require("lspconfig").astro.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   flags = flags,
+  -- init_options = {
+  --   typescript = {
+  --     serverPath = root_path,
+  --   },
+  -- },
 })
 
 -- npm i -g vscode-langservers-extracted

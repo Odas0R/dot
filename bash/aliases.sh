@@ -15,6 +15,8 @@ alias hosts="sudoedit /etc/hosts"
 
 alias luamake=/home/odas0r/tools/lua-language-server/3rd/luamake/luamake
 
+alias android-studio="/home/odas0r/tools/android-studio/bin/studio.sh"
+
 # you can't cd on the current shell process by "cd-ing" on a shell script
 # https://stackoverflow.com/questions/255414/why-cant-i-change-directories-using-cd-in-a-script
 jump() {

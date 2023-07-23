@@ -58,7 +58,6 @@ require("lazy").setup({
         palette_overrides = {},
         overrides = {
           -- https://github.com/ellisonleao/gruvbox.nvim/blob/main/lua/gruvbox/groups.lua
-
           -- Identifiers should be white for better readibility, but not too
           -- bright, the blue is terrible.
           Identifier = { link = "GruvboxFg1" },
@@ -67,6 +66,7 @@ require("lazy").setup({
         transparent_mode = false,
       })
       vim.cmd("colorscheme gruvbox")
+      vim.o.background = "dark" -- or "light" for light mode
     end,
   },
 
@@ -108,7 +108,9 @@ require("lazy").setup({
       vim.g.copilot_filetypes = {
         ["*"] = false,
         ["javascript"] = true,
+        ["javascriptreact"] = true,
         ["typescript"] = true,
+        ["typescriptreact"] = true,
         ["vue"] = true,
         ["lua"] = true,
         ["html"] = true,
@@ -119,6 +121,8 @@ require("lazy").setup({
         ["json"] = true,
         ["jsonc"] = true,
         ["make"] = true,
+        ["astro"] = true,
+        ["dart"] = true,
       }
 
       utils.keymap({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)", { silent = true, noremap = true })

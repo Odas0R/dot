@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# This command will connect to the postgres database on the neon server,
+# passwordless.
+
+set -euo pipefail
+
+psql -h pg.neon.tech "$@"
