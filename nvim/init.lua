@@ -1,3 +1,5 @@
+local Utils = require("odas0r.utils")
+
 -----------------------------------------
 -- Lazy package manager installer
 -----------------------------------------
@@ -21,21 +23,16 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -----------------------------------------
--- Leader
------------------------------------------
-
-vim.g.mapleader = ","
-
------------------------------------------
 -- Configs
 -----------------------------------------
 
-local utils = require("odas0r.utils")
+vim.g.mapleader = ","
 
 -- https://github.com/folke/lazy.nvim#-plugin-spec
 require("lazy").setup({
   {
     "ellisonleao/gruvbox.nvim",
+    lazy = false,
     priority = 1000,
     config = function()
       require("gruvbox").setup({
@@ -71,39 +68,109 @@ require("lazy").setup({
   },
 
   -- Treesitter
-  { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" }, -- :TSInstallFromGrammar
+  -- https://github.com/nvim-treesitter/nvim-treesitter/#adding-queries
+  -- https://github.com/JoosepAlviste/nvim-ts-context-commentstring
+  {
+    "nvim-treesitter/nvim-treesitter",
+    event = { "BufReadPost", "BufNewFile" },
+    cmd = { "TSUpdateSync" },
+    dependencies = {
+      "JoosepAlviste/nvim-ts-context-commentstring",
+    },
+    init = require("odas0r.plugin.treesitter").init,
+    config = require("odas0r.plugin.treesitter").config,
+  },
   {
     "nvim-treesitter/playground",
     lazy = true,
     cmd = "TSPlaygroundToggle",
   },
-
-  -- Status Bar
-  { "nvim-lualine/lualine.nvim", dependencies = {
-    "nvim-lua/lsp-status.nvim",
-  } },
+  {
+    "nvim-lualine/lualine.nvim",
+    dependencies = {
+      "nvim-lua/lsp-status.nvim",
+    },
+    event = "VeryLazy",
+    config = require("odas0r.plugin.lualine").config,
+  },
 
   -- Telescope
-  { "nvim-telescope/telescope.nvim", tag = "0.1.1" },
+  {
+    "nvim-telescope/telescope.nvim",
+    tag = "0.1.2",
+    cmd = "Telescope",
+    init = require("odas0r.plugin.telescope").init,
+    config = require("odas0r.plugin.telescope").config,
+  },
   { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
 
   -- Git, Source Control
-  { "mhinz/vim-signify" },
+  {
+    "mhinz/vim-signify",
+    event = { "BufReadPre", "BufNewFile" },
+    init = function()
+      vim.g.signify_disable_by_default = 0
+
+      Utils.map({ "n", "i" }, "<leader>gj", "<Plug>(signify-next-hunk)<cmd>SignifyHunkDiff<CR>", { silent = true })
+      Utils.map({ "n", "i" }, "<leader>gk", "<Plug>(signify-prev-hunk)<cmd>SignifyHunkDiff<CR>", { silent = true })
+      Utils.map({ "n", "i" }, "<leader>gh", "<cmd>SignifyHunkDiff<CR>", { silent = true })
+
+      Utils.map({ "n", "i" }, "<leader>gu", "<cmd>SignifyHunkUndo<cr>", { silent = true })
+      Utils.map({ "n", "i" }, "<leader>gt", "<cmd>SignifyToggle<cr>", { silent = true })
+
+      vim.cmd([[
+function! s:show_current_hunk() abort
+  let h = sy#util#get_hunk_stats()
+  if !empty(h)
+    echo printf('[Hunk %d/%d]', h.current_hunk, h.total_hunks)
+  endif
+endfunction
+
+augroup ConfigSignifyHunk
+  autocmd!
+  autocmd User SignifyHunk call s:show_current_hunk()
+augroup END
+]])
+    end,
+  },
 
   -- General
-  { "nvim-lua/plenary.nvim" },
-  { "wakatime/vim-wakatime" },
-  { "ThePrimeagen/harpoon" },
-  { "windwp/nvim-ts-autotag" },
-  { "jose-elias-alvarez/typescript.nvim" },
-  { "s1n7ax/nvim-terminal" }, -- terminal
-  { "numToStr/Comment.nvim" }, -- comment
-  { "JoosepAlviste/nvim-ts-context-commentstring" }, -- use TS for comment.nvim
+  { "nvim-lua/plenary.nvim", event = "VeryLazy" },
+  { "wakatime/vim-wakatime", event = "VeryLazy" },
+  {
+    "ThePrimeagen/harpoon",
+    event = "VeryLazy",
+    init = function()
+      require("odas0r.plugin.harpoon").init()
+    end,
+    config = function()
+      require("odas0r.plugin.harpoon").config()
+    end,
+  },
+  { "windwp/nvim-ts-autotag", event = "InsertEnter" },
+  { "jose-elias-alvarez/typescript.nvim", event = { "BufReadPre", "BufNewFile" } },
+  {
+    "s1n7ax/nvim-terminal",
+    event = { "BufReadPre", "BufNewFile" },
+    init = function()
+      require("odas0r.plugin.nvim-terminal").init()
+    end,
+    config = function()
+      require("odas0r.plugin.nvim-terminal").config()
+    end,
+  },
+  {
+    "numToStr/Comment.nvim",
+    event = "VeryLazy",
+    config = function()
+      require("odas0r.plugin.comment").config()
+    end,
+  }, -- comment
   {
     "github/copilot.vim",
-    -- cmd = "Copilot",
-    -- event = "InsertEnter",
-    config = function()
+    cmd = "Copilot",
+    event = "InsertEnter",
+    init = function()
       vim.g.copilot_node_command = "/home/odas0r/.nvm/versions/node/v16.19.1/bin/node"
       vim.g.copilot_filetypes = {
         ["*"] = false,
@@ -123,68 +190,81 @@ require("lazy").setup({
         ["make"] = true,
         ["astro"] = true,
         ["dart"] = true,
+        ["css"] = true,
+        ["scss"] = true,
+        ["config"] = true,
       }
 
-      utils.keymap({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)", { silent = true, noremap = true })
-      utils.keymap({ "i", "n" }, "<leader>k", "<Plug>(copilot-next)", { silent = true, noremap = true })
+      Utils.map({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)", { silent = true, noremap = true })
+      Utils.map({ "i", "n" }, "<leader>k", "<Plug>(copilot-next)", { silent = true, noremap = true })
     end,
   },
-  {
-    "nmac427/guess-indent.nvim",
-    config = function()
-      require("guess-indent").setup({
-        auto_cmd = true, -- Set to false to disable automatic execution
-        filetype_exclude = { -- A list of filetypes for which the auto command gets disabled
-          "netrw",
-          "defx",
-          "tutor",
-        },
-        buftype_exclude = { -- A list of buffer types for which the auto command gets disabled
-          "help",
-          "nofile",
-          "terminal",
-          "prompt",
-        },
-      })
-    end,
-  },
+  -- {
+  --   "nmac427/guess-indent.nvim",
+  --   event = { "InsertEnter" },
+  --   config = function()
+  --     require("odas0r.plugin.guess-indent").config()
+  --   end,
+  -- },
 
   -- File Explorer
   {
     "Shougo/defx.nvim",
+    lazy = false,
     build = ":UpdateRemotePlugins",
     dependencies = { "kristijanhusak/defx-git" },
   },
 
   -- database
-  { "tpope/vim-dadbod" },
-  { "kristijanhusak/vim-dadbod-completion" },
+  {
+    "tpope/vim-dadbod",
+    event = { "BufReadPre", "BufNewFile" },
+    init = function()
+      -- vim.g.db="postgres://postgres:postgres@localhost:5432/postgres"
+      vim.g.completion_matching_ignore_case = 1
+    end,
+  },
 
   -- lsp, Completion Engine
-  { "neovim/nvim-lspconfig" },
-  { "onsails/lspkind-nvim" },
+  {
+    "neovim/nvim-lspconfig",
+    event = { "BufReadPre", "BufNewFile" },
+    config = function()
+      require("odas0r.plugin.lspconfig").config()
+    end,
+  },
+  { "onsails/lspkind-nvim", event = { "BufReadPre", "BufNewFile" } },
 
   -- Completion
   {
     "hrsh7th/nvim-cmp",
+    event = "InsertEnter",
     dependencies = {
       "hrsh7th/cmp-nvim-lua",
       "hrsh7th/cmp-nvim-lsp",
       "hrsh7th/cmp-buffer",
       "hrsh7th/cmp-path",
       "quangnguyen30192/cmp-nvim-ultisnips",
+      "kristijanhusak/vim-dadbod-completion",
     },
+    init = require("odas0r.plugin.nvim-cmp").init,
+    config = require("odas0r.plugin.nvim-cmp").config,
   },
-
-  -- formatter
-  { "mhartington/formatter.nvim" },
-
-  -- snippet Engine
-  { "sirver/UltiSnips" },
-
-  -- " writing
-  -- { "preservim/vim-markdown" },
+  { "sirver/UltiSnips", event = "InsertEnter" },
+  {
+    "mhartington/formatter.nvim",
+    cmd = "FormatWrite",
+    init = function()
+      require("odas0r.plugin.formatter").init()
+    end,
+    config = function()
+      require("odas0r.plugin.formatter").config()
+    end,
+  },
 }, {
+  default = {
+    lazy = true,
+  },
   performance = {
     rtp = {
       disabled_plugins = { -- disable some rtp plugins

@@ -44,8 +44,8 @@ local selected_to_new_file = function ()
   vim.api.nvim_buf_set_option(new_buf, "filetype", filetype)
 end
 
-local utils = require("odas0r.utils")
+local Utils = require("odas0r.utils")
 
-utils.keymap("v", "<C-n>", function()
+Utils.map("v", "<C-n>", function()
   selected_to_new_file()
 end, { noremap = true, silent = true })

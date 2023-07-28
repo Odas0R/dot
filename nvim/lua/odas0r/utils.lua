@@ -29,15 +29,20 @@ end
 -- Helper functions
 -- ========================================
 
-local keymap = vim.keymap.set
+local map = vim.keymap.set
 local autocmd = vim.api.nvim_create_autocmd
 local cmd = vim.api.nvim_create_user_command
 
+local function augroup(name)
+  return vim.api.nvim_create_augroup("config_" .. name, { clear = true })
+end
+
 local M = {}
 
-M.keymap = keymap
+M.map = map
 M.autocmd = autocmd
 M.cmd = cmd
+M.augroup = augroup
 
 M.reverse = function(t)
   local len = #t + 1

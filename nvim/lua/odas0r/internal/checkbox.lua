@@ -1,4 +1,4 @@
-local utils = require("odas0r.utils")
+local Utils = require("odas0r.utils")
 local checked_character = "x"
 
 local states = {
@@ -71,10 +71,10 @@ local cursor = vim.api.nvim_win_get_cursor(0)
 end
 
 -- Checkbox
-utils.keymap("n", "<leader>x", function()
+Utils.map("n", "<leader>x", function()
   toggle()
 end, { silent = true })
 
-utils.keymap("v", "<leader>x", function()
+Utils.map("v", "<leader>x", function()
   toggle_many()
 end, { silent = false })
