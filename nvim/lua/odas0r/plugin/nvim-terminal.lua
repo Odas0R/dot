@@ -2,15 +2,22 @@ local Utils = require("odas0r.utils")
 
 local M = {}
 
+M.keys = function()
+  return {
+    {
+      "<leader>t",
+      "<cmd>lua terminal:toggle()<cr>",
+      mode = { "n", "t" },
+      desc = "Toggle terminal",
+      silent = true,
+    },
+  }
+end
+
 M.init = function()
   -- -------------------------------------------------
   -- Keymaps
   -- -------------------------------------------------
-  Utils.map({ "n", "t" }, "<leader>t", function()
-    vim.cmd([[
-    lua terminal:toggle()
-  ]])
-  end, { silent = true })
   Utils.map("t", "<Esc>", "<C-\\><C-n>", { silent = true })
   Utils.map("t", "<C-v><Esc>", "<Esc>", { silent = true })
 

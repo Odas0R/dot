@@ -1,5 +1,12 @@
 local M = {}
 
+M.keys = function()
+  return {
+    { "gc", mode = "v", desc = "Comment visual" },
+    { "gcc", mode = "n", desc = "Comment one line" },
+  }
+end
+
 M.init = function() end
 
 M.config = function()

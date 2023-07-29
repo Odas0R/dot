@@ -82,7 +82,6 @@ require("lazy").setup({
   },
   {
     "nvim-treesitter/playground",
-    lazy = true,
     cmd = "TSPlaygroundToggle",
   },
   {
@@ -135,11 +134,10 @@ augroup END
   },
 
   -- General
-  { "nvim-lua/plenary.nvim", event = "VeryLazy" },
+  { "nvim-lua/plenary.nvim" },
   { "wakatime/vim-wakatime", event = "VeryLazy" },
   {
     "ThePrimeagen/harpoon",
-    event = "VeryLazy",
     init = function()
       require("odas0r.plugin.harpoon").init()
     end,
@@ -149,19 +147,19 @@ augroup END
   },
   { "windwp/nvim-ts-autotag", event = "InsertEnter" },
   { "jose-elias-alvarez/typescript.nvim", event = { "BufReadPre", "BufNewFile" } },
+
   {
     "s1n7ax/nvim-terminal",
-    event = { "BufReadPre", "BufNewFile" },
-    init = function()
-      require("odas0r.plugin.nvim-terminal").init()
-    end,
-    config = function()
-      require("odas0r.plugin.nvim-terminal").config()
-    end,
+    keys = require("odas0r.plugin.nvim-terminal").keys(),
+    init = require("odas0r.plugin.nvim-terminal").init,
+    config = require("odas0r.plugin.nvim-terminal").config,
   },
   {
     "numToStr/Comment.nvim",
-    event = "VeryLazy",
+    keys = {
+      { "gc", mode = "v", desc = "Comment visual" },
+      { "gcc", mode = "n", desc = "Comment one line" },
+    },
     config = function()
       require("odas0r.plugin.comment").config()
     end,
@@ -210,9 +208,7 @@ augroup END
   -- File Explorer
   {
     "Shougo/defx.nvim",
-    lazy = false,
     build = ":UpdateRemotePlugins",
-    dependencies = { "kristijanhusak/defx-git" },
   },
 
   -- database
@@ -229,6 +225,9 @@ augroup END
   {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
+    init = function()
+      require("odas0r.plugin.lspconfig").init()
+    end,
     config = function()
       require("odas0r.plugin.lspconfig").config()
     end,
@@ -250,7 +249,7 @@ augroup END
     init = require("odas0r.plugin.nvim-cmp").init,
     config = require("odas0r.plugin.nvim-cmp").config,
   },
-  { "sirver/UltiSnips", event = "InsertEnter" },
+  { "sirver/UltiSnips", event = { "BufReadPre", "BufNewFile" } },
   {
     "mhartington/formatter.nvim",
     cmd = "FormatWrite",

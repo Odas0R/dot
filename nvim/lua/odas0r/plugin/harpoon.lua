@@ -2,6 +2,15 @@ local Utils = require("odas0r.utils")
 
 local M = {}
 
+local closeTerminal = function()
+  if terminal == nil then
+    return
+  end
+  vim.cmd([[
+    lua terminal:close()
+  ]])
+end
+
 M.init = function()
   -----------------------------------
   -- Keymaps
@@ -14,32 +23,25 @@ M.init = function()
   end, { silent = true })
 
   Utils.map({ "n", "t" }, "<leader>1", function()
-    vim.cmd([[
-    lua terminal:close()
-  ]])
+    closeTerminal()
     require("harpoon.ui").nav_file(1)
   end, { silent = true })
 
   Utils.map({ "n", "t" }, "<leader>2", function()
-    vim.cmd([[
-    lua terminal:close()
-  ]])
+    closeTerminal()
     require("harpoon.ui").nav_file(2)
   end, { silent = true })
 
   Utils.map({ "n", "t" }, "<leader>3", function()
-    vim.cmd([[
-    lua terminal:close()
-  ]])
+    closeTerminal()
     require("harpoon.ui").nav_file(3)
   end, { silent = true })
 
   Utils.map({ "n", "t" }, "<leader>4", function()
-    vim.cmd([[
-    lua terminal:close()
-  ]])
+    closeTerminal()
     require("harpoon.ui").nav_file(4)
   end, { silent = true })
+
   -----------------------------------
   -- Augroups
   -----------------------------------

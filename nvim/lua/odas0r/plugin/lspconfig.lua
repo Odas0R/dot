@@ -1,56 +1,68 @@
-local buf_set_keymap = function(bufnr, ...)
-  vim.api.nvim_buf_set_keymap(bufnr, ...)
-end
-
-local buf_set_option = function(bufnr, ...)
-  vim.api.nvim_buf_set_option(bufnr, ...)
-end
-
-local keymap_opts = { noremap = true, silent = true }
-
-local on_attach = function(_, bufnr)
-  -- Enable completion triggered by <c-x><c-o>
-  buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
-
-  -- Mappings.
-
-  buf_set_keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", keymap_opts)
-  buf_set_keymap(bufnr, "n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", keymap_opts)
-  buf_set_keymap(bufnr, "n", "gk", "<cmd>lua vim.lsp.buf.references()<CR>", keymap_opts)
-  buf_set_keymap(bufnr, "n", "K", "<cmd>lua vim.diagnostic.goto_prev()<CR>", keymap_opts)
-  buf_set_keymap(bufnr, "n", "J", "<cmd>lua vim.diagnostic.goto_next()<CR>", keymap_opts)
-
-  buf_set_keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.rename()<CR>", keymap_opts)
-  buf_set_keymap(bufnr, "n", "ga", "<cmd>lua vim.lsp.buf.code_action()<CR>", keymap_opts)
-end
-
-local util = require("lspconfig").util
-
-local default_caps = {
-  workspace = {
-    didChangeWatchedFiles = {
-      dynamicRegistration = true,
-    },
-  },
-}
-
--- Inject lsp thingy into nvim-cmp
-local capabilities = vim.tbl_deep_extend("keep", default_caps, require("cmp_nvim_lsp").default_capabilities())
-
--- set log level to debug for debugging
--- vim.lsp.set_log_level("DEBUG")
-
-local flags = {
-  debounce_text_changes = 150,
-}
-
 local M = {}
 
+M.init = function()
+  vim.g.markdown_fenced_languages = {
+    "ts=typescript",
+  }
+end
+
 M.config = function()
+  local buf_set_keymap = function(bufnr, ...)
+    vim.api.nvim_buf_set_keymap(bufnr, ...)
+  end
+
+  local buf_set_option = function(bufnr, ...)
+    vim.api.nvim_buf_set_option(bufnr, ...)
+  end
+
+  local keymap_opts = { noremap = true, silent = true }
+
+  local on_attach = function(_, bufnr)
+    -- Enable completion triggered by <c-x><c-o>
+    buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+
+    -- Mappings.
+
+    buf_set_keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", keymap_opts)
+    buf_set_keymap(bufnr, "n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", keymap_opts)
+    buf_set_keymap(bufnr, "n", "gk", "<cmd>lua vim.lsp.buf.references()<CR>", keymap_opts)
+    buf_set_keymap(bufnr, "n", "K", "<cmd>lua vim.diagnostic.goto_prev()<CR>", keymap_opts)
+    buf_set_keymap(bufnr, "n", "J", "<cmd>lua vim.diagnostic.goto_next()<CR>", keymap_opts)
+
+    buf_set_keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.rename()<CR>", keymap_opts)
+    buf_set_keymap(bufnr, "n", "ga", "<cmd>lua vim.lsp.buf.code_action()<CR>", keymap_opts)
+  end
+
+  local util = require("lspconfig").util
+
+  local default_caps = {
+    workspace = {
+      didChangeWatchedFiles = {
+        dynamicRegistration = true,
+      },
+    },
+  }
+
+  -- Inject lsp thingy into nvim-cmp
+  local capabilities = vim.tbl_deep_extend("keep", default_caps, require("cmp_nvim_lsp").default_capabilities())
+
+  -- set log level to debug for debugging
+  -- vim.lsp.set_log_level("DEBUG")
+
+  local flags = {
+    debounce_text_changes = 150,
+  }
   -- require("lspconfig").tsserver.setup({
   --   on_attach = on_attach,
   --   capabilities = capabilities,
   --   flags = flags,
+  -- })
+  --
+
+  -- require("lspconfig").denols.setup({
+  --   on_attach = on_attach,
+  --   capabilities = capabilities,
+  --   -- root_dir = util.root_pattern("package.json"),
   -- })
 
   -- npm install -g typescript typescript-language-server

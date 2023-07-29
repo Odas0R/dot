@@ -4,9 +4,11 @@
 "
 " -------------------------------------------------------------
 
-nnoremap \ <cmd>Defx -resume -columns=mark:indent:icon:indent:filename:space:git -search=`expand('%:p')` `expand('%:p:h')`<CR>
+" nnoremap \ <cmd>Defx -resume -columns=mark:indent:icon:indent:filename:space:git -search=`expand('%:p')` `expand('%:p:h')`<CR>
+nnoremap \ <cmd>Defx -resume -columns=mark:indent:icon:indent:filename: -search=`expand('%:p')` `expand('%:p:h')`<CR>
 
 autocmd FileType defx call s:defx_my_settings()
+
 function! s:defx_my_settings() abort
   " local options
   setlocal cursorline
@@ -79,9 +81,9 @@ function! s:browse_check(path) abort
 endfunction
 
 " Defx *git* indicators
-call defx#custom#column('git', 'raw_mode', 1)
-call defx#custom#column('git', 'column_length', 1)
-call defx#custom#column('git', 'max_indicator_width', 0)
+" call defx#custom#column('git', 'raw_mode', 1)
+" call defx#custom#column('git', 'column_length', 1)
+" call defx#custom#column('git', 'max_indicator_width', 0)
 
 " I want to update defx status automatically when changing file.
 autocmd BufWritePost * call defx#redraw()

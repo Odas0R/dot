@@ -8,14 +8,18 @@ end
 
 M.config = function()
   local formatter = require("formatter")
+  local util = require("formatter.util")
 
   local prettierConfig = function()
+    -- set env variable
     return {
-      exe = "prettierd",
+      exe = "prettier",
       args = {
-        vim.api.nvim_buf_get_name(0),
+        "--stdin-filepath",
+        util.escape_path(util.get_current_buffer_file_path()),
       },
       stdin = true,
+      try_node_modules = true,
     }
   end
 
@@ -151,6 +155,8 @@ M.config = function()
   -- Setup functions
   formatter.setup({
     logging = true,
+    -- Set the log level
+    log_level = vim.log.levels.WARN,
     filetype = formatterConfig,
   })
 end
