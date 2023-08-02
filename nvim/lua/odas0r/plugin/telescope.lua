@@ -7,17 +7,16 @@ M.init = function()
     return require("telescope.builtin").find_files({
       prompt_title = "Query",
     })
-  end, { silent = true })
+  end)
   Utils.map("n", "<C-g>", function()
     return require("telescope.builtin").live_grep({
       prompt_title = "Query",
     })
-  end, { silent = true })
+  end)
   Utils.map("n", "<C-h>", function()
     return require("telescope.builtin").help_tags()
-  end, { silent = true })
-
-  Utils.map("n", "<leader>fe", function()
+  end)
+  Utils.map("n", "<leader>fp", function()
     return require("telescope.builtin").find_files({
       prompt_title = "github.com",
       cwd = "/home/odas0r/github.com",
@@ -25,7 +24,7 @@ M.init = function()
       use_regex = false,
       hidden = true,
     })
-  end, { silent = true })
+  end)
   Utils.map("n", "<leader>fg", function()
     return require("telescope.builtin").live_grep({
       prompt_title = "github.com",
@@ -34,7 +33,7 @@ M.init = function()
       use_regex = false,
       hidden = true,
     })
-  end, { silent = true })
+  end)
 end
 
 M.config = function()

@@ -179,6 +179,7 @@ augroup END
         ["vue"] = true,
         ["lua"] = true,
         ["html"] = true,
+        ["sql"] = true,
         ["sh"] = true,
         ["bash"] = true,
         ["go"] = true,

@@ -4,7 +4,7 @@ set -e
 
 if [[ -S "$NVIM_SOCKET" ]]; then
   rm "$NVIM_SOCKET"
-  echo "Reseted $NVIM_SOCKET session..."
+  echo "Reseted session: $NVIM_SOCKET"
 else
   echo "There's no current session..."
 fi

@@ -16,40 +16,42 @@ end, {
   nargs = 1,
 })
 
--- Utils.autocmd("BufWritePost", {
---   group = Utils.augroup("reload_config"),
---   pattern = "*.lua",
---   callback = function()
---     local bufname = vim.api.nvim_buf_get_name(0)
---     local directories = {}
---
---     for dir in vim.fs.parents(bufname) do
---       if vim.fs.basename(dir) == "dot" then
---         return
---       end
---
---       -- if dir contains /odas0r then we found the root directory
---       if vim.fs.basename(dir) == "odas0r" then
---         directories[#directories + 1] = vim.fs.basename(dir)
---         break
---       else
---         directories[#directories + 1] = vim.fs.basename(dir)
---       end
---     end
---
---     -- if there's no "odas0r" on directories, return
---     if not vim.tbl_contains(directories, "odas0r") then
---       return
---     end
---
---     if #directories == 1 and directories[1] == "odas0r" then
---       local module = "odas0r" .. "." .. vim.fs.basename(bufname):gsub(".lua", "")
---       vim.cmd("Reload " .. module)
---     end
---
---     if #directories > 1 then
---       local module = table.concat(Utils.reverse(directories), ".") .. "." .. vim.fs.basename(bufname):gsub(".lua", "")
---       vim.cmd("Reload " .. module)
---     end
---   end,
--- })
+Utils.autocmd("BufWritePost", {
+  group = Utils.augroup("reload_config"),
+  pattern = "*.lua",
+  callback = function()
+    local bufname = vim.api.nvim_buf_get_name(0)
+    local directories = {}
+
+    for dir in vim.fs.parents(bufname) do
+      if vim.fs.basename(dir) == "dot" then
+        return
+      end
+
+      -- if dir contains /odas0r then we found the root directory
+      if vim.fs.basename(dir) == "odas0r" then
+        directories[#directories + 1] = vim.fs.basename(dir)
+        break
+      else
+        directories[#directories + 1] = vim.fs.basename(dir)
+      end
+    end
+
+    -- if there's no "odas0r" on directories, return
+    if not vim.tbl_contains(directories, "odas0r") then
+      return
+    end
+
+    if #directories == 1 and directories[1] == "odas0r" then
+      local name = "odas0r" .. "." .. vim.fs.basename(bufname):gsub(".lua", "")
+      R(name)
+      -- P(name .. " RELOADED!!!")
+    end
+
+    if #directories > 1 then
+      local name = table.concat(Utils.reverse(directories), ".") .. "." .. vim.fs.basename(bufname):gsub(".lua", "")
+      R(name)
+      -- P(name .. " RELOADED!!!")
+    end
+  end,
+})
