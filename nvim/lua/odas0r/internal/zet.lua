@@ -24,7 +24,6 @@ zet.create = function(title)
     :new({
       command = "zet",
       args = { "new", "--raw", title },
-      cwd = "/home/odas0r/github.com/odas0r/zet-cmd",
       on_exit = function(j, code)
         if code == 0 then
           path = j:result()[1]
@@ -70,6 +69,68 @@ Utils.cmd("ZetNew", function(opts)
 end, {
   nargs = "?",
   desc = "Create a new zet file",
+})
+
+--------------------------------
+-- Augroups
+--------------------------------
+
+Utils.autocmd({ "BufReadPost", "BufWritePost" }, {
+  pattern = {
+    "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
+    "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
+    -- Testing directories
+    "/tmp/zet/fleet/*.md",
+    "/tmp/zet/permanent/*.md",
+  },
+  callback = function()
+    local curr_path = vim.fn.expand("%:p")
+    local path = nil
+    Job
+      :new({
+        command = "zet",
+        args = { "save", curr_path },
+        on_exit = function(j, code)
+          if code == 0 then
+            path = j:result()[1]
+            print("Saved... [" .. path .. "]")
+          else
+            -- show Error message on red
+            print("Error: " .. j:stderr_result()[1])
+          end
+        end,
+      })
+      :sync()
+
+    if path then
+      vim.cmd("e " .. path)
+    end
+  end,
+})
+
+Utils.autocmd({ "VimEnter", "VimLeave" }, {
+  pattern = {
+    "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
+    "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
+    -- Testing directories
+    "/tmp/zet/fleet/*.md",
+    "/tmp/zet/permanent/*.md",
+  },
+  callback = function()
+    Job
+      :new({
+        command = "zet",
+        args = { "sync" },
+        on_exit = function(j, code)
+          if code == 0 then
+            print("Synced successfully...")
+          else
+            print("Error: " .. j:stderr_result()[1])
+          end
+        end,
+      })
+      :sync()
+  end,
 })
 
 --------------------------------

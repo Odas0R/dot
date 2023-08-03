@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# maybe we can improve this?
+cp -r ./ ./backup

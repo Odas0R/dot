@@ -67,6 +67,7 @@ M.config = function()
       { name = "nvim_lua" },
       { name = "nvim_lsp" },
       { name = "path" },
+      { name = "zet" }, -- /lua/
       {
         name = "buffer",
         option = {

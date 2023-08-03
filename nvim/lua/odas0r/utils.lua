@@ -48,15 +48,31 @@ local custom_nvim_keymap = function(mode, lhs, rhs, opts)
       vim.keymap.set(mode, key, rhs, options)
     end
   else
-   vim.keymap.set(mode, lhs, rhs, options)
+    vim.keymap.set(mode, lhs, rhs, options)
   end
 end
 
+-- @Example
+--
+-- group = Utils.augroup("terminal"),
 local function augroup(name)
   return vim.api.nvim_create_augroup("config_" .. name, { clear = true })
 end
 
 local map = custom_nvim_keymap
+
+-- @Example
+--
+-- Utils.autocmd("TermOpen", {
+--   pattern = "*",
+--   group = Utils.augroup("terminal"),
+--   callback = function()
+--     vim.opt_local.number = false
+--     vim.opt_local.relativenumber = false
+--     vim.opt_local.cursorline = false
+--   end,
+-- })
+--
 local autocmd = vim.api.nvim_create_autocmd
 local cmd = vim.api.nvim_create_user_command
 
