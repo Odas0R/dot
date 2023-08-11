@@ -26,7 +26,7 @@ end
 M.config = function()
   require("nvim-treesitter.configs").setup({
     highlight = { enable = true },
-    indent = { enable = true },
+    indent = { enable = false },
     ensure_installed = {
       "bash",
       "c",
@@ -36,6 +36,7 @@ M.config = function()
       "lua",
       "luadoc",
       "luap",
+      "dart",
       "markdown",
       "markdown_inline",
       "python",

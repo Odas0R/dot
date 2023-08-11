@@ -2,10 +2,9 @@
 
 set -euo pipefail
 
-# check if there's args, if not list all available emulators
-if [[ -z "${*}" ]]; then
-  echo "No arguments provided, listing all available emulators"
-  emulator -list-avds
+emulator=$(emulator -list-avds | gum choose --header="Choose an emulator to start")
+
+if [[ -z "${emulator}" ]]; then
   exit 0
 fi
 
@@ -13,4 +12,4 @@ fi
 adb kill-server
 adb start-server
 
-emulator -avd "$@"
+emulator -avd "${emulator}"

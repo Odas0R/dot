@@ -80,6 +80,8 @@ require("lazy").setup({
     init = require("odas0r.plugin.treesitter").init,
     config = require("odas0r.plugin.treesitter").config,
   },
+  -- I disabled autoident from treesitter since it stopped working on dart,
+  -- this is a fix for it:
   {
     "nvim-treesitter/playground",
     cmd = "TSPlaygroundToggle",
@@ -188,7 +190,7 @@ augroup END
         ["jsonc"] = true,
         ["make"] = true,
         ["astro"] = true,
-        ["dart"] = true,
+        ["dart"] = false,
         ["css"] = true,
         ["scss"] = true,
         ["config"] = true,
@@ -198,13 +200,12 @@ augroup END
       Utils.map({ "i", "n" }, "<leader>k", "<Plug>(copilot-next)", { silent = true, noremap = true })
     end,
   },
-  -- {
-  --   "nmac427/guess-indent.nvim",
-  --   event = { "InsertEnter" },
-  --   config = function()
-  --     require("odas0r.plugin.guess-indent").config()
-  --   end,
-  -- },
+  {
+    "nmac427/guess-indent.nvim",
+    config = function()
+      require("odas0r.plugin.guess-indent").config()
+    end,
+  },
 
   -- File Explorer
   {
@@ -234,7 +235,6 @@ augroup END
     end,
   },
   { "onsails/lspkind-nvim", event = { "BufReadPre", "BufNewFile" } },
-
   -- Completion
   {
     "hrsh7th/nvim-cmp",

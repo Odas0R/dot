@@ -16,6 +16,7 @@ map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "Increase window w
 
 map("n", "<leader>vu", ":so " .. vim.env.HOME .. "/.config/nvim/init.lua<CR>")
 map("n", "<C-l>", ":nohl<CR>", { silent = true })
+map("n", "<ESC>", ":nohl<CR>", { silent = true })
 map("n", "<leader>s", ":set spell!<CR>", { silent = true })
 map("n", "<leader>p", ":set paste!<CR>", { silent = true })
 
