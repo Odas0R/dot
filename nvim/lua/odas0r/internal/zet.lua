@@ -162,9 +162,8 @@ Utils.autocmd({ "BufWritePost", "BufReadPost" }, {
       :sync()
 
     if path ~= curr_path then
-      vim.cmd("silent! bdelete!")
-      vim.cmd("silent! e " .. path)
-      vim.cmd("silent! set ft=markdown")
+      -- change the buffer path to the new one
+      vim.api.nvim_buf_set_name(0, path)
     end
   end,
 })

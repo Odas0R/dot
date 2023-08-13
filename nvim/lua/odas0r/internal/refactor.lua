@@ -1,4 +1,6 @@
-local selected_to_new_file = function ()
+local Utils = require("odas0r.utils")
+
+local selected_to_new_file = function()
   local buf = vim.api.nvim_get_current_buf()
 
   local pos_cursor = vim.fn.getpos(".")
@@ -25,10 +27,17 @@ local selected_to_new_file = function ()
   vim.cmd("cd " .. buf_path)
 
   local new_file = vim.fn.input("New file name: ", "", "file")
+  local slug = vim.fn.substitute(new_file, " ", "-", "g")
+  if slug == "" then
+    return
+  end
 
-  local file_path = buf_path .. "/" .. new_file
+  local file_path = buf_path .. "/" .. slug
 
   vim.cmd("cd " .. original_cwd)
+
+  -- delete the selected lines
+  vim.api.nvim_buf_set_lines(buf, start_line - 1, end_line, true, {})
 
   -- create a new buffer with vsplit
   vim.cmd("rightbelow vnew")
@@ -39,12 +48,11 @@ local selected_to_new_file = function ()
   -- set the filename
   vim.api.nvim_buf_set_name(new_buf, file_path)
   vim.api.nvim_buf_set_lines(new_buf, 0, -1, true, lines)
+
   -- optionally, set the filetype of the new buffer to match the original buffer
   local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
   vim.api.nvim_buf_set_option(new_buf, "filetype", filetype)
 end
-
-local Utils = require("odas0r.utils")
 
 Utils.map("v", "<C-n>", function()
   selected_to_new_file()

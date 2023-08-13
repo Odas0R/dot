@@ -35,6 +35,34 @@ end
 -- ========================================
 -- Helper functions
 -- ========================================
+local function slugify(str)
+  str = string.lower(str)
+  str = string.gsub(str, " ", "-")
+  str = string.gsub(str, "[^a-z0-9-]", "")
+  str = string.gsub(str, "-$", "")
+
+  return str
+end
+
+local function reverse(t)
+  local len = #t + 1
+  for i = 1, math.floor(#t / 2) do
+    t[i], t[len - i] = t[len - i], t[i]
+  end
+  return t
+end
+
+-- Creates a custom keymap using vim.keymap.set with default options, noremap
+-- and silent.
+--
+-- @param mode table<string> | string
+-- @param lhs string
+-- @param rhs string
+-- @param opts table
+--
+-- @usage map("n", "<C-k>", ":cprev<CR>")
+-- @usage map({"n", "x"}, "<C-k>", ":cprev<CR>")
+--
 local custom_nvim_keymap = function(mode, lhs, rhs, opts)
   -- local options = {}
   local options = { noremap = true, silent = true }
@@ -74,6 +102,7 @@ local map = custom_nvim_keymap
 -- })
 --
 local autocmd = vim.api.nvim_create_autocmd
+
 local cmd = vim.api.nvim_create_user_command
 
 local M = {}
@@ -82,13 +111,7 @@ M.map = map
 M.autocmd = autocmd
 M.cmd = cmd
 M.augroup = augroup
-
-M.reverse = function(t)
-  local len = #t + 1
-  for i = 1, math.floor(#t / 2) do
-    t[i], t[len - i] = t[len - i], t[i]
-  end
-  return t
-end
+M.slugify = slugify
+M.reverse = reverse
 
 return M
