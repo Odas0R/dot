@@ -25,7 +25,18 @@ end
 
 M.config = function()
   require("nvim-treesitter.configs").setup({
-    highlight = { enable = true },
+    highlight = { 
+      enable = true,
+      -- TODO?
+      -- is_supported = function (lang, bufnr)
+      --   local max_filesize = 100 * 1024 -- 100 KB
+      --   local fsize = vim.fn.getfsize(vim.fn.expand('@%'))
+      --   if fsize > max_filesize then
+      --     return false
+      --   end
+      --   return true
+      -- end,
+    },
     indent = { enable = false },
     ensure_installed = {
       "bash",

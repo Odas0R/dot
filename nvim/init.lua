@@ -190,7 +190,7 @@ augroup END
         ["jsonc"] = true,
         ["make"] = true,
         ["astro"] = true,
-        ["dart"] = false,
+        ["dart"] = true,
         ["css"] = true,
         ["scss"] = true,
         ["config"] = true,

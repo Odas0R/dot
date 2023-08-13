@@ -12,4 +12,4 @@ fi
 adb kill-server
 adb start-server
 
-emulator -avd "${emulator}"
+emulator -avd "${emulator}" -gpu host -no-boot-anim -no-audio

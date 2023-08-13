@@ -58,6 +58,29 @@ zet.create = function(title)
   end
 end
 
+zet.open_last = function()
+  local path = nil
+  Job
+    :new({
+      command = "zet",
+      args = { "last" },
+      on_exit = function(j, code)
+        if code == 0 then
+          path = j:result()[1]
+          print("Created: " .. path)
+        else
+          -- show Error message on red
+          print("Error: " .. j:stderr_result()[1])
+        end
+      end,
+    })
+    :sync()
+
+  if path then
+    vim.cmd("e " .. path)
+  end
+end
+
 vim.cmd([[highlight FloatBorder guifg=GruvboxFg1]])
 vim.cmd([[highlight FloatTitle guifg=GruvboxFg1]])
 
@@ -94,12 +117,18 @@ end, {
   nargs = "?",
   desc = "Create a new zet file",
 })
+Utils.cmd("ZetLast", function(opts)
+  zet.open_last()
+end, {
+  nargs = 0,
+  desc = "Open the last zettel",
+})
 
 --------------------------------
 -- Augroups
 --------------------------------
 
-Utils.autocmd({ "BufReadPost", "BufWritePost" }, {
+Utils.autocmd({ "BufWritePost", "BufReadPost" }, {
   pattern = {
     "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
     "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
@@ -110,6 +139,12 @@ Utils.autocmd({ "BufReadPost", "BufWritePost" }, {
   callback = function()
     local curr_path = vim.fn.expand("%:p")
     local path = nil
+
+    -- if the file doesn't exist, don't do anything
+    if vim.fn.filereadable(curr_path) == 0 then
+      return
+    end
+
     Job
       :new({
         command = "zet",
@@ -126,8 +161,10 @@ Utils.autocmd({ "BufReadPost", "BufWritePost" }, {
       })
       :sync()
 
-    if path then
-      vim.cmd("e " .. path)
+    if path ~= curr_path then
+      vim.cmd("silent! bdelete!")
+      vim.cmd("silent! e " .. path)
+      vim.cmd("silent! set ft=markdown")
     end
   end,
 })
@@ -164,6 +201,7 @@ Utils.autocmd({ "VimEnter", "VimLeave" }, {
 Utils.map("n", "<leader>zp", "<cmd>ZetFind<CR>", { silent = true })
 Utils.map("n", "<leader>zg", "<cmd>ZetGrep<CR>", { silent = true })
 Utils.map("n", "<leader>zn", "<cmd>ZetNew<CR>", { silent = true })
+Utils.map("n", "<leader>zl", "<cmd>ZetLast<CR>", { silent = true })
 
 --------------------------------
 -- UI
