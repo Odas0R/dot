@@ -55,14 +55,12 @@ end
 -- Creates a custom keymap using vim.keymap.set with default options, noremap
 -- and silent.
 --
--- @param mode table<string> | string
--- @param lhs string
--- @param rhs string
--- @param opts table
+-- Usage:
 --
--- @usage map("n", "<C-k>", ":cprev<CR>")
--- @usage map({"n", "x"}, "<C-k>", ":cprev<CR>")
---
+-- ```lua
+-- map("n", "<C-k>", ":cprev<CR>")
+-- map({"n", "x"}, "<C-k>", ":cprev<CR>")
+-- ```
 local custom_nvim_keymap = function(mode, lhs, rhs, opts)
   -- local options = {}
   local options = { noremap = true, silent = true }
@@ -80,17 +78,23 @@ local custom_nvim_keymap = function(mode, lhs, rhs, opts)
   end
 end
 
--- @Example
+-- Create or get an autocommand group |autocmd-groups|.
 --
--- group = Utils.augroup("terminal"),
+-- ```lua
+-- group = Utils.augroup("terminal")
+-- ```
 local function augroup(name)
   return vim.api.nvim_create_augroup("config_" .. name, { clear = true })
 end
 
 local map = custom_nvim_keymap
 
--- @Example
+-- autocmd({event}, {*opts*})                  *nvim_create_autocmd()*
 --
+-- Creates an |autocommand| event handler, defined by `callback` (Lua function
+-- or Vimscript function name string) or `command` (Ex command string).
+--
+-- ```lua
 -- Utils.autocmd("TermOpen", {
 --   pattern = "*",
 --   group = Utils.augroup("terminal"),
@@ -100,16 +104,34 @@ local map = custom_nvim_keymap
 --     vim.opt_local.cursorline = false
 --   end,
 -- })
+-- ```
 --
+-- Check `:h nvim_create_autocmd()`
 local autocmd = vim.api.nvim_create_autocmd
-
 local cmd = vim.api.nvim_create_user_command
+
+-- vim.ui.input({opts}, {on_confirm})                            *vim.ui.input()*
+--
+-- Prompts the user for input, allowing arbitrary (potentially asynchronous)
+-- work until `on_confirm`.
+--
+-- Example:
+-- ```lua
+-- vim.ui.input({ prompt = 'Enter value for shiftwidth: ' }, function(input)
+--   vim.o.shiftwidth = tonumber(input)
+-- end)
+-- ```
+--
+-- Check :h vim.ui.input
+local input = vim.ui.input
 
 local M = {}
 
-M.map = map
 M.autocmd = autocmd
 M.cmd = cmd
+M.input = input
+
+M.map = map
 M.augroup = augroup
 M.slugify = slugify
 M.reverse = reverse

@@ -246,7 +246,7 @@ augroup END
       "hrsh7th/cmp-path",
       "quangnguyen30192/cmp-nvim-ultisnips",
       "kristijanhusak/vim-dadbod-completion",
-      -- { "odas0r/cmp-zet", dev = true },
+      { "odas0r/cmp-zet", dev = true, config = require("odas0r.cmp-zet").setup, dependencies = { 'nvim-lua/plenary.nvim' }},
     },
     init = require("odas0r.plugin.nvim-cmp").init,
     config = require("odas0r.plugin.nvim-cmp").config,
@@ -263,10 +263,8 @@ augroup END
     end,
   },
 }, {
-  config = {
-    dev = {
-      path = "/home/odas0r/.config/nvim/lua/odas0r",
-    },
+  dev = {
+    path = "/home/odas0r/github.com/odas0r/dot/nvim/lua/odas0r",
   },
   default = {
     lazy = true,

@@ -44,6 +44,9 @@ M.config = function()
       completion = cmp.config.window.bordered(),
       documentation = cmp.config.window.bordered(),
     },
+    matching = {
+      disallow_partial_matching = true,
+    },
     mapping = {
       ["<C-n>"] = cmp.mapping.select_next_item(),
       ["<C-p>"] = cmp.mapping.select_prev_item(),
@@ -64,14 +67,25 @@ M.config = function()
       }),
     },
     sources = cmp.config.sources({
+      {
+        name = "zet",
+        priority = 1000,
+      },
       { name = "nvim_lua" },
       { name = "nvim_lsp" },
       { name = "path" },
-      { name = "zet" }, -- /lua/
       {
         name = "buffer",
         option = {
           keyword_pattern = [[\k\+]],
+          get_bufnrs = function()
+            local buf = vim.api.nvim_get_current_buf()
+            local byte_size = vim.api.nvim_buf_get_offset(buf, vim.api.nvim_buf_line_count(buf))
+            if byte_size > 1024 * 1024 then -- 1 Megabyte max
+              return {}
+            end
+            return { buf }
+          end,
         },
       },
       { name = "vim-dadbod-completion" },
@@ -84,6 +98,7 @@ M.config = function()
           nvim_lua = "[Lua]",
           nvim_lsp = "[Lsp]",
           path = "[Path]",
+          zet = "[Zet]",
           ["vim-dadbod-completion"] = "[SQL]",
           ultisnips = "[Snip]",
           buffer = "[Buffer]",
