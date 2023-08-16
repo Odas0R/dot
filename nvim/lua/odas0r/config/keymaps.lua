@@ -1,12 +1,26 @@
 local map = require("odas0r.utils").map
 
 -- better up/down
-map({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
-map({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+map({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { expr = true })
+map({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { expr = true })
 
 -- Window management
-map("n", "<C-w>\\", ":vsplit<CR> | :wincmd l<CR>", { silent = true })
-map("n", "<C-w>-", ":split<CR> | :wincmd b<CR>", { silent = true })
+map("n", "<C-w>\\", ":vsplit<CR> | :wincmd l<CR>")
+map("n", "<C-w>-", ":split<CR> | :wincmd b<CR>")
+
+map("v", "gq", function()
+  local curr_line = vim.fn.getline(".")
+  local commentstring = vim.api.nvim_buf_get_option(0, "commentstring")
+  local is_commented = string.match(curr_line, "^" .. commentstring)
+
+  if is_commented then
+    commentstring = string.gsub(commentstring, "%%s", "")
+
+    vim.cmd(":.!fmt -w 80 -p '" .. commentstring .. "'")
+  else
+    vim.cmd(":.!fmt -w 80")
+  end
+end)
 
 -- Resize window using <ctrl> arrow keys
 map("n", "<C-Up>", "<cmd>resize +2<cr>", { desc = "Increase window height" })
@@ -15,14 +29,14 @@ map("n", "<C-Left>", "<cmd>vertical resize -2<cr>", { desc = "Decrease window wi
 map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "Increase window width" })
 
 map("n", "<leader>vu", ":so " .. vim.env.HOME .. "/.config/nvim/init.lua<CR>")
-map("n", "<C-l>", ":nohl<CR>", { silent = true })
-map("n", "<ESC>", ":nohl<CR>", { silent = true })
-map("n", "<leader>s", ":set spell!<CR>", { silent = true })
-map("n", "<leader>p", ":set paste!<CR>", { silent = true })
+map("n", "<C-l>", ":nohl<CR>")
+map("n", "<ESC>", ":nohl<CR>")
+map("n", "<leader>s", ":set spell!<CR>")
+map("n", "<leader>p", ":set paste!<CR>")
 
 -- Quickfix
-map("n", "<C-j>", ":cnext<CR>", { silent = true })
-map("n", "<C-k>", ":cprev<CR>", { silent = true })
+map("n", "<C-j>", ":cnext<CR>")
+map("n", "<C-k>", ":cprev<CR>")
 
 -- Clear search, diff update and redraw
 -- taken from runtime/lua/_editor.lua

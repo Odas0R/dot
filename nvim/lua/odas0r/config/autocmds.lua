@@ -122,7 +122,8 @@ Utils.autocmd({ "BufEnter" }, {
   end,
 })
 
--- Write the current buffer file path to ~/.nvim-buf -- Useful for commands that require buffer info.
+-- Write the current buffer file path to ~/.nvim-buf -- Useful for commands
+-- that require buffer info.
 Utils.autocmd({ "BufEnter" }, {
   pattern = { "*" },
   group = Utils.augroup("write_current_path"),
@@ -140,3 +141,28 @@ Utils.autocmd({ "BufEnter" }, {
     end)
   end,
 })
+
+-- Comment Adjustment per filetype
+
+local function ft(filetype, tbl)
+  Utils.autocmd({ "CursorMoved", "BufEnter" }, {
+    group = Utils.augroup("comment_adjustment"),
+    pattern = "*." .. filetype,
+    callback = function()
+      local line = vim.fn.getline(".")
+      local found = false
+      for _, v in pairs(tbl) do
+        if string.match(line, "^" .. v) then
+          vim.bo.commentstring = v .. " %s"
+          found = true
+        end
+      end
+
+      if not found then
+        vim.bo.commentstring = ""
+      end
+    end,
+  })
+end
+
+ft("dart", { "///", "//" })

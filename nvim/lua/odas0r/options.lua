@@ -2,9 +2,14 @@
 -- Options
 -----------------------------------------
 
--- copy-paste from <https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua>
+-- copy-paste from
+-- <https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua>
 
 local opt = vim.opt
+
+opt.textwidth = 80 -- Maximum width of text
+opt.colorcolumn = "80" -- Line length marker
+opt.formatoptions = "jcroqlnt" -- tcqj
 
 opt.autowrite = true -- Enable auto write
 opt.clipboard = "unnamedplus" -- Sync with system clipboard
@@ -13,7 +18,6 @@ opt.conceallevel = 3 -- Hide * markup for bold and italic
 opt.confirm = true -- Confirm to save changes before exiting modified buffer
 opt.cursorline = true -- Enable highlighting of the current line
 opt.expandtab = true -- Use spaces instead of tabs
-opt.formatoptions = "jcroqlnt" -- tcqj
 opt.grepformat = "%f:%l:%c:%m"
 opt.grepprg = "rg --vimgrep"
 opt.ignorecase = true -- Ignore case

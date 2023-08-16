@@ -1,3 +1,5 @@
+local Utils = require("odas0r.utils")
+
 local M = {}
 
 M.keys = function()
@@ -7,7 +9,14 @@ M.keys = function()
   }
 end
 
-M.init = function() end
+M.init = function()
+  Utils.autocmd("FileType", {
+    pattern = "dart",
+    callback = function()
+      vim.bo.commentstring = "// %s"
+    end,
+  })
+end
 
 M.config = function()
   -- Url for configuration options

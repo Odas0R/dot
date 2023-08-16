@@ -162,9 +162,7 @@ augroup END
       { "gc", mode = "v", desc = "Comment visual" },
       { "gcc", mode = "n", desc = "Comment one line" },
     },
-    config = function()
-      require("odas0r.plugin.comment").config()
-    end,
+    config = require("odas0r.plugin.comment").config,
   }, -- comment
   {
     "github/copilot.vim",
@@ -246,7 +244,12 @@ augroup END
       "hrsh7th/cmp-path",
       "quangnguyen30192/cmp-nvim-ultisnips",
       "kristijanhusak/vim-dadbod-completion",
-      { "odas0r/cmp-zet", dev = true, config = require("odas0r.cmp-zet").setup, dependencies = { 'nvim-lua/plenary.nvim' }},
+      {
+        "odas0r/cmp-zet",
+        dev = true,
+        config = require("odas0r.cmp-zet").setup,
+        dependencies = { "nvim-lua/plenary.nvim" },
+      },
     },
     init = require("odas0r.plugin.nvim-cmp").init,
     config = require("odas0r.plugin.nvim-cmp").config,
