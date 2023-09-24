@@ -69,7 +69,7 @@ Utils.autocmd("FileType", {
 -- wrap and check for spell in text filetypes
 Utils.autocmd("FileType", {
   group = Utils.augroup("wrap_spell"),
-  pattern = { "gitcommit", "markdown" },
+  pattern = { "gitcommit", "*.md" },
   callback = function()
     vim.opt_local.wrap = true
     vim.opt_local.spell = true
@@ -99,7 +99,7 @@ Utils.autocmd("BufWritePost", {
 
 -- Set .env as config files
 Utils.autocmd("BufRead", {
-  pattern = "*.env*",
+  pattern = {"*.env*", "*.vars"},
   group = Utils.augroup("env_filetype"),
   callback = function()
     vim.opt_local.filetype = "config"
@@ -141,28 +141,3 @@ Utils.autocmd({ "BufEnter" }, {
     end)
   end,
 })
-
--- Comment Adjustment per filetype
-
-local function ft(filetype, tbl)
-  Utils.autocmd({ "CursorMoved", "BufEnter" }, {
-    group = Utils.augroup("comment_adjustment"),
-    pattern = "*." .. filetype,
-    callback = function()
-      local line = vim.fn.getline(".")
-      local found = false
-      for _, v in pairs(tbl) do
-        if string.match(line, "^" .. v) then
-          vim.bo.commentstring = v .. " %s"
-          found = true
-        end
-      end
-
-      if not found then
-        vim.bo.commentstring = ""
-      end
-    end,
-  })
-end
-
-ft("dart", { "///", "//" })

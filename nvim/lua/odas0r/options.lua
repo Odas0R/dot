@@ -8,7 +8,7 @@
 local opt = vim.opt
 
 opt.textwidth = 80 -- Maximum width of text
-opt.colorcolumn = "80" -- Line length marker
+-- opt.colorcolumn = "80" -- Line length marker
 opt.formatoptions = "jcroqlnt" -- tcqj
 
 opt.autowrite = true -- Enable auto write

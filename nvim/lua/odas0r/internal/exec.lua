@@ -1,17 +1,18 @@
 local Utils = require("odas0r.utils")
 
+local group = Utils.augroup("Playground_Exec")
+
 Utils.autocmd("FileType", {
-  pattern = "sh",
-  group = Utils.augroup("Playground"),
+  pattern = { "*.sh", "sh", "bash", "*.bash" },
+  group = group,
   callback = function()
     Utils.map("x", "<leader>r", "yPgv:!bash<CR>", { buffer = true })
-    Utils.map("n", "<leader>rp", "vap:DB<CR>", { buffer = true })
   end,
 })
 
 Utils.autocmd("FileType", {
-  pattern = { "sql" },
-  group = Utils.augroup("Playground"),
+  pattern = { "*.sql", "sql" },
+  group = group,
   callback = function()
     Utils.map("x", "<leader>r", ":DB<CR>", { buffer = true })
     Utils.map("n", "<leader>rp", "vap:DB<CR>", { buffer = true })
@@ -20,7 +21,7 @@ Utils.autocmd("FileType", {
 
 Utils.autocmd("FileType", {
   pattern = { "lua" },
-  group = Utils.augroup("Playground"),
+  group = group,
   callback = function()
     Utils.map("x", "<leader>r", function()
       local buf = vim.api.nvim_get_current_buf()

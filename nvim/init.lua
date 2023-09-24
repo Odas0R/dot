@@ -1,5 +1,8 @@
 local Utils = require("odas0r.utils")
 
+
+vim.python3_host_prog='/usr/bin/python3'
+
 -----------------------------------------
 -- Lazy package manager installer
 -----------------------------------------
@@ -10,7 +13,7 @@ local Utils = require("odas0r.utils")
 -- https://neovim.io/doc/user/lua-guide.html#lua-guide
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
   vim.fn.system({
     "git",
     "clone",
@@ -99,7 +102,7 @@ require("lazy").setup({
   {
     "nvim-telescope/telescope.nvim",
     tag = "0.1.2",
-    cmd = "Telescope",
+    lazy = false,
     init = require("odas0r.plugin.telescope").init,
     config = require("odas0r.plugin.telescope").config,
   },
@@ -149,6 +152,18 @@ augroup END
   },
   { "windwp/nvim-ts-autotag", event = "InsertEnter" },
   { "jose-elias-alvarez/typescript.nvim", event = { "BufReadPre", "BufNewFile" } },
+  {
+    "dmmulroy/tsc.nvim",
+    cmd = { "TSC" },
+    init = function()
+      require("tsc").setup({
+        -- TO MAKE IT WORK FOR MONOREPOS
+        -- flags = {
+        --   build = true,
+        -- },
+      })
+    end,
+  },
 
   {
     "s1n7ax/nvim-terminal",
@@ -190,6 +205,7 @@ augroup END
         ["astro"] = true,
         ["dart"] = true,
         ["css"] = true,
+        ["toml"] = true,
         ["scss"] = true,
         ["config"] = true,
       }
@@ -216,7 +232,7 @@ augroup END
     "tpope/vim-dadbod",
     event = { "BufReadPre", "BufNewFile" },
     init = function()
-      -- vim.g.db="postgres://postgres:postgres@localhost:5432/postgres"
+      vim.g.db = "postgres://postgres:postgres@localhost:5432/postgres"
       vim.g.completion_matching_ignore_case = 1
     end,
   },

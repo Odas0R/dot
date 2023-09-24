@@ -76,13 +76,16 @@ snippet constraint "postgresql constraint" b
 /*
  * Add constraint "${1:${VISUAL:ct}}" on ${2:${VISUAL:public.table}}
  */
-alter table $2
-	drop constraint if exists $1;
-
-alter table $2
-	add constraint $1 ${3:${VISUAL:check(char_length(col) = 2)}} not valid;
-
-alter table $2 validate constraint $1;
+do $$
+begin
+  alter table $2
+    add constraint $1 ${3:${VISUAL:check(char_length(col) = 2)}} not valid;
+  alter table $2 validate constraint $1;
+exception
+  when duplicate_object then
+    null;
+end
+$$;
 endsnippet
 
 snippet fk "postgresql constraint foreign key" b
@@ -153,11 +156,9 @@ endsnippet
 
 snippet trigger "Create a trigger" b
 create or replace function public.$1 ()
-returns trigger as
+returns trigger 
 language plpgsql
-security definer
-set search_path = public
-$$
+as $$
 begin
 	$0
 	return new;
@@ -166,7 +167,7 @@ $$;
 
 create trigger $1
 	${2:before} ${3:insert or update} on public.${4:table} for each row
-	execute procedure public.$1 ();
+	execute function public.$1 ();
 endsnippet
 
 #

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# generate a new file on tmp with specific extension
+extension=$1
+
+if [ -z "$extension" ]; then
+  echo "Usage: $0 <extension>"
+  exit 1
+fi
+
+file=$(mktemp -t tmpf.XXXXXX."$extension")
+
+nvimr "$file"

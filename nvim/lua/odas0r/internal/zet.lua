@@ -3,23 +3,6 @@ local Job = require("plenary.job")
 
 local zet = {}
 
-zet.find = function(query)
-  if terminal ~= nil then
-    terminal:close()
-  end
-  -- TODO
-  --
-  -- require("telescope.builtin").live_grep(require("telescope.themes").get_dropdown({
-  --   prompt_title = "Zet Query",
-  --   cwd = "$HOME/github.com/odas0r/zet",
-  --   search_dirs = {
-  --     "fleet",
-  --     "permanent",
-  --   },
-  --   default_text = query or "",
-  -- }))
-end
-
 zet.grep = function(query)
   if terminal ~= nil then
     terminal:close()
@@ -27,6 +10,7 @@ zet.grep = function(query)
   require("telescope.builtin").live_grep(require("telescope.themes").get_dropdown({
     prompt_title = "Zet Query",
     cwd = "$HOME/github.com/odas0r/zet",
+    preview_width = 0.6,
     search_dirs = {
       "fleet",
       "permanent",
@@ -88,13 +72,6 @@ vim.cmd([[highlight FloatTitle guifg=GruvboxFg1]])
 -- Commands
 --------------------------------
 
-Utils.cmd("ZetFind", function(opts)
-  local query = opts.fargs[1] or ""
-  zet.grep(query)
-end, {
-  nargs = "?",
-  desc = "Query zet files by title",
-})
 Utils.cmd("ZetGrep", function(opts)
   local query = opts.fargs[1] or ""
   zet.grep(query)
@@ -197,8 +174,9 @@ Utils.autocmd({ "VimEnter", "VimLeave" }, {
 -- Keymaps
 -------------------------------
 
-Utils.map("n", "<leader>zp", "<cmd>ZetFind<CR>", { silent = true })
+Utils.map("n", "<leader>zf", "<cmd>ZetGrep<CR>", { silent = true })
 Utils.map("n", "<leader>zg", "<cmd>ZetGrep<CR>", { silent = true })
+Utils.map("n", "<leader>zp", "<cmd>ZetGrep<CR>", { silent = true })
 Utils.map("n", "<leader>zn", "<cmd>ZetNew<CR>", { silent = true })
 Utils.map("n", "<leader>zl", "<cmd>ZetLast<CR>", { silent = true })
 

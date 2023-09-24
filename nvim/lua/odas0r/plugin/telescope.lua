@@ -72,7 +72,9 @@ M.config = function()
         height = 0.95,
         width = 0.95,
         prompt_position = "top",
-        preview_width = 0.6,
+        horizontal= {
+          preview_width = 60,
+        }
       },
       sorting_strategy = "ascending",
       mappings = {

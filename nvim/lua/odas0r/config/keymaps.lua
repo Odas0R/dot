@@ -8,20 +8,6 @@ map({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { expr = true })
 map("n", "<C-w>\\", ":vsplit<CR> | :wincmd l<CR>")
 map("n", "<C-w>-", ":split<CR> | :wincmd b<CR>")
 
-map("v", "gq", function()
-  local curr_line = vim.fn.getline(".")
-  local commentstring = vim.api.nvim_buf_get_option(0, "commentstring")
-  local is_commented = string.match(curr_line, "^" .. commentstring)
-
-  if is_commented then
-    commentstring = string.gsub(commentstring, "%%s", "")
-
-    vim.cmd(":.!fmt -w 80 -p '" .. commentstring .. "'")
-  else
-    vim.cmd(":.!fmt -w 80")
-  end
-end)
-
 -- Resize window using <ctrl> arrow keys
 map("n", "<C-Up>", "<cmd>resize +2<cr>", { desc = "Increase window height" })
 map("n", "<C-Down>", "<cmd>resize -2<cr>", { desc = "Decrease window height" })

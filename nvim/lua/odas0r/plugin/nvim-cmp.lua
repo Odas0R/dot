@@ -5,6 +5,10 @@ local M = {}
 M.init = function()
   vim.g.UltiSnipsEditSplit = "vertical"
   vim.g.UltiSnipsSnippetDirectories = { "~/snippets/ultisnips" }
+  vim.g.UltiSnipsExpandTrigger = "<C-j>"
+  -- vim.g.UltiSnipsJumpForwardTrigger = "<C-j>"
+  -- vim.g.UltiSnipsJumpBackwardTrigger = "<C-k>"
+
   Utils.autocmd("BufWritePost", {
     group = Utils.augroup("ReloadSnippets"),
     pattern = "*.snippets",

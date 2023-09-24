@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# zip an given directory recursively to /tmp and copy it to the clipboard
+# and then remove the zip file
+dir="$1"
+
+if [[ -z "$dir" ]]; then
+    echo "Usage: $0 <dir>"
+    exit 1
+fi
+
+if [[ ! -d "$dir" ]]; then
+    echo "Error: $dir is not a directory"
+    exit 1
+fi
+
+# cp the folder to tmp without node_modules
+rsync -a --exclude=node_modules "$dir" "/tmp/$(basename "$dir")"
+
+# zip the folder
+zip -r "/tmp/$(basename "$dir").zip" "/tmp/$(basename "$dir")"
+
+# open the folder in the file manager
+open "/tmp"

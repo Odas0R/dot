@@ -2,5 +2,4 @@
 
 set -euo pipefail
 
-bun x "$@"
-
+watch -n 1 -d sensors
