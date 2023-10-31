@@ -1,3 +1,5 @@
+local Utils = require("odas0r.utils")
+
 local M = {}
 
 M.init = function()
@@ -22,7 +24,6 @@ M.config = function()
     buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
     -- Mappings.
-
     buf_set_keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", keymap_opts)
     buf_set_keymap(bufnr, "n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", keymap_opts)
     buf_set_keymap(bufnr, "n", "gk", "<cmd>lua vim.lsp.buf.references()<CR>", keymap_opts)
@@ -52,12 +53,22 @@ M.config = function()
   local flags = {
     debounce_text_changes = 150,
   }
+
+  -- npm install -g typescript typescript-language-server
   -- require("lspconfig").tsserver.setup({
-  --   on_attach = on_attach,
+  --   on_attach = function(_, bufnr)
+  --     on_attach(nil, bufnr)
+  --
+  --     -- Mappings.
+  --     local opts = { noremap = true, silent = true }
+  --
+  --     buf_set_keymap(bufnr, "n", "<leader>gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
+  --     buf_set_keymap(bufnr, "n", "<leader>go", "<cmd>TypescriptOrganizeImports<CR>", opts)
+  --     buf_set_keymap(bufnr, "n", "<leader>gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
+  --   end,
   --   capabilities = capabilities,
   --   flags = flags,
   -- })
-  --
 
   -- require("lspconfig").denols.setup({
   --   on_attach = on_attach,
@@ -65,7 +76,17 @@ M.config = function()
   --   -- root_dir = util.root_pattern("package.json"),
   -- })
 
-  -- npm install -g typescript typescript-language-server
+  -- Typescript Commands
+  -- Utils.cmd("TypescriptAddMissingImports", function()
+  --   require("typescript").actions.addMissingImports()
+  -- end, {})
+  -- Utils.cmd("TypescriptOrganizeImports", function()
+  --   require("typescript").actions.organizeImports()
+  -- end, {})
+  -- Utils.cmd("TypescriptRemoveUnused", function()
+  --   require("typescript").actions.removeUnused()
+  -- end, {})
+
   require("typescript").setup({
     debug = false,
     server = {
@@ -74,8 +95,11 @@ M.config = function()
 
         -- Mappings.
         local opts = { noremap = true, silent = true }
-        buf_set_keymap(bufnr, "n", "gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
-        buf_set_keymap(bufnr, "n", "gR", "<cmd>TypescriptRenameFile<CR>", opts)
+        buf_set_keymap(bufnr, "n", "gD", "<cmd>TypescriptGoToSourceDefinition<CR>", opts)
+
+        buf_set_keymap(bufnr, "n", "<leader>gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
+        buf_set_keymap(bufnr, "n", "<leader>go", "<cmd>TypescriptOrganizeImports<CR>", opts)
+        buf_set_keymap(bufnr, "n", "<leader>gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
       end,
       capabilities = capabilities,
       flags = flags,
@@ -103,33 +127,33 @@ M.config = function()
   })
 
   -- npm i -g vscode-langservers-extracted
-  require("lspconfig").eslint.setup({
-    -- Magically fixes eslint on monorepos?
-    -- https://github.com/neovim/nvim-lspconfig/issues/1427#issuecomment-980783000
-    capabilities = capabilities,
-    flags = flags,
-    settings = {
-      workingDirectory = { mode = "location" },
-      codeAction = {
-        disableRuleComment = {
-          enable = true,
-          location = "sameLine",
-        },
-        showDocumentation = {
-          enable = true,
-        },
-      },
-    },
-    root_dir = util.root_pattern(
-      ".eslintrc.cjs",
-      ".eslintrc.js",
-      ".eslintrc.json",
-      ".eslintrc.yaml",
-      ".eslintrc.yml",
-      ".eslintrc",
-      "package.json"
-    ),
-  })
+  -- require("lspconfig").eslint.setup({
+  --   -- Magically fixes eslint on monorepos?
+  --   -- https://github.com/neovim/nvim-lspconfig/issues/1427#issuecomment-980783000
+  --   capabilities = capabilities,
+  --   flags = flags,
+  --   settings = {
+  --     workingDirectory = { mode = "location" },
+  --     codeAction = {
+  --       disableRuleComment = {
+  --         enable = true,
+  --         location = "sameLine",
+  --       },
+  --       showDocumentation = {
+  --         enable = true,
+  --       },
+  --     },
+  --   },
+  --   root_dir = util.root_pattern(
+  --     ".eslintrc.cjs",
+  --     ".eslintrc.js",
+  --     ".eslintrc.json",
+  --     ".eslintrc.yaml",
+  --     ".eslintrc.yml",
+  --     ".eslintrc",
+  --     "package.json"
+  --   ),
+  -- })
 
   -- npm i -g vscode-langservers-extracted
   require("lspconfig").cssls.setup({

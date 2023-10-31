@@ -108,6 +108,7 @@ local map = custom_nvim_keymap
 --
 -- Check `:h nvim_create_autocmd()`
 local autocmd = vim.api.nvim_create_autocmd
+
 local cmd = vim.api.nvim_create_user_command
 
 -- vim.ui.input({opts}, {on_confirm})                            *vim.ui.input()*

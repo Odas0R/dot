@@ -5,7 +5,9 @@
 " -------------------------------------------------------------
 
 " nnoremap \ <cmd>Defx -resume -columns=mark:indent:icon:indent:filename:space:git -search=`expand('%:p')` `expand('%:p:h')`<CR>
-nnoremap \ <cmd>Defx -resume -columns=mark:indent:icon:indent:filename: -search=`expand('%:p')` `expand('%:p:h')`<CR>
+nnoremap \ <cmd>Defx -split=vertical -winwidth=50 -direction=topleft -toggle -winborder=3 -resume
+  \ -columns=mark:indent:icon:indent:filename: <CR>
+
 
 autocmd FileType defx call s:defx_my_settings()
 
@@ -24,7 +26,7 @@ function! s:defx_my_settings() abort
   nnoremap <silent><buffer><expr> l
         \ defx#do_action('open_tree', 'toggle')
   nnoremap <silent><buffer><expr> <CR>
-        \ defx#do_action('open')
+        \ defx#do_action('drop')
   nnoremap <silent><buffer><expr> P
         \ defx#do_action('preview')
   nnoremap <silent><buffer><expr> d
@@ -43,7 +45,7 @@ function! s:defx_my_settings() abort
         \ defx#do_action('yank_path')
   nnoremap <silent><buffer><expr> .
         \ defx#do_action('toggle_ignored_files')
-  nnoremap <silent><buffer><expr> h
+  nnoremap <silent><buffer><expr> H
         \ defx#do_action('cd', ['..'])
   nnoremap <silent><buffer><expr> L
         \ defx#do_action('toggle_select') . 'j'
@@ -79,11 +81,6 @@ function! s:browse_check(path) abort
 
   execute 'Defx' a:path
 endfunction
-
-" Defx *git* indicators
-" call defx#custom#column('git', 'raw_mode', 1)
-" call defx#custom#column('git', 'column_length', 1)
-" call defx#custom#column('git', 'max_indicator_width', 0)
 
 " I want to update defx status automatically when changing file.
 autocmd BufWritePost * call defx#redraw()

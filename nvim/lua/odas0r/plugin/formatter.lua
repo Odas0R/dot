@@ -2,8 +2,24 @@ local Utils = require("odas0r.utils")
 
 local M = {}
 
+local function is_extension(extensions)
+  local current_file = vim.fn.expand("%:e")
+  for _, extension in ipairs(extensions) do
+    if current_file == extension then
+      return true
+    end
+  end
+  return false
+end
+
 M.init = function()
-  Utils.map("n", "gp", "<cmd>FormatWrite<CR>", { silent = false })
+  Utils.map("n", "gp", function()
+    if is_extension({ "json", "md" }) then
+      return nil
+    end
+
+    return "<cmd>FormatWrite<CR>"
+  end, { silent = false })
 end
 
 M.config = function()

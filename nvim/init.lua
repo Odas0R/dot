@@ -1,7 +1,6 @@
 local Utils = require("odas0r.utils")
 
-
-vim.python3_host_prog='/usr/bin/python3'
+vim.python3_host_prog = "/usr/bin/python3"
 
 -----------------------------------------
 -- Lazy package manager installer
@@ -242,10 +241,10 @@ augroup END
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
     init = function()
-      require("odas0r.plugin.lspconfig").init()
+      require("odas0r.plugin.lsp").init()
     end,
     config = function()
-      require("odas0r.plugin.lspconfig").config()
+      require("odas0r.plugin.lsp").config()
     end,
   },
   { "onsails/lspkind-nvim", event = { "BufReadPre", "BufNewFile" } },
@@ -269,6 +268,14 @@ augroup END
     },
     init = require("odas0r.plugin.nvim-cmp").init,
     config = require("odas0r.plugin.nvim-cmp").config,
+  },
+  {
+    "dawsers/edit-code-block.nvim",
+    config = function()
+      require("ecb").setup({
+        wincmd = "split", -- this is the default way to open the code block window
+      })
+    end,
   },
   { "sirver/UltiSnips", event = { "BufReadPre", "BufNewFile" } },
   {
@@ -304,3 +311,9 @@ augroup END
 
 -- import local plugins
 require("odas0r")
+
+vim.cmd([[
+  syntax include @HTML syntax/html.vim
+  syntax include @TypeScript syntax/typescript.vim
+  syntax region scriptTag start=+<script\>+ end=+</script>+ contains=@TypeScript
+]])
