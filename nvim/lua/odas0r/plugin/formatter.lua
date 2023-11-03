@@ -14,11 +14,7 @@ end
 
 M.init = function()
   Utils.map("n", "gp", function()
-    if is_extension({ "json", "md" }) then
-      return nil
-    end
-
-    return "<cmd>FormatWrite<CR>"
+    vim.cmd("FormatWrite")
   end, { silent = false })
 end
 
@@ -27,6 +23,9 @@ M.config = function()
   local util = require("formatter.util")
 
   local prettierConfig = function()
+    if is_extension({ "json", "md" }) then
+      return nil
+    end
     -- set env variable
     return {
       exe = "prettier",

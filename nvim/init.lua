@@ -182,8 +182,9 @@ augroup END
     "github/copilot.vim",
     cmd = "Copilot",
     event = "InsertEnter",
+    commit = "59c02393c99335392e9cb572cb47951bbb4de6be",
     init = function()
-      vim.g.copilot_node_command = "/home/odas0r/.nvm/versions/node/v16.19.1/bin/node"
+      vim.g.copilot_node_command = "/home/odas0r/.nvm/versions/node/v20.6.1/bin/node"
       vim.g.copilot_filetypes = {
         ["*"] = false,
         ["javascript"] = true,

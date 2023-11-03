@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+FONT_DIR="/usr/share/fonts"
+echo "Looking for .otf and .ttf fonts..."
+
+# Find all .otf and .ttf files and store the list in an array
+mapfile -t fonts < <(find . -type f \( -iname "*.ttf" -o -iname "*.otf" \))
+
+# Check if any fonts were found
+if [ ${#fonts[@]} -eq 0 ]; then
+    echo "No fonts found. Exiting."
+    exit 1
+fi
+
+# Show the list of fonts found
+echo "The following fonts will be installed:"
+printf "%s\n" "${fonts[@]}"
+
+# Ask for confirmation
+read -rp "Proceed with installation? (y/N) " response
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]];then
+    # Copy the fonts to the system directory
+    for font in "${fonts[@]}"; do
+        echo "Installing font: $font"
+        sudo cp "$font" "$FONT_DIR"
+    done
+
+    # Update the font cache
+    echo "Updating font cache..."
+    sudo fc-cache -fv
+else
+    echo "Font installation cancelled."
+    exit 1
+fi
+
+# restart figma font service
+systemctl status figma-linux-font-helper.service

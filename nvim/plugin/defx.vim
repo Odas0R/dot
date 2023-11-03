@@ -4,9 +4,10 @@
 "
 " -------------------------------------------------------------
 
-" nnoremap \ <cmd>Defx -resume -columns=mark:indent:icon:indent:filename:space:git -search=`expand('%:p')` `expand('%:p:h')`<CR>
-nnoremap \ <cmd>Defx -split=vertical -winwidth=50 -direction=topleft -toggle -winborder=3 -resume
-  \ -columns=mark:indent:icon:indent:filename: <CR>
+nnoremap \ <cmd>Defx -toggle -resume -columns=mark:indent:icon:indent:filename:space:git -search=`expand('%:p')` `expand('%:p:h')`<CR>
+
+" -split=vertical -winwidth=50 -direction=topleft -winborder=3 -resume
+" nnoremap \ <cmd>Defx -toggle -columns=mark:indent:icon:indent:filename: <CR>
 
 
 autocmd FileType defx call s:defx_my_settings()
@@ -45,7 +46,7 @@ function! s:defx_my_settings() abort
         \ defx#do_action('yank_path')
   nnoremap <silent><buffer><expr> .
         \ defx#do_action('toggle_ignored_files')
-  nnoremap <silent><buffer><expr> H
+  nnoremap <silent><buffer><expr> h
         \ defx#do_action('cd', ['..'])
   nnoremap <silent><buffer><expr> L
         \ defx#do_action('toggle_select') . 'j'
