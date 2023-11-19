@@ -38,7 +38,7 @@ end
 
 local toggle_many = function()
   local bufnr = vim.api.nvim_buf_get_number(0)
-local cursor = vim.api.nvim_win_get_cursor(0)
+  local cursor = vim.api.nvim_win_get_cursor(0)
 
   local pos_cursor = vim.fn.getpos(".")
   local pos = vim.fn.getpos("v")

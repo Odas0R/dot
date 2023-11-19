@@ -141,3 +141,12 @@ Utils.autocmd({ "BufEnter" }, {
     end)
   end,
 })
+
+-- when tsconfig.json use json filetype instead of jsonc (jsonc is not supported by lsp)
+Utils.autocmd("BufRead", {
+  pattern = { "tsconfig.json" },
+  group = Utils.augroup("tsconfig_jsonc"),
+  callback = function()
+    vim.opt_local.filetype = "json"
+  end,
+})

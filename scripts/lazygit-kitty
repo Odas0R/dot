@@ -8,10 +8,10 @@ set -euo pipefail
 # 2>&1 redirects stderr (file descriptor 2) to stdout (file descriptor 1), so any
 # output sent to stderr by the nvim command will be captured into the currentPath
 # variable.
-if [[ ! -S "$NVIM_SOCKET" ]] || [[ ! -f "$HOME/.nvim-buf" ]]; then
-  lazygit "$@"
-  exit 0
-fi
+# if [[ ! -S "$NVIM_SOCKET" ]] || [[ ! -f "$HOME/.nvim-buf" ]]; then
+#   lazygit "$@"
+#   exit 0
+# fi
 
 currentBufferPath="$(cat "$HOME/.nvim-buf")"
 dirPath="$(dirname "$currentBufferPath")"

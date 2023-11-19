@@ -27,15 +27,6 @@ M.config = function()
   require("nvim-treesitter.configs").setup({
     highlight = { 
       enable = true,
-      -- TODO?
-      -- is_supported = function (lang, bufnr)
-      --   local max_filesize = 100 * 1024 -- 100 KB
-      --   local fsize = vim.fn.getfsize(vim.fn.expand('@%'))
-      --   if fsize > max_filesize then
-      --     return false
-      --   end
-      --   return true
-      -- end,
     },
     indent = { enable = false },
     ensure_installed = {
@@ -84,13 +75,13 @@ M.config = function()
 
     -- disable slow treesitter highlight for large files
     -- https://github.com/nvim-treesitter/nvim-treesitter
-    disable = function(lang, buf)
-      local max_filesize = 100 * 1024 -- 100 KB
-      local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-      if ok and stats and stats.size > max_filesize then
-        return true
-      end
-    end,
+    -- disable = function(lang, buf)
+    --   local max_filesize = 100 * 1024 -- 100 KB
+    --   local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+    --   if ok and stats and stats.size > max_filesize then
+    --     return true
+    --   end
+    -- end,
   })
 end
 
