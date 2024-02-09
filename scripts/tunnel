@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# start a cloudflared tunnel on a given domain to a given localhost
+# usage: tunnel <tunnel> <localhost> | <localhost>
+# example: tunnel localhost:80
+
+DEFAULT_TUNNEL="preview"
+
+if [[ $# -eq 1 ]]; then
+  tunnel="$DEFAULT_TUNNEL"
+  localhost="$1"
+elif [[ $# -eq 2 ]]; then
+  tunnel="$1"
+  localhost="$2"
+else
+  echo "usage: tunnel <tunnel> <localhost> | <localhost>"
+  exit 1
+fi
+
+echo
+echo "starting tunnel $tunnel to $localhost"
+echo "press ctrl-c to stop"
+echo
+
+# check if the tunnel exists
+if ! cloudflared tunnel list | grep -q "$tunnel"; then
+  echo "tunnel $tunnel does not exist"
+  exit 1
+fi
+
+# start the tunnel
+cloudflared tunnel --url "$localhost" run "$tunnel"

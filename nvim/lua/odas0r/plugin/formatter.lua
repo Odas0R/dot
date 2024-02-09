@@ -23,9 +23,10 @@ M.config = function()
   local util = require("formatter.util")
 
   local prettierConfig = function()
-    if is_extension({ "json", "jsonc", "md" }) then
-      return nil
-    end
+    -- if is_extension({ "json", "jsonc", "md" }) then
+    --   return nil
+    -- end
+
     -- set env variable
     return {
       exe = "prettier",

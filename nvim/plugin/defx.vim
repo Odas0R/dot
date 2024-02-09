@@ -27,7 +27,7 @@ function! s:defx_my_settings() abort
   nnoremap <silent><buffer><expr> l
         \ defx#do_action('open_tree', 'toggle')
   nnoremap <silent><buffer><expr> <CR>
-        \ defx#do_action('drop')
+        \ defx#do_action('open')
   nnoremap <silent><buffer><expr> P
         \ defx#do_action('preview')
   nnoremap <silent><buffer><expr> d

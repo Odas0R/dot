@@ -38,9 +38,9 @@ M.config = function()
       end,
     },
     -- This does no "performance" improvement, cmp is very fast.
-    performance = {
-      trigger_debounce_time = 100,
-    },
+    -- performance = {
+    --   trigger_debounce_time = 100,
+    -- },
     experimental = {
       ghost_text = false, -- this feature conflict with copilot.vim's preview.
     },
@@ -52,6 +52,13 @@ M.config = function()
       disallow_partial_matching = true,
     },
     mapping = {
+      ["<c-a>"] = cmp.mapping.complete({
+        config = {
+          sources = {
+            { name = "cody" },
+          },
+        },
+      }),
       ["<C-n>"] = cmp.mapping.select_next_item(),
       ["<C-p>"] = cmp.mapping.select_prev_item(),
       ["<C-u>"] = cmp.mapping.scroll_docs(-4),
@@ -75,6 +82,7 @@ M.config = function()
         name = "zet",
         priority = 1000,
       },
+      { name = "cody" },
       { name = "nvim_lua" },
       { name = "nvim_lsp" },
       { name = "path" },
@@ -106,6 +114,7 @@ M.config = function()
           ["vim-dadbod-completion"] = "[SQL]",
           ultisnips = "[Snip]",
           buffer = "[Buffer]",
+          cody = "[Cody]",
         },
       }),
     },

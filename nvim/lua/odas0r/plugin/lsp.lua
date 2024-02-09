@@ -99,7 +99,7 @@ M.config = function()
 
         buf_set_keymap(bufnr, "n", "<leader>gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
         buf_set_keymap(bufnr, "n", "<leader>go", "<cmd>TypescriptOrganizeImports<CR>", opts)
-        buf_set_keymap(bufnr, "n", "<leader>gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
+        -- buf_set_keymap(bufnr, "n", "<leader>gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
       end,
       capabilities = capabilities,
       flags = flags,

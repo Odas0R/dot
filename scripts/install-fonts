@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-FONT_DIR="/usr/share/fonts"
+FONT_DIR="$HOME/.local/share/fonts/"
 echo "Looking for .otf and .ttf fonts..."
 
 # Find all .otf and .ttf files and store the list in an array
@@ -36,4 +36,4 @@ else
 fi
 
 # restart figma font service
-systemctl status figma-linux-font-helper.service
+sudo systemctl restart figma-linux-font-helper.service

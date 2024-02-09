@@ -25,13 +25,14 @@ end
 
 M.config = function()
   require("nvim-treesitter.configs").setup({
-    highlight = { 
+    highlight = {
       enable = true,
     },
     indent = { enable = false },
     ensure_installed = {
       "bash",
       "c",
+      "go",
       "html",
       "javascript",
       "json",
@@ -66,13 +67,6 @@ M.config = function()
       highlight_definitions = { enable = true },
     },
 
-    -- nvim-ts-context-commentstring integration with Comment.nvim
-    -- https://github.com/JoosepAlviste/nvim-ts-context-commentstring#commentnvim
-    context_commentstring = {
-      enable = true,
-      enable_autocmd = false,
-    },
-
     -- disable slow treesitter highlight for large files
     -- https://github.com/nvim-treesitter/nvim-treesitter
     -- disable = function(lang, buf)
@@ -82,6 +76,15 @@ M.config = function()
     --     return true
     --   end
     -- end,
+  })
+
+  -- nvim-ts-context-commentstring integration with Comment.nvim
+  -- https://github.com/JoosepAlviste/nvim-ts-context-commentstring#commentnvim
+  require("ts_context_commentstring").setup({
+    enable_autocmd = false,
+    languages = {
+      typescript = "// %s",
+    },
   })
 end
 

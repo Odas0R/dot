@@ -9,5 +9,6 @@ mkdir -p "$KITTY"
 # create symlinks for the config & theme files
 ln -sf "$DOT_FILES/kitty/kitty.conf" "$KITTY/kitty.conf"
 ln -sf "$DOT_FILES/kitty/themes" "$KITTY/themes"
+ln -sf "$DOT_FILES/kitty/tab_bar.py" "$KITTY/tab_bar.py"
 
 echo "Kitty setup done! ⭐"

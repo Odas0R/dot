@@ -11,7 +11,7 @@ if [ -n "${DISPLAY}" ]; then
   if _hasDuckyKeyboard; then
     setxkbmap -layout pt -model macbook79
   else
-    setxkbmap -layout pt -model pc101
+    setxkbmap -layout pt -model pc102
   fi
 
   # Default Options

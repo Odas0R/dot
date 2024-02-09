@@ -59,7 +59,7 @@ require("lazy").setup({
           -- https://github.com/ellisonleao/gruvbox.nvim/blob/main/lua/gruvbox/groups.lua
           -- Identifiers should be white for better readibility, but not too
           -- bright, the blue is terrible.
-          Identifier = { link = "GruvboxFg1" },
+          Identifier = { link = "GruvboxFg2" },
         },
         dim_inactive = false,
         transparent_mode = false,
@@ -153,6 +153,7 @@ augroup END
   { "jose-elias-alvarez/typescript.nvim", event = { "BufReadPre", "BufNewFile" } },
   {
     "dmmulroy/tsc.nvim",
+    tag = "v1.8.0",
     cmd = { "TSC" },
     init = function()
       require("tsc").setup({
@@ -179,10 +180,21 @@ augroup END
     config = require("odas0r.plugin.comment").config,
   }, -- comment
   {
+    "sourcegraph/sg.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      require("sg").setup({
+        enable_cody = true,
+        accept_tos = true,
+        node_executable = "/home/odas0r/.nvm/versions/node/v20.6.1/bin/node",
+      })
+    end,
+  },
+  {
     "github/copilot.vim",
     cmd = "Copilot",
     event = "InsertEnter",
-    commit = "59c02393c99335392e9cb572cb47951bbb4de6be",
+    commit = "5b19fb001d7f31c4c7c5556d7a97b243bd29f45f",
     init = function()
       vim.g.copilot_node_command = "/home/odas0r/.nvm/versions/node/v20.6.1/bin/node"
       vim.g.copilot_filetypes = {
@@ -198,9 +210,13 @@ augroup END
         ["sql"] = true,
         ["sh"] = true,
         ["bash"] = true,
+        ["yaml"] = true,
+        ["yml"] = true,
+        ["dockerfile"] = true,
         ["go"] = true,
         ["java"] = true,
         ["json"] = true,
+        ["python"] = true,
         ["jsonc"] = true,
         ["make"] = true,
         ["astro"] = true,
@@ -283,12 +299,8 @@ augroup END
   {
     "mhartington/formatter.nvim",
     cmd = "FormatWrite",
-    init = function()
-      require("odas0r.plugin.formatter").init()
-    end,
-    config = function()
-      require("odas0r.plugin.formatter").config()
-    end,
+    init = require("odas0r.plugin.formatter").init,
+    config = require("odas0r.plugin.formatter").config,
   },
 }, {
   dev = {
@@ -313,9 +325,3 @@ augroup END
 
 -- import local plugins
 require("odas0r")
-
-vim.cmd([[
-  syntax include @HTML syntax/html.vim
-  syntax include @TypeScript syntax/typescript.vim
-  syntax region scriptTag start=+<script\>+ end=+</script>+ contains=@TypeScript
-]])
