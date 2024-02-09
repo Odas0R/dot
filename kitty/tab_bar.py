@@ -20,6 +20,8 @@ icon_bg = as_rgb(color_as_int(opts.color8))
 bat_text_color = as_rgb(color_as_int(opts.color15))
 clock_color = as_rgb(color_as_int(opts.color15))
 date_color = as_rgb(color_as_int(opts.color8))
+pomo_fg = as_rgb(color_as_int(opts.color11))  # Bright color for text
+pomo_bg = as_rgb(color_as_int(opts.color1))   # Dark color for background
 SEPARATOR_SYMBOL, SOFT_SEPARATOR_SYMBOL = ("", "")
 RIGHT_MARGIN = 1
 REFRESH_TIME = 1
@@ -103,39 +105,12 @@ def _redraw_tab_bar(_):
         tm.mark_tab_bar_dirty()
 
 
-# def get_battery_cells() -> list:
-#     try:
-#         with open("/sys/class/power_supply/BAT0/status", "r") as f:
-#             status = f.read()
-#         with open("/sys/class/power_supply/BAT0/capacity", "r") as f:
-#             percent = int(f.read())
-#         if status == "Discharging\n":
-#             # TODO: declare the lambda once and don't repeat the code
-#             icon_color = UNPLUGGED_COLORS[
-#                 min(UNPLUGGED_COLORS.keys(), key=lambda x: abs(x - percent))
-#             ]
-#             icon = UNPLUGGED_ICONS[
-#                 min(UNPLUGGED_ICONS.keys(), key=lambda x: abs(x - percent))
-#             ]
-#         elif status == "Not charging\n":
-#             icon_color = UNPLUGGED_COLORS[
-#                 min(UNPLUGGED_COLORS.keys(), key=lambda x: abs(x - percent))
-#             ]
-#             icon = PLUGGED_ICONS[
-#                 min(PLUGGED_ICONS.keys(), key=lambda x: abs(x - percent))
-#             ]
-#         else:
-#             icon_color = PLUGGED_COLORS[
-#                 min(PLUGGED_COLORS.keys(), key=lambda x: abs(x - percent))
-#             ]
-#             icon = PLUGGED_ICONS[
-#                 min(PLUGGED_ICONS.keys(), key=lambda x: abs(x - percent))
-#             ]
-#         percent_cell = (bat_text_color, str(percent) + "% ")
-#         icon_cell = (icon_color, icon)
-#         return [percent_cell, icon_cell]
-#     except FileNotFoundError:
-#         return []
+def get_pomodoro_status() -> str:
+    try:
+        output = subprocess.check_output(["pomo", "print"], text=True)
+        return output.strip()
+    except subprocess.CalledProcessError as e:
+        return "Error: " + str(e)
 
 
 timer_id = None
@@ -158,7 +133,6 @@ def draw_tab(
         timer_id = add_timer(_redraw_tab_bar, REFRESH_TIME, True)
     clock = datetime.now().strftime(" %H:%M:%S")
     date = datetime.now().strftime(" %d-%m-%Y")
-    pomo_status = get_pomodoro_status()  # Fetch the pomodoro status
     cells = [(clock_color, clock), (date_color, date)]
     right_status_length = RIGHT_MARGIN + sum(len(cell[1]) for cell in cells)
 
@@ -174,16 +148,18 @@ def draw_tab(
         extra_data,
     )
 
-    # Calculate center space and position for pomodoro status
-    center_space = screen.columns - left_end - right_status_length
-    pomo_status_len = len(pomo_status)
-    if center_space > pomo_status_len:
-        start_pos = left_end + (center_space - pomo_status_len) // 2
-        screen.cursor.bold = True
-        screen.cursor.x = max(start_pos, left_end)
-        screen.cursor.fg = bat_text_color
-        screen.draw(pomo_status)
-        screen.cursor.bold = False
+    if is_last:
+        # Calculate center space and position for pomodoro status
+        pomo_status = get_pomodoro_status()
+        center_space = screen.columns - left_end - right_status_length
+        pomo_status_len = len(pomo_status)
+        if center_space > pomo_status_len:
+            start_pos = left_end + (center_space - pomo_status_len) // 2
+            screen.cursor.bold = True
+            screen.cursor.x = max(start_pos, left_end)
+            screen.cursor.fg = bat_text_color
+            screen.draw(pomo_status)
+            screen.cursor.bold = False
 
     _draw_right_status(
         screen,
@@ -191,11 +167,3 @@ def draw_tab(
         cells,
     )
     return screen.cursor.x
-
-
-def get_pomodoro_status() -> str:
-    try:
-        output = subprocess.check_output(["pomo", "print"], text=True)
-        return output.strip()
-    except subprocess.CalledProcessError as e:
-        return "Error: " + str(e)
