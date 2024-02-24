@@ -37,12 +37,19 @@ require("lazy").setup({
     lazy = false,
     priority = 1000,
     config = function()
+      local Gruvbox = require("odas0r.gruvbox")
+
+      local colors = Gruvbox.colors()
+      local config = Gruvbox.config()
+
       require("gruvbox").setup({
+        terminal_colors = true, -- add neovim terminal colors
         undercurl = true,
         underline = true,
         bold = true,
         italic = {
           strings = true,
+          emphasis = true,
           comments = true,
           operators = false,
           folds = true,
@@ -59,7 +66,12 @@ require("lazy").setup({
           -- https://github.com/ellisonleao/gruvbox.nvim/blob/main/lua/gruvbox/groups.lua
           -- Identifiers should be white for better readibility, but not too
           -- bright, the blue is terrible.
-          Identifier = { link = "GruvboxFg2" },
+          Identifier = { link = "GruvboxFg1" },
+
+          -- This fixes markdown omg!
+          ["@text"] = { link = "GruvboxFg1" },
+          ["@text.strong"] = { bold = config.bold, fg = colors.yellow },
+          ["@text.emphasis"] = { italic = config.italic.emphasis, fg = colors.purple },
         },
         dim_inactive = false,
         transparent_mode = false,
@@ -194,7 +206,7 @@ augroup END
     "github/copilot.vim",
     cmd = "Copilot",
     event = "InsertEnter",
-    commit = "5b19fb001d7f31c4c7c5556d7a97b243bd29f45f",
+    -- commit = "5b19fb001d7f31c4c7c5556d7a97b243bd29f45f",
     init = function()
       vim.g.copilot_node_command = "/home/odas0r/.nvm/versions/node/v20.6.1/bin/node"
       vim.g.copilot_filetypes = {

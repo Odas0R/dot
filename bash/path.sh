@@ -42,8 +42,8 @@ export PNPM_HOME="/home/odas0r/.local/share/pnpm"
 export ZET="$HOME/github.com/odas0r/zet"
 
 # Go
-export GOROOT="/usr/local/go/bin"
-export GOPATH="$HOME/go/bin"
+export GOROOT="/usr/local/go"
+export GOPATH="$HOME/go"
 
 # Cargo
 export CARGOPATH="/home/odas0r/.cargo"
@@ -71,7 +71,7 @@ export FLUTTER_BIN="$HOME/flutter/bin"
 
 # Global Path
 PATH="$PATH:/bin:/usr/local/bin:"
-PATH+="$GOROOT:$GOPATH:"
+PATH+="$GOROOT/bin:$GOPATH/bin:"
 PATH+="$CARGOPATH/bin:"
 PATH+="$PERLPATH/bin:"
 PATH+="$DENO_INSTALL/bin:"

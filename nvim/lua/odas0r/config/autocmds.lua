@@ -111,14 +111,14 @@ Utils.autocmd({ "BufEnter" }, {
   pattern = { "*.md", "*.txt" },
   group = Utils.augroup("write_options"),
   callback = function()
-    vim.opt_local.conceallevel = 0
-    vim.opt_local.spell = true
-    vim.opt_local.number = false
-    vim.opt_local.relativenumber = false
-    vim.opt_local.tw = 79
-    vim.opt_local.foldlevel = 99
-    vim.opt_local.wrap = true
-    vim.opt_local.linebreak = true
+    local opt = vim.opt_local
+    opt.spell = true
+    opt.number = false
+    opt.relativenumber = false
+    opt.tw = 79
+    opt.foldlevel = 99
+    opt.wrap = true
+    opt.linebreak = true
   end,
 })
 
@@ -143,10 +143,10 @@ Utils.autocmd({ "BufEnter" }, {
 })
 
 -- when tsconfig.json use json filetype instead of jsonc (jsonc is not supported by lsp)
-Utils.autocmd("BufRead", {
-  pattern = { "tsconfig.json" },
-  group = Utils.augroup("tsconfig_jsonc"),
-  callback = function()
-    vim.opt_local.filetype = "json"
-  end,
-})
+-- Utils.autocmd("BufRead", {
+--   pattern = { "tsconfig.json" },
+--   group = Utils.augroup("tsconfig_jsonc"),
+--   callback = function()
+--     vim.opt_local.filetype = "json"
+--   end,
+-- })

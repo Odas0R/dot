@@ -52,9 +52,9 @@ opt.winminwidth = 5 -- Minimum window width
 opt.wrap = false -- Disable line wrap
 
 -- more risky, but cleaner
-vim.opt.backup = false
-vim.opt.writebackup = false
-vim.opt.swapfile = false
+opt.backup = false
+opt.writebackup = false
+opt.swapfile = false
 
 if vim.fn.has("nvim-0.9.0") == 1 then
   opt.splitkeep = "screen"
@@ -64,9 +64,6 @@ end
 -- dictionary
 opt.spelllang = { "en", "pt_pt" }
 opt.encoding = "utf-8"
-
--- Fix markdown indentation settings
-vim.g.markdown_recommended_style = 0
 
 ------------------------------------------------
 -- OLD OPTIONS
