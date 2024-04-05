@@ -19,4 +19,5 @@ dirPath="$(dirname "$currentBufferPath")"
 cd "$dirPath" || exit 1
 
 topDir=$(git rev-parse --show-toplevel 2>/dev/null)
+
 lazygit --path "$topDir" "$@"

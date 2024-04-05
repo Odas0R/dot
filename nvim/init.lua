@@ -1,5 +1,6 @@
 local Utils = require("odas0r.utils")
 
+-- tell neovim where to find python3
 vim.python3_host_prog = "/usr/bin/python3"
 
 -----------------------------------------
@@ -151,7 +152,6 @@ augroup END
 
   -- General
   { "nvim-lua/plenary.nvim" },
-  { "wakatime/vim-wakatime", event = "VeryLazy" },
   {
     "ThePrimeagen/harpoon",
     init = function()
@@ -192,23 +192,12 @@ augroup END
     config = require("odas0r.plugin.comment").config,
   }, -- comment
   {
-    "sourcegraph/sg.nvim",
-    dependencies = { "nvim-lua/plenary.nvim" },
-    config = function()
-      require("sg").setup({
-        enable_cody = true,
-        accept_tos = true,
-        node_executable = "/home/odas0r/.nvm/versions/node/v20.6.1/bin/node",
-      })
-    end,
-  },
-  {
     "github/copilot.vim",
     cmd = "Copilot",
     event = "InsertEnter",
     -- commit = "5b19fb001d7f31c4c7c5556d7a97b243bd29f45f",
     init = function()
-      vim.g.copilot_node_command = "/home/odas0r/.nvm/versions/node/v20.6.1/bin/node"
+      vim.g.copilot_node_command = vim.fn.expand("$HOME") .. "/.volta/bin/node"
       vim.g.copilot_filetypes = {
         ["*"] = false,
         ["javascript"] = true,

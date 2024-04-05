@@ -16,6 +16,8 @@ FZF_STYLES="--height=90% --layout=reverse --preview-window right:60%"
 # 	--color=info:#7aa2f7,prompt:#7dcfff,pointer:#7dcfff
 # 	--color=marker:#9ece6a,spinner:#9ece6a,header:#9ece6a'
 
+export FZF_TMUX_OPTS='-p 100%,40% -y P'
+
 export FZF_DEFAULT_OPTS="--no-mouse ${FZF_STYLES} ${FZF_BINDS}"
 
 export FZF_DEFAULT_COMMAND="fd --hidden --type f --type l ${FD_OPTIONS}"

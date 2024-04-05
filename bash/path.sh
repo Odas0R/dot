@@ -25,10 +25,11 @@ export DOT="$HOME/github.com/odas0r/dot"
 export DENO_INSTALL="/home/odas0r/.deno"
 
 # NVM (Node Version Manager)
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
-export NODE_VERSION=16.19.1
+export VOLTA_HOME="$HOME/.volta"
+export NODE_VERSION=20.12.1
 
 # pnpm package manager
 export PNPM_HOME="/home/odas0r/.local/share/pnpm"
@@ -86,6 +87,7 @@ PATH+="$ANDROID_STUDIO_HOME/bin:"
 PATH+="$ANDROID_SDK_BUILD_TOOLS:"
 PATH+="$ANDROID_SDK_PLATFORM_TOOLS:"
 PATH+="$ANDROID_SDK_EMULATOR:"
-PATH+="$PNPM_HOME"
+PATH+="$PNPM_HOME:"
+PATH+="$VOLTA_HOME/bin"
 
 export PATH
