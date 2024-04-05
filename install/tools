@@ -21,21 +21,6 @@ npm install -g \
   @go-task/cli \
   wrangler
 
-# Use the LSP servers from the bun runtime, which is way faster
-#
-if [[ ! -x "$(command -v bun)" ]]; then
-  echo "You need to install bun"
-  exit 1
-fi
-
-bun add --global \
-  typescript-language-server \
-  @tailwindcss/language-server \
-  @astrojs/language-server \
-  vscode-langservers-extracted \
-  bash-language-server \
-  @fsouza/prettierd
-
 #####################################
 # Installed via APT
 #####################################

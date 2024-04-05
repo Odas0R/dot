@@ -120,7 +120,7 @@ M.config = function()
       end,
       function()
         return {
-          exe = "gofmt",
+          exe = "go fmt",
           stdin = true,
         }
       end,
