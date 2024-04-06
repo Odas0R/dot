@@ -7,7 +7,7 @@ if [[ ! -x "$(command -v gh)" ]]; then
   exit 1
 fi
 
-DOT_GH="$HOME/github.com/odas0r/gh"
+DOT_GH="$HOME/github.com/odas0r/dot"
 
 # create gh config directory
 mkdir -p "$HOME/.config/gh"

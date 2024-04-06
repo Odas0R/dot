@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd /tmp
+
 curl https://get.volta.sh | bash
 
 # install the lts node

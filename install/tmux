@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+sudo apt install libevent-dev ncurses-dev build-essential bison pkg-config
+
 rm -rf /tmp/tmux
 
 git clone https://github.com/tmux/tmux.git /tmp/tmux
@@ -11,7 +13,6 @@ git checkout 3.3a
 sh autogen.sh
 
 ./configure && make
-
 sudo make install
 
 cd - || exit 1
