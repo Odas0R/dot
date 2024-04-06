@@ -6,7 +6,8 @@ set -eo pipefail
 # usage: tunnel <tunnel> <localhost> | <localhost>
 # example: tunnel localhost:80
 
-DEFAULT_TUNNEL="preview"
+# DEFAULT_TUNNEL="preview"
+DEFAULT_TUNNEL="odas0r"
 
 if [[ $# -eq 1 ]]; then
   tunnel="$DEFAULT_TUNNEL"

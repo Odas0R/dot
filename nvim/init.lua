@@ -105,11 +105,10 @@ require("lazy").setup({
     event = "VeryLazy",
     config = require("odas0r.plugin.lualine").config,
   },
-
   -- Telescope
   {
     "nvim-telescope/telescope.nvim",
-    tag = "0.1.2",
+    tag = "0.1.6",
     lazy = false,
     init = require("odas0r.plugin.telescope").init,
     config = require("odas0r.plugin.telescope").config,
@@ -122,7 +121,6 @@ require("lazy").setup({
     event = { "BufReadPre", "BufNewFile" },
     init = function()
       vim.g.signify_disable_by_default = 0
-
       Utils.map({ "n", "i" }, "<leader>gj", "<Plug>(signify-next-hunk)<cmd>SignifyHunkDiff<CR>", { silent = true })
       Utils.map({ "n", "i" }, "<leader>gk", "<Plug>(signify-prev-hunk)<cmd>SignifyHunkDiff<CR>", { silent = true })
       Utils.map({ "n", "i" }, "<leader>gh", "<cmd>SignifyHunkDiff<CR>", { silent = true })
@@ -241,16 +239,6 @@ augroup END
     build = ":UpdateRemotePlugins",
   },
 
-  -- database
-  {
-    "tpope/vim-dadbod",
-    event = { "BufReadPre", "BufNewFile" },
-    init = function()
-      vim.g.db = "postgres://postgres:postgres@localhost:5432/postgres"
-      vim.g.completion_matching_ignore_case = 1
-    end,
-  },
-
   -- lsp, Completion Engine
   {
     "neovim/nvim-lspconfig",
@@ -273,7 +261,6 @@ augroup END
       "hrsh7th/cmp-buffer",
       "hrsh7th/cmp-path",
       "quangnguyen30192/cmp-nvim-ultisnips",
-      "kristijanhusak/vim-dadbod-completion",
       {
         "odas0r/cmp-zet",
         dev = true,
@@ -284,14 +271,6 @@ augroup END
     init = require("odas0r.plugin.nvim-cmp").init,
     config = require("odas0r.plugin.nvim-cmp").config,
   },
-  {
-    "dawsers/edit-code-block.nvim",
-    config = function()
-      require("ecb").setup({
-        wincmd = "split", -- this is the default way to open the code block window
-      })
-    end,
-  },
   { "sirver/UltiSnips", event = { "BufReadPre", "BufNewFile" } },
   {
     "mhartington/formatter.nvim",
@@ -301,7 +280,7 @@ augroup END
   },
 }, {
   dev = {
-    path = "/home/odas0r/github.com/odas0r/dot/nvim/lua/odas0r",
+    path = os.getenv("HOME") .. "/github.com/odas0r/dot/nvim/lua/odas0r",
   },
   default = {
     lazy = true,

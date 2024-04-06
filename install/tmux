@@ -4,9 +4,9 @@ rm -rf /tmp/tmux
 
 git clone https://github.com/tmux/tmux.git /tmp/tmux
 
-cd /tmp/tmux
+cd /tmp/tmux  || exit 1
 
-git checkout 3.3
+git checkout 3.3a
 
 sh autogen.sh
 
@@ -14,6 +14,6 @@ sh autogen.sh
 
 sudo make install
 
-cd -
+cd - || exit 1
 
 rm -fr /tmp/tmux

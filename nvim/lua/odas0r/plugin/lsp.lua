@@ -13,8 +13,8 @@ M.config = function()
     vim.api.nvim_buf_set_keymap(bufnr, ...)
   end
 
-  local buf_set_option = function(bufnr, ...)
-    vim.api.nvim_buf_set_option(bufnr, ...)
+  local buf_set_option = function(bufnr, option, value)
+    vim.api.nvim_set_option_value(option, value, { buf = bufnr })
   end
 
   local keymap_opts = { noremap = true, silent = true }
@@ -43,6 +43,7 @@ M.config = function()
       },
     },
   }
+
 
   -- Inject lsp thingy into nvim-cmp
   local capabilities = vim.tbl_deep_extend("keep", default_caps, require("cmp_nvim_lsp").default_capabilities())
@@ -87,32 +88,32 @@ M.config = function()
   --   require("typescript").actions.removeUnused()
   -- end, {})
 
-  require("typescript").setup({
-    debug = false,
-    server = {
-      on_attach = function(_, bufnr)
-        on_attach(nil, bufnr)
-
-        -- Mappings.
-        local opts = { noremap = true, silent = true }
-        buf_set_keymap(bufnr, "n", "gD", "<cmd>TypescriptGoToSourceDefinition<CR>", opts)
-
-        buf_set_keymap(bufnr, "n", "<leader>gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
-        buf_set_keymap(bufnr, "n", "<leader>go", "<cmd>TypescriptOrganizeImports<CR>", opts)
-        -- buf_set_keymap(bufnr, "n", "<leader>gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
-      end,
-      capabilities = capabilities,
-      flags = flags,
-      filetypes = {
-        "javascript",
-        "javascriptreact",
-        "javascript.jsx",
-        "typescript",
-        "typescriptreact",
-        "typescript.tsx",
-      },
-    },
-  })
+  -- require("typescript").setup({
+  --   debug = false,
+  --   server = {
+  --     on_attach = function(_, bufnr)
+  --       on_attach(nil, bufnr)
+  --
+  --       -- Mappings.
+  --       local opts = { noremap = true, silent = true }
+  --       buf_set_keymap(bufnr, "n", "gD", "<cmd>TypescriptGoToSourceDefinition<CR>", opts)
+  --
+  --       buf_set_keymap(bufnr, "n", "<leader>gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
+  --       buf_set_keymap(bufnr, "n", "<leader>go", "<cmd>TypescriptOrganizeImports<CR>", opts)
+  --       -- buf_set_keymap(bufnr, "n", "<leader>gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
+  --     end,
+  --     capabilities = capabilities,
+  --     flags = flags,
+  --     filetypes = {
+  --       "javascript",
+  --       "javascriptreact",
+  --       "javascript.jsx",
+  --       "typescript",
+  --       "typescriptreact",
+  --       "typescript.tsx",
+  --     },
+  --   },
+  -- })
 
   -- npm install -g @astrojs/language-server
   require("lspconfig").astro.setup({

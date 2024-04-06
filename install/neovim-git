@@ -2,17 +2,17 @@
 
 set -euo pipefail
 
-tmpdir="$(mktemp -d)"
+# Dependencies
+sudo apt-get install -y ninja-build gettext libtool libtool-bin autoconf \
+  automake cmake g++ pkg-config unzip
 
-cd "$tmpdir"
+cd /tmp
 
-if [[ -d neovim ]]; then
-  git -C neovim pull
-else
-  git clone https://github.com/neovim/neovim
-fi
+rm -rf neovim
 
-# checkout to the specific version
+git clone https://github.com/neovim/neovim
+
+git -C neovim checkout 5c36701
 
 cd neovim && make CMAKE_BUILD_TYPE=RelWithDebInfo
 

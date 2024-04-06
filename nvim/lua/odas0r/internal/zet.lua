@@ -1,6 +1,8 @@
 local Utils = require("odas0r.utils")
 local Job = require("plenary.job")
 
+local home = os.getenv("HOME")
+
 local zet = {}
 
 zet.grep = function(query)
@@ -9,7 +11,7 @@ zet.grep = function(query)
   end
   require("telescope.builtin").live_grep(require("telescope.themes").get_dropdown({
     prompt_title = "Zet Query",
-    cwd = "$HOME/github.com/odas0r/zet",
+    cwd = home .. "/github.com/odas0r/zet",
     preview_width = 0.6,
     search_dirs = {
       "fleet",
@@ -107,8 +109,8 @@ end, {
 
 Utils.autocmd({ "BufWritePost", "BufReadPost" }, {
   pattern = {
-    "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
-    "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
+    home .. "/github.com/odas0r/zet/permanent/*.md",
+    home .. "/github.com/odas0r/zet/fleet/*.md",
     -- Testing directories
     "/tmp/zet/fleet/*.md",
     "/tmp/zet/permanent/*.md",
@@ -147,8 +149,8 @@ Utils.autocmd({ "BufWritePost", "BufReadPost" }, {
 
 Utils.autocmd({ "VimEnter", "VimLeave" }, {
   pattern = {
-    "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
-    "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
+    home .. "/github.com/odas0r/zet/permanent/*.md",
+    home .. "/github.com/odas0r/zet/fleet/*.md",
     -- Testing directories
     "/tmp/zet/fleet/*.md",
     "/tmp/zet/permanent/*.md",
@@ -192,8 +194,8 @@ function Input(opts)
   local buf = vim.api.nvim_create_buf(false, true)
 
   -- get the editor's maximum width and height
-  local width = vim.api.nvim_get_option("columns")
-  local height = vim.api.nvim_get_option("lines")
+  local width = vim.api.nvim_get_option_value("columns", { buf = buf })
+  local height = vim.api.nvim_get_option_value("lines", { buf = buf })
 
   -- calculate our floating window size
   local win_width = math.ceil(width * 0.25) -- Less width
@@ -204,8 +206,8 @@ function Input(opts)
   local col = math.ceil((width - win_width) / 2)
 
   -- set some options for our new buffer
-  vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-  vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
+  vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
+  vim.api.nvim_set_option_value("buftype", "prompt", { buf = buf })
 
   -- create a new floating window, centered in the editor
   local win = vim.api.nvim_open_win(buf, true, {
@@ -222,7 +224,8 @@ function Input(opts)
   })
 
   -- hide the line numbers
-  vim.api.nvim_win_set_option(win, "winhighlight", "Normal:FloatBorder") -- Set the background to transparent
+  
+  vim.api.nvim_set_option_value("number", false, { win = win })
   vim.cmd(string.format("autocmd WinLeave <buffer=%s> :lua vim.api.nvim_win_close(%s, true)", buf, win))
 
   -- set prompt and make it "centered" by adding leading spaces
