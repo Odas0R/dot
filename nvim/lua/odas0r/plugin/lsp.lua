@@ -175,13 +175,6 @@ M.config = function()
     },
   })
 
-  -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#hls
-  require("lspconfig").hls.setup({
-    on_attach = on_attach,
-    capabilities = capabilities,
-    flags = flags,
-  })
-
   -- npm i -g yaml-language-server
   -- require("lspconfig").yamlls.setup({
   --   on_attach = on_attach,
@@ -220,11 +213,11 @@ M.config = function()
   })
 
   -- pip install 'python-lsp-server[all]'
-  require("lspconfig").pylsp.setup({
-    on_attach = on_attach,
-    capabilities = capabilities,
-    flags = flags,
-  })
+  -- require("lspconfig").pylsp.setup({
+  --   on_attach = on_attach,
+  --   capabilities = capabilities,
+  --   flags = flags,
+  -- })
 
   require("lspconfig").dartls.setup({
     on_attach = on_attach,

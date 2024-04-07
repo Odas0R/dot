@@ -2,21 +2,7 @@ local Utils = require("odas0r.utils")
 
 local M = {}
 
-M.init = function()
-  vim.g.UltiSnipsEditSplit = "vertical"
-  vim.g.UltiSnipsSnippetDirectories = { "~/snippets/ultisnips" }
-  vim.g.UltiSnipsExpandTrigger = "<C-j>"
-  -- vim.g.UltiSnipsJumpForwardTrigger = "<C-j>"
-  -- vim.g.UltiSnipsJumpBackwardTrigger = "<C-k>"
-
-  Utils.autocmd("BufWritePost", {
-    group = Utils.augroup("ReloadSnippets"),
-    pattern = "*.snippets",
-    callback = function()
-      vim.cmd("CmpUltisnipsReloadSnippets")
-    end,
-  })
-end
+M.init = function() end
 
 M.config = function()
   -- setup lspkind
@@ -29,22 +15,21 @@ M.config = function()
 
   -- Setup nvim-cmp.
   local cmp = require("cmp")
-  local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
 
   cmp.setup({
     snippet = {
+      -- REQUIRED - you must specify a snippet engine
       expand = function(args)
-        vim.fn["UltiSnips#Anon"](args.body)
+        -- vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+        require("luasnip").lsp_expand(args.body) -- For `luasnip` users.
+        -- require('snippy').expand_snippet(args.body) -- For `snippy` users.
+        -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
+        -- vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
       end,
     },
     -- This does no "performance" improvement, cmp is very fast.
     -- performance = {
     --   debounce = 150,
-    --   throttle = 0,
-    --   fetching_timeout = 500,
-    --   confirm_resolve_timeout = 80,
-    --   async_budget = 1,
-    --   max_view_entries = 100,
     -- },
     experimental = {
       ghost_text = false, -- this feature conflict with copilot.vim's preview.
@@ -62,24 +47,13 @@ M.config = function()
       ["<C-u>"] = cmp.mapping.scroll_docs(-4),
       ["<C-d>"] = cmp.mapping.scroll_docs(4),
       ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
-      ["<C-j>"] = cmp.mapping(function(fallback)
-        cmp_ultisnips_mappings.expand_or_jump_forwards(fallback)
-      end, {
-        "i",
-        "s", --[[ "c" (to enable the mapping in command mode) ]]
-      }),
-      ["<C-k>"] = cmp.mapping(function(fallback)
-        cmp_ultisnips_mappings.jump_backwards(fallback)
-      end, {
-        "i",
-        "s", --[[ "c" (to enable the mapping in command mode) ]]
-      }),
     },
     sources = cmp.config.sources({
       {
         name = "zet",
         priority = 1000,
       },
+      { name = "luasnip" }, -- For luasnip users.
       { name = "nvim_lua" },
       { name = "nvim_lsp" },
       { name = "path" },
@@ -107,7 +81,6 @@ M.config = function()
           nvim_lsp = "[Lsp]",
           path = "[Path]",
           zet = "[Zet]",
-          ultisnips = "[Snip]",
           buffer = "[Buffer]",
           cody = "[Cody]",
         },

@@ -2,6 +2,6 @@
 
 set -e
 
-ln -sf "$DOT/alacritty/alacritty.yml" "$HOME/.alacritty.yml"
+ln -sf "$DOT/alacritty/alacritty.toml" "$HOME/.alacritty.toml"
 
 printf "Alacritty setup done! 🌟\n"

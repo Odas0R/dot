@@ -64,19 +64,19 @@ M.config = function()
   require("telescope").setup({
     defaults = {
       -- testing
-      -- preview = {
-      --   treesitter = true,
-      -- },
+      preview = {
+        treesitter = false,
+      },
       layout_strategy = "horizontal",
       layout_config = {
         height = 0.95,
         width = 0.95,
-        prompt_position = "bottom",
-        horizontal = {
+        prompt_position = "top",
+        horizontal= {
           preview_width = 60,
-        },
+        }
       },
-      sorting_strategy = "descending",
+      sorting_strategy = "ascending",
       mappings = {
         i = {
           ["<C-j>"] = actions.move_selection_next,
