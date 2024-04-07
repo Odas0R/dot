@@ -44,16 +44,13 @@ M.config = function()
     },
   }
 
-
   -- Inject lsp thingy into nvim-cmp
   local capabilities = vim.tbl_deep_extend("keep", default_caps, require("cmp_nvim_lsp").default_capabilities())
 
   -- set log level to debug for debugging
   -- vim.lsp.set_log_level("DEBUG")
 
-  local flags = {
-    debounce_text_changes = 150,
-  }
+  local flags = {}
 
   -- npm install -g typescript typescript-language-server
   -- require("lspconfig").tsserver.setup({
