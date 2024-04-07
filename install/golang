@@ -44,4 +44,4 @@ go install golang.org/x/tools/gopls@latest
 go install golang.org/x/tools/cmd/goimports@latest
 go install golang.org/x/tools/cmd/gorename@latest
 go install golang.org/x/tools/cmd/godoc@latest
-go install golang.org/x/tools/cmd/gofmt@latest
+# go install golang.org/x/tools/cmd/gofmt@latest -> now is "go fmt"

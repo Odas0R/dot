@@ -99,7 +99,7 @@ Utils.autocmd("BufWritePost", {
 
 -- Set .env as config files
 Utils.autocmd("BufRead", {
-  pattern = {"*.env*", "*.vars"},
+  pattern = { "*.env*", "*.vars" },
   group = Utils.augroup("env_filetype"),
   callback = function()
     vim.opt_local.filetype = "config"
@@ -115,10 +115,13 @@ Utils.autocmd({ "BufEnter" }, {
     opt.spell = true
     opt.number = false
     opt.relativenumber = false
-    opt.tw = 79
     opt.foldlevel = 99
-    opt.wrap = true
-    opt.linebreak = true
+
+    opt.tw = 79
+    -- opt.wrap = true
+    -- opt.linebreak = true
+    opt.conceallevel = 2
+
   end,
 })
 

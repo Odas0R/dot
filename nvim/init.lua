@@ -191,17 +191,17 @@ augroup END
     },
     config = require("odas0r.plugin.comment").config,
   }, -- comment
-  {
-    "sourcegraph/sg.nvim",
-    dependencies = { "nvim-lua/plenary.nvim" },
-    config = function()
-      require("sg").setup({
-        enable_cody = true,
-        accept_tos = true,
-        node_executable = "/home/odas0r/.nvm/versions/node/v20.6.1/bin/node",
-      })
-    end,
-  },
+  -- {
+  --   "sourcegraph/sg.nvim",
+  --   dependencies = { "nvim-lua/plenary.nvim" },
+  --   config = function()
+  --     require("sg").setup({
+  --       enable_cody = true,
+  --       accept_tos = true,
+  --       node_executable = "/home/odas0r/.nvm/versions/node/v20.6.1/bin/node",
+  --     })
+  --   end,
+  -- },
   {
     "github/copilot.vim",
     cmd = "Copilot",
@@ -261,7 +261,7 @@ augroup END
     "tpope/vim-dadbod",
     event = { "BufReadPre", "BufNewFile" },
     init = function()
-      vim.g.db = "postgres://postgres:postgres@localhost:5432/postgres"
+      -- vim.g.db = "postgres://postgres:postgres@localhost:5432/postgres"
       vim.g.completion_matching_ignore_case = 1
     end,
   },

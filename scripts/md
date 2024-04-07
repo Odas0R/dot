@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+PREVIEW_DIR="/tmp/.md"
+WATCH_FILE="$1"
+
+# remove old preview files
+rm -rf "$PREVIEW_DIR"
+mkdir -p "$PREVIEW_DIR"
+
+cleanup() {
+  echo "Shutting down..."
+  # Kill browser-sync by finding its process ID (PID)
+  pkill -f "preview $PREVIEW_DIR"
+  # Optionally, repreviewor perform any other cleanup
+  rm -rf "$PREVIEW_DIR"
+  exit 0
+}
+
+# Trap signals INT and TERM, and call cleanup function
+trap cleanup INT TERM
+
+generate_preview() {
+  HTMLFILE="/tmp/.md/index.html"
+  MARKDOWN_TMP="$(mktemp -u -p "$PREVIEW_DIR").md"
+
+  TEMPLATE="$HOME/github.com/odas0r/dot/pandoc/github.html"
+  STYLES=$(cat "$HOME/github.com/odas0r/dot/pandoc/github-theme.css")
+
+  cp "$WATCH_FILE" "$MARKDOWN_TMP"
+
+  # transform with mermaid if ```mermaid is found
+  # if grep -q '```mermaid' "$WATCH_FILE"; then
+  #   mmdc \
+  #     --backgroundColor "#0d1117" \
+  #     --theme dark \
+  #     -i "$MARKDOWN_TMP" -o "$MARKDOWN_TMP"
+  # fi
+
+  pandoc \
+    --from gfm \
+    --to html \
+    --css="$STYLES" \
+    --template="$TEMPLATE" \
+    --metadata title="Preview" \
+    -o "$HTMLFILE" "$MARKDOWN_TMP"
+}
+
+# remove old preview files
+rm -rf "$PREVIEW_DIR"
+mkdir -p "$PREVIEW_DIR"
+
+generate_preview         # Initial preview generation
+preview "$PREVIEW_DIR" & # start a preview server in the background
+
+# Start watching the file
+inotifywait -m -e close_write "$WATCH_FILE" | while read -r directory events filename; do
+  echo "Detected change in '$WATCH_FILE', regenerating preview..."
+  generate_preview
+done

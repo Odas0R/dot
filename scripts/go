@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+version="1.22.0"
+
+exec "go${version}" "$@"

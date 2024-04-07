@@ -97,9 +97,9 @@ M.config = function()
         local opts = { noremap = true, silent = true }
         buf_set_keymap(bufnr, "n", "gD", "<cmd>TypescriptGoToSourceDefinition<CR>", opts)
 
-        buf_set_keymap(bufnr, "n", "<leader>gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
-        buf_set_keymap(bufnr, "n", "<leader>go", "<cmd>TypescriptOrganizeImports<CR>", opts)
-        -- buf_set_keymap(bufnr, "n", "<leader>gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
+        buf_set_keymap(bufnr, "n", "gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
+        buf_set_keymap(bufnr, "n", "go", "<cmd>TypescriptOrganizeImports<CR>", opts)
+        buf_set_keymap(bufnr, "n", "gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
       end,
       capabilities = capabilities,
       flags = flags,
@@ -251,9 +251,8 @@ M.config = function()
   -- go install golang.org/x/tools/gopls@latest
   -- go install golang.org/x/tools/cmd/goimports@latest
   require("lspconfig").gopls.setup({
-    cmd = { "gopls", "serve" },
-    filetypes = { "go", "gomod" },
-    root_dir = util.root_pattern("go.work", "go.mod", ".git"),
+    capabilities = capabilities,
+    flags = flags,
     settings = {
       gopls = {
         analyses = {
@@ -269,8 +268,6 @@ M.config = function()
 
       buf_set_keymap(bufnr, "n", "gi", cmd, { noremap = true, silent = true })
     end,
-    capabilities = capabilities,
-    flags = flags,
   })
 
   require("lspconfig").efm.setup({

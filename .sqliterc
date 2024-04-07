@@ -15,9 +15,6 @@
 -- Set headers on by default
 .headers on
 
--- Show the current values for various settings
-.show
-
 -- Set the null value display
 .nullvalue "[NULL]"
 
