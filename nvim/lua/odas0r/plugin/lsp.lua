@@ -88,32 +88,32 @@ M.config = function()
   --   require("typescript").actions.removeUnused()
   -- end, {})
 
-  -- require("typescript").setup({
-  --   debug = false,
-  --   server = {
-  --     on_attach = function(_, bufnr)
-  --       on_attach(nil, bufnr)
-  --
-  --       -- Mappings.
-  --       local opts = { noremap = true, silent = true }
-  --       buf_set_keymap(bufnr, "n", "gD", "<cmd>TypescriptGoToSourceDefinition<CR>", opts)
-  --
-  --       buf_set_keymap(bufnr, "n", "<leader>gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
-  --       buf_set_keymap(bufnr, "n", "<leader>go", "<cmd>TypescriptOrganizeImports<CR>", opts)
-  --       -- buf_set_keymap(bufnr, "n", "<leader>gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
-  --     end,
-  --     capabilities = capabilities,
-  --     flags = flags,
-  --     filetypes = {
-  --       "javascript",
-  --       "javascriptreact",
-  --       "javascript.jsx",
-  --       "typescript",
-  --       "typescriptreact",
-  --       "typescript.tsx",
-  --     },
-  --   },
-  -- })
+  require("typescript").setup({
+    debug = false,
+    server = {
+      on_attach = function(_, bufnr)
+        on_attach(nil, bufnr)
+
+        -- Mappings.
+        local opts = { noremap = true, silent = true }
+        buf_set_keymap(bufnr, "n", "gD", "<cmd>TypescriptGoToSourceDefinition<CR>", opts)
+
+        buf_set_keymap(bufnr, "n", "<leader>gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
+        buf_set_keymap(bufnr, "n", "<leader>go", "<cmd>TypescriptOrganizeImports<CR>", opts)
+        -- buf_set_keymap(bufnr, "n", "<leader>gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
+      end,
+      capabilities = capabilities,
+      flags = flags,
+      filetypes = {
+        "javascript",
+        "javascriptreact",
+        "javascript.jsx",
+        "typescript",
+        "typescriptreact",
+        "typescript.tsx",
+      },
+    },
+  })
 
   -- npm install -g @astrojs/language-server
   require("lspconfig").astro.setup({
@@ -176,16 +176,16 @@ M.config = function()
   })
 
   -- npm i -g yaml-language-server
-  -- require("lspconfig").yamlls.setup({
-  --   on_attach = on_attach,
-  --   capabilities = capabilities,
-  --   flags = flags,
-  --   settings = {
-  --     schemas = {
-  --       ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
-  --     },
-  --   },
-  -- })
+  require("lspconfig").yamlls.setup({
+    on_attach = on_attach,
+    capabilities = capabilities,
+    flags = flags,
+    settings = {
+      schemas = {
+        ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
+      },
+    },
+  })
 
   -- npm i -g bash-language-server
   require("lspconfig").bashls.setup({

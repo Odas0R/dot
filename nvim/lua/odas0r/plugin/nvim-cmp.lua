@@ -79,6 +79,7 @@ M.config = function()
         menu = {
           nvim_lua = "[Lua]",
           nvim_lsp = "[Lsp]",
+          luasnip = "[Snip]",
           path = "[Path]",
           zet = "[Zet]",
           buffer = "[Buffer]",
