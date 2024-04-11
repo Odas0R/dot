@@ -13,9 +13,6 @@ M.init = function()
       prompt_title = "Query",
     })
   end)
-  Utils.map("n", "<C-h>", function()
-    return require("telescope.builtin").help_tags()
-  end)
   Utils.map("n", "<leader>fp", function()
     return require("telescope.builtin").find_files({
       prompt_title = "github.com",

@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# took this from https://raw.githubusercontent.com/pressly/goose/master/install.sh
+
+set -euo pipefail
+
+os=$(uname -s | tr '[:upper:]' '[:lower:]')
+arch=$(uname -m)
+
+if [ "$arch" = "aarch64" ]; then
+  arch="arm64"
+fi
+
+if [ $# -eq 0 ]; then
+  goose_uri="https://github.com/pressly/goose/releases/latest/download/goose_${os}_${arch}"
+else
+  goose_uri="https://github.com/pressly/goose/releases/download/${1}/goose_${os}_${arch}"
+fi
+
+goose_install="$HOME/.local/bin"
+bin_dir="${goose_install}/bin"
+exe="${bin_dir}/goose"
+
+if [ ! -d "${bin_dir}" ]; then
+  mkdir -p "${bin_dir}"
+fi
+
+curl --silent --show-error --location --fail --location --output "${exe}" "$goose_uri"
+chmod +x "${exe}"
+
+echo "Goose was installed successfully to ${exe}"
+if command -v goose >/dev/null; then
+  echo "Run 'goose --help' to get started"
+fi
