@@ -10,5 +10,6 @@ fi
 
 mkdir -p $HOME/tools/
 cd $HOME/tools
-git clone --depth=1 https://github.com/sumneko/lua-language-server
+git clone https://github.com/LuaLS/lua-language-server
+cd lua-language-server
 ./make.sh
