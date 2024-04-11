@@ -2,9 +2,7 @@
 
 set -e
 
-if [[ ! -x "$(command -v nvm)" ]]; then
-  echo "You need to install nvm"
-  exit 1
-fi
+curl https://get.volta.sh | bash
 
-nvm install node
+# install LTS node version
+volta install node

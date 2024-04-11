@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -e
+# Repo: https:/github.com/sharkdp/bat/
+
+set -euo pipefail
 
 VERSION=0.18.2
 

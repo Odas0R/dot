@@ -2,7 +2,7 @@
 
 set -e
 
-# Docs: https://github.com/sumneko/lua-language-server/wiki/Build-and-Run-(Standalone)
+# Docs: https://luals.github.io/wiki/build/
 
 if [[ -d "$HOME/tools/lua-language-server" ]]; then
   rm -rf "$HOME/tools/lua-language-server"
@@ -10,13 +10,5 @@ fi
 
 mkdir -p $HOME/tools/
 cd $HOME/tools
-git clone --depth=1 https://github.com/sumneko/lua-language-server 
-
-cd lua-language-server
-git submodule update --init --recursive
-
-# build on Linux
-cd 3rd/luamake
-compile/install.sh
-cd ../..
-./3rd/luamake/luamake rebuild
+git clone --depth=1 https://github.com/sumneko/lua-language-server
+./make.sh

@@ -2,13 +2,13 @@
 
 set -e
 
-version=$(curl https://go.dev/VERSION?m=text)
-echo "VERSION: $version"
+full_version=$(curl -s https://go.dev/VERSION?m=text)
+version=$(echo $full_version | grep -o 'go[0-9.]*')
 
 os="linux"
 arch="amd64"
 tarFile="${version}.${os}-${arch}.tar.gz"
-url="https://golang.org/dl/${tarFile}"
+url="https://go.dev/dl/${tarFile}"
 
 # Download the latest golang
 wget --continue --show-progress "${url}"
@@ -20,10 +20,9 @@ sudo rm -rf /usr/local/go
 # Install the new Go
 sudo tar -C /usr/local -xzf "$tarFile"
 printf "Create the skeleton for your local users go directory\n"
-mkdir -p ~/go
-mkdir -p ~/go/bin
-mkdir -p ~/go/pkg
-mkdir -p ~/go/src
+mkdir -p "$HOME/go/bin"
+mkdir -p "$HOME/go/pkg"
+mkdir -p "$HOME/go/src"
 
 # GoPath
 printf "Don't forget to add these:\n"
@@ -44,4 +43,3 @@ go install golang.org/x/tools/gopls@latest
 go install golang.org/x/tools/cmd/goimports@latest
 go install golang.org/x/tools/cmd/gorename@latest
 go install golang.org/x/tools/cmd/godoc@latest
-# go install golang.org/x/tools/cmd/gofmt@latest -> now is "go fmt"

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# https://github.com/jesseduffield/lazydocker?tab=readme-ov-file#binary-release-linuxosxwindows
+
+tmpdir=$(mktemp -d)
+
+cd "$tmpdir"
+
+curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash

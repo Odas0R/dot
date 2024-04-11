@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 # create temporary bats directory
 mkdir -p /tmp/bats
