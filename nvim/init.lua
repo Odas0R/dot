@@ -66,7 +66,10 @@ require("lazy").setup({
           -- This fixes markdown omg!
           ["@text"] = { link = "GruvboxFg1" },
           ["@text.strong"] = { bold = config.bold, fg = colors.yellow },
-          ["@text.emphasis"] = { italic = config.italic.emphasis, fg = colors.purple },
+          ["@text.emphasis"] = {
+            italic = config.italic.emphasis,
+            fg = colors.purple,
+          },
         },
         dim_inactive = false,
         transparent_mode = false,
@@ -122,12 +125,20 @@ require("lazy").setup({
     init = function()
       vim.g.signify_disable_by_default = 0
 
-      Utils.map({ "n", "i" }, "<leader>gj", "<Plug>(signify-next-hunk)<cmd>SignifyHunkDiff<CR>", { silent = true })
-      Utils.map({ "n", "i" }, "<leader>gk", "<Plug>(signify-prev-hunk)<cmd>SignifyHunkDiff<CR>", { silent = true })
-      Utils.map({ "n", "i" }, "<leader>gh", "<cmd>SignifyHunkDiff<CR>", { silent = true })
+      Utils.map(
+        { "n", "i" },
+        "<leader>gj",
+        "<Plug>(signify-next-hunk)<cmd>SignifyHunkDiff<CR>"
+      )
+      Utils.map(
+        { "n", "i" },
+        "<leader>gk",
+        "<Plug>(signify-prev-hunk)<cmd>SignifyHunkDiff<CR>"
+      )
+      Utils.map({ "n", "i" }, "<leader>gh", "<cmd>SignifyHunkDiff<CR>")
 
-      Utils.map({ "n", "i" }, "<leader>gu", "<cmd>SignifyHunkUndo<cr>", { silent = true })
-      Utils.map({ "n", "i" }, "<leader>gt", "<cmd>SignifyToggle<cr>", { silent = true })
+      Utils.map({ "n", "i" }, "<leader>gu", "<cmd>SignifyHunkUndo<cr>")
+      Utils.map({ "n", "i" }, "<leader>gt", "<cmd>SignifyToggle<cr>")
 
       vim.cmd([[
 function! s:show_current_hunk() abort
@@ -157,7 +168,10 @@ augroup END
     end,
   },
   { "windwp/nvim-ts-autotag", event = "InsertEnter" },
-  { "jose-elias-alvarez/typescript.nvim", event = { "BufReadPre", "BufNewFile" } },
+  {
+    "jose-elias-alvarez/typescript.nvim",
+    event = { "BufReadPre", "BufNewFile" },
+  },
   {
     "dmmulroy/tsc.nvim",
     cmd = { "TSC" },
@@ -220,8 +234,8 @@ augroup END
         ["config"] = true,
       }
 
-      Utils.map({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)", { silent = true, noremap = true })
-      Utils.map({ "i", "n" }, "<leader>k", "<Plug>(copilot-next)", { silent = true, noremap = true })
+      Utils.map({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)")
+      Utils.map({ "i", "n" }, "<leader>k", "<Plug>(copilot-next)")
     end,
   },
   {
@@ -256,6 +270,15 @@ augroup END
       require("odas0r.plugin.lsp").config()
     end,
   },
+  {
+    "L3MON4D3/LuaSnip",
+    -- follow latest release.
+    version = "v2.2", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
+    -- install jsregexp (optional!).
+    build = "make install_jsregexp",
+    init = require("odas0r.plugin.luasnip").init,
+    config = require("odas0r.plugin.luasnip").config,
+  },
   { "onsails/lspkind-nvim", event = { "BufReadPre", "BufNewFile" } },
   -- Completion
   {
@@ -266,6 +289,7 @@ augroup END
       "hrsh7th/cmp-nvim-lsp",
       "hrsh7th/cmp-buffer",
       "hrsh7th/cmp-path",
+      "saadparwaiz1/cmp_luasnip",
       {
         "odas0r/cmp-zet",
         dev = true,

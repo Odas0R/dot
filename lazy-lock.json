@@ -1,9 +1,11 @@
 {
   "Comment.nvim": { "branch": "master", "commit": "0236521ea582747b58869cb72f70ccfa967d2e89" },
+  "LuaSnip": { "branch": "master", "commit": "8ae1dedd988eb56441b7858bd1e8554dfadaa46d" },
   "cmp-buffer": { "branch": "main", "commit": "3022dbc9166796b644a841a02de8dd1cc1d311fa" },
   "cmp-nvim-lsp": { "branch": "main", "commit": "5af77f54de1b16c34b23cba810150689a3a90312" },
   "cmp-nvim-lua": { "branch": "main", "commit": "f12408bdb54c39c23e67cab726264c10db33ada8" },
   "cmp-path": { "branch": "main", "commit": "91ff86cd9c29299a64f968ebb45846c485725f23" },
+  "cmp_luasnip": { "branch": "master", "commit": "05a9ab28b53f71d1aece421ef32fee2cb857a843" },
   "copilot.vim": { "branch": "release", "commit": "f45ecd95c1474885e278f20d6ae86a6e30de2151" },
   "defx.nvim": { "branch": "master", "commit": "1b17dc334294ef0da74ffa5a05d425ffcaf39a3f" },
   "formatter.nvim": { "branch": "master", "commit": "ad246d34ce7a32f752071ed81b09b94e6b127fad" },
