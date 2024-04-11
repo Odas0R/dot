@@ -1,6 +1,0 @@
-git_protocol: ssh
-editor: nvimr
-prompt: enabled
-pager: less
-aliases:
-    co: pr checkout

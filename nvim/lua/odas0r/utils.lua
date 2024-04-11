@@ -62,20 +62,25 @@ end
 -- map({"n", "x"}, "<C-k>", ":cprev<CR>")
 -- ```
 local custom_nvim_keymap = function(mode, lhs, rhs, opts)
-  -- local options = {}
   local options = { noremap = true, silent = true }
+
   if opts then
+    -- fix inconsistencies
+    if opts.buf then
+      opts.buffer = opts.buf
+      opts.buf = nil
+    elseif opts.bufr then
+      opts.buffer = opts.bufr
+      opts.bufr = nil
+    elseif opts.bufnr then
+      opts.buffer = opts.bufnr
+      opts.bufnr = nil
+    end
+
     options = vim.tbl_extend("force", options, opts)
   end
-  -- if lhs is a table, then we are mapping multiple keys to the same rhs
-  -- e.g. { "a", "b", "c" } -> rhs
-  if type(lhs) == "table" then
-    for _, key in ipairs(lhs) do
-      vim.keymap.set(mode, key, rhs, options)
-    end
-  else
-    vim.keymap.set(mode, lhs, rhs, options)
-  end
+
+  vim.keymap.set(mode, lhs, rhs, options)
 end
 
 -- Create or get an autocommand group |autocmd-groups|.
@@ -86,8 +91,6 @@ end
 local function augroup(name)
   return vim.api.nvim_create_augroup("config_" .. name, { clear = true })
 end
-
-local map = custom_nvim_keymap
 
 -- autocmd({event}, {*opts*})                  *nvim_create_autocmd()*
 --
@@ -111,6 +114,8 @@ local autocmd = vim.api.nvim_create_autocmd
 
 local cmd = vim.api.nvim_create_user_command
 
+local set_option = vim.api.nvim_set_option_value
+
 -- vim.ui.input({opts}, {on_confirm})                            *vim.ui.input()*
 --
 -- Prompts the user for input, allowing arbitrary (potentially asynchronous)
@@ -132,9 +137,10 @@ M.autocmd = autocmd
 M.cmd = cmd
 M.input = input
 
-M.map = map
+M.map = custom_nvim_keymap
 M.augroup = augroup
 M.slugify = slugify
 M.reverse = reverse
+M.set_option = set_option
 
 return M

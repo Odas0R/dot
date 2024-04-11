@@ -5,13 +5,12 @@ _hasDuckyKeyboard() {
 }
 
 # remap capslock for whole system to ESC (X only)
-if [ -n "${DISPLAY}" ]; then
-
+if [[ -n "${DISPLAY}" ]]; then
   # https://gist.github.com/jatcwang/ae3b7019f219b8cdc6798329108c9aee
   if _hasDuckyKeyboard; then
-    setxkbmap -layout pt -model macbook79
+    setxkbmap -layout pt -model macintosh
   else
-    setxkbmap -layout pt -model pc102
+    setxkbmap -layout pt -model asus_laptop
   fi
 
   # Default Options

@@ -12,17 +12,12 @@ vim.python3_host_prog = "/usr/bin/python3"
 -- https://neovim.io/doc/user/lua-guide.html#lua-guide
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.uv.fs_stat(lazypath) then
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
-    lazypath,
-  })
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  -- bootstrap lazy.nvim
+  -- stylua: ignore
+  vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
 end
-vim.opt.rtp:prepend(lazypath)
+vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
 
 -----------------------------------------
 -- Configs
@@ -87,6 +82,7 @@ require("lazy").setup({
   {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
+    tag = "v0.9.2",
     cmd = { "TSUpdateSync" },
     dependencies = {
       "JoosepAlviste/nvim-ts-context-commentstring",
@@ -151,7 +147,6 @@ augroup END
 
   -- General
   { "nvim-lua/plenary.nvim" },
-  { "wakatime/vim-wakatime", event = "VeryLazy" },
   {
     "ThePrimeagen/harpoon",
     init = function()
@@ -165,7 +160,6 @@ augroup END
   { "jose-elias-alvarez/typescript.nvim", event = { "BufReadPre", "BufNewFile" } },
   {
     "dmmulroy/tsc.nvim",
-    tag = "v1.8.0",
     cmd = { "TSC" },
     init = function()
       require("tsc").setup({
@@ -176,7 +170,6 @@ augroup END
       })
     end,
   },
-
   {
     "s1n7ax/nvim-terminal",
     keys = require("odas0r.plugin.nvim-terminal").keys(),
@@ -191,22 +184,10 @@ augroup END
     },
     config = require("odas0r.plugin.comment").config,
   }, -- comment
-  -- {
-  --   "sourcegraph/sg.nvim",
-  --   dependencies = { "nvim-lua/plenary.nvim" },
-  --   config = function()
-  --     require("sg").setup({
-  --       enable_cody = true,
-  --       accept_tos = true,
-  --       node_executable = "/home/odas0r/.nvm/versions/node/v20.6.1/bin/node",
-  --     })
-  --   end,
-  -- },
   {
     "github/copilot.vim",
     cmd = "Copilot",
     event = "InsertEnter",
-    -- commit = "5b19fb001d7f31c4c7c5556d7a97b243bd29f45f",
     init = function()
       vim.g.copilot_node_command = "/home/odas0r/.nvm/versions/node/v20.6.1/bin/node"
       vim.g.copilot_filetypes = {
@@ -255,7 +236,6 @@ augroup END
     "Shougo/defx.nvim",
     build = ":UpdateRemotePlugins",
   },
-
   -- database
   {
     "tpope/vim-dadbod",
@@ -265,7 +245,6 @@ augroup END
       vim.g.completion_matching_ignore_case = 1
     end,
   },
-
   -- lsp, Completion Engine
   {
     "neovim/nvim-lspconfig",
@@ -287,8 +266,6 @@ augroup END
       "hrsh7th/cmp-nvim-lsp",
       "hrsh7th/cmp-buffer",
       "hrsh7th/cmp-path",
-      "quangnguyen30192/cmp-nvim-ultisnips",
-      "kristijanhusak/vim-dadbod-completion",
       {
         "odas0r/cmp-zet",
         dev = true,
@@ -300,15 +277,6 @@ augroup END
     config = require("odas0r.plugin.nvim-cmp").config,
   },
   {
-    "dawsers/edit-code-block.nvim",
-    config = function()
-      require("ecb").setup({
-        wincmd = "split", -- this is the default way to open the code block window
-      })
-    end,
-  },
-  { "sirver/UltiSnips", event = { "BufReadPre", "BufNewFile" } },
-  {
     "mhartington/formatter.nvim",
     cmd = "FormatWrite",
     init = require("odas0r.plugin.formatter").init,
@@ -316,7 +284,7 @@ augroup END
   },
 }, {
   dev = {
-    path = "/home/odas0r/github.com/odas0r/dot/nvim/lua/odas0r",
+    path = os.getenv("HOME") .. "/github.com/odas0r/dot/nvim/lua/odas0r",
   },
   default = {
     lazy = true,

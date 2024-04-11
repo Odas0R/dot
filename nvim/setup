@@ -1,31 +1,19 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
-if [ ! -x "$(command -v nvim)" ]; then
-  echo "Need to install neovim" >&2
-  exit 1
-fi
-
-DOT_NVIM="$HOME/github.com/odas0r/dot/nvim"
 NVIM="$HOME/.config/nvim"
 
 # creates the nvim config directory
 mkdir -p "$NVIM"
 
 # setups
-ln -sf "$DOT_NVIM/init.lua" "$NVIM/init.lua"
-ln -sf "$DOT_NVIM/spell" "$NVIM/spell"
-
-# setup snippets
-mkdir -p "$HOME/snippets"
-ln -sf "$DOT_NVIM/ultisnips" "$HOME/snippets/ultisnips"
+ln -sf "$DOT/nvim/init.lua" "$NVIM/init.lua"
+ln -sf "$DOT/nvim/spell" "$NVIM/spell"
 
 # setup lua and plugins
-ln -sf "$DOT_NVIM/after" "$NVIM"
-ln -sf "$DOT_NVIM/lua" "$NVIM"
-ln -sf "$DOT_NVIM/plugin" "$NVIM"
-
-printf "To install all vim plugins :PlugInstall!\n"
+ln -sf "$DOT/nvim/after" "$NVIM"
+ln -sf "$DOT/nvim/lua" "$NVIM"
+ln -sf "$DOT/nvim/plugin" "$NVIM"
 
 echo "Neovim setup done! 🌟"

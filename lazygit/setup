@@ -1,16 +1,5 @@
 #!/usr/bin/env bash
 
-if [[ ! -x "$(command -v lazygit)" ]]; then
-  echo "You need to install lazygit"
-  exit 1
-fi
+ln -sf "$DOT/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
 
-DOT="$HOME/github.com/odas0r/dot"
-
-
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  # macOS OSX
-  ln -sf "$DOT/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
-else
-  ln -sf "$DOT/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
-fi
+printf "Lazygit setup done! 🌟\n"

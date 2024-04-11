@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 ln -sf "$DOT/alacritty/alacritty.yml" "$HOME/.alacritty.yml"
 

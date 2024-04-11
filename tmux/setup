@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
-DOT_TMUX="$HOME/github.com/odas0r/dot/tmux"
+ln -sf "$DOT/tmux/tmux.conf" "$HOME/.tmux.conf"
 
-if [[ ! -x "$(command -v tmux)" ]]; then
-  echo "tmux isn't installed, skipping..." >&2
-  exit 1
-fi
-
-ln -sf "$DOT_TMUX/tmux.conf" "$HOME/.tmux.conf"
+echo "Tmux setup done! 🌟"

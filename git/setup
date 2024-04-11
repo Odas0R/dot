@@ -2,14 +2,6 @@
 
 set -euo pipefail
 
-declare DISTRO
-declare -r GIT_PATH="$HOME/github.com/odas0r/dot/git"
-
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  # macOS OSX
-  ln -sf "$GIT_PATH/gitconfig_darwin" "$HOME/.gitconfig"
-else
-  ln -sf "$GIT_PATH/gitconfig" "$HOME/.gitconfig"
-fi
+ln -sf "$DOT/git/gitconfig" "$HOME/.gitconfig"
 
 printf "Git setup done! 🌟\n"

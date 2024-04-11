@@ -9,29 +9,19 @@ M.init = function()
 end
 
 M.config = function()
-  local buf_set_keymap = function(bufnr, ...)
-    vim.api.nvim_buf_set_keymap(bufnr, ...)
-  end
-
-  local buf_set_option = function(bufnr, ...)
-    vim.api.nvim_buf_set_option(bufnr, ...)
-  end
-
-  local keymap_opts = { noremap = true, silent = true }
-
   local on_attach = function(_, bufnr)
     -- Enable completion triggered by <c-x><c-o>
-    buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+    Utils.set_option("omnifunc", "v:lua.vim.lsp.omnifunc", { buf = bufnr })
 
     -- Mappings.
-    buf_set_keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", keymap_opts)
-    buf_set_keymap(bufnr, "n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", keymap_opts)
-    buf_set_keymap(bufnr, "n", "gk", "<cmd>lua vim.lsp.buf.references()<CR>", keymap_opts)
-    buf_set_keymap(bufnr, "n", "K", "<cmd>lua vim.diagnostic.goto_prev()<CR>", keymap_opts)
-    buf_set_keymap(bufnr, "n", "J", "<cmd>lua vim.diagnostic.goto_next()<CR>", keymap_opts)
+    Utils.map("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", { buf = bufnr })
+    Utils.map("n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", { buf = bufnr })
+    Utils.map("n", "gk", "<cmd>lua vim.lsp.buf.references()<CR>", { buf = bufnr })
+    Utils.map("n", "K", "<cmd>lua vim.diagnostic.goto_prev()<CR>", { buf = bufnr })
+    Utils.map("n", "J", "<cmd>lua vim.diagnostic.goto_next()<CR>", { buf = bufnr })
 
-    buf_set_keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.rename()<CR>", keymap_opts)
-    buf_set_keymap(bufnr, "n", "ga", "<cmd>lua vim.lsp.buf.code_action()<CR>", keymap_opts)
+    Utils.map("n", "gr", "<cmd>lua vim.lsp.buf.rename()<CR>", { buf = bufnr })
+    Utils.map("n", "ga", "<cmd>lua vim.lsp.buf.code_action()<CR>", { buf = bufnr })
   end
 
   local util = require("lspconfig").util
@@ -50,9 +40,7 @@ M.config = function()
   -- set log level to debug for debugging
   -- vim.lsp.set_log_level("DEBUG")
 
-  local flags = {
-    debounce_text_changes = 150,
-  }
+  local flags = {}
 
   -- npm install -g typescript typescript-language-server
   -- require("lspconfig").tsserver.setup({
@@ -92,14 +80,11 @@ M.config = function()
     server = {
       on_attach = function(_, bufnr)
         on_attach(nil, bufnr)
-
         -- Mappings.
-        local opts = { noremap = true, silent = true }
-        buf_set_keymap(bufnr, "n", "gD", "<cmd>TypescriptGoToSourceDefinition<CR>", opts)
-
-        buf_set_keymap(bufnr, "n", "gi", "<cmd>TypescriptAddMissingImports<CR>", opts)
-        buf_set_keymap(bufnr, "n", "go", "<cmd>TypescriptOrganizeImports<CR>", opts)
-        buf_set_keymap(bufnr, "n", "gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
+        Utils.map("n", "gD", "<cmd>TypescriptGoToSourceDefinition<CR>", { buf = bufnr })
+        Utils.map("n", "<leader>gi", "<cmd>TypescriptAddMissingImports<CR>", { buf = bufnr })
+        Utils.map("n", "<leader>go", "<cmd>TypescriptOrganizeImports<CR>", { buf = bufnr })
+        -- buf_set_keymap(bufnr, "n", "<leader>gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
       end,
       capabilities = capabilities,
       flags = flags,
@@ -174,24 +159,17 @@ M.config = function()
     },
   })
 
-  -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#hls
-  require("lspconfig").hls.setup({
+  -- npm i -g yaml-language-server
+  require("lspconfig").yamlls.setup({
     on_attach = on_attach,
     capabilities = capabilities,
     flags = flags,
+    settings = {
+      schemas = {
+        ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
+      },
+    },
   })
-
-  -- npm i -g yaml-language-server
-  -- require("lspconfig").yamlls.setup({
-  --   on_attach = on_attach,
-  --   capabilities = capabilities,
-  --   flags = flags,
-  --   settings = {
-  --     schemas = {
-  --       ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
-  --     },
-  --   },
-  -- })
 
   -- npm i -g bash-language-server
   require("lspconfig").bashls.setup({
@@ -219,11 +197,11 @@ M.config = function()
   })
 
   -- pip install 'python-lsp-server[all]'
-  require("lspconfig").pylsp.setup({
-    on_attach = on_attach,
-    capabilities = capabilities,
-    flags = flags,
-  })
+  -- require("lspconfig").pylsp.setup({
+  --   on_attach = on_attach,
+  --   capabilities = capabilities,
+  --   flags = flags,
+  -- })
 
   require("lspconfig").dartls.setup({
     on_attach = on_attach,
@@ -251,8 +229,9 @@ M.config = function()
   -- go install golang.org/x/tools/gopls@latest
   -- go install golang.org/x/tools/cmd/goimports@latest
   require("lspconfig").gopls.setup({
-    capabilities = capabilities,
-    flags = flags,
+    cmd = { "gopls", "serve" },
+    filetypes = { "go", "gomod" },
+    root_dir = util.root_pattern("go.work", "go.mod", ".git"),
     settings = {
       gopls = {
         analyses = {
@@ -263,11 +242,10 @@ M.config = function()
     },
     on_attach = function(_, bufnr)
       on_attach(_, bufnr)
-
-      local cmd = ":silent! !goimports -w %<CR>"
-
-      buf_set_keymap(bufnr, "n", "gi", cmd, { noremap = true, silent = true })
+      Utils.map("n", "<leader>gi", ":silent! !goimports -w %<CR>", { buf = bufnr })
     end,
+    capabilities = capabilities,
+    flags = flags,
   })
 
   require("lspconfig").efm.setup({

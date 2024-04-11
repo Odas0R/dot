@@ -17,30 +17,30 @@ M.init = function()
   -----------------------------------
   Utils.map("n", "<leader>a", function()
     require("harpoon.mark").add_file()
-  end, { silent = true })
+  end)
   Utils.map("n", "<C-e>", function()
     require("harpoon.ui").toggle_quick_menu()
-  end, { silent = true })
+  end)
 
   Utils.map({ "n", "t" }, "<leader>1", function()
     closeTerminal()
     require("harpoon.ui").nav_file(1)
-  end, { silent = true })
+  end)
 
   Utils.map({ "n", "t" }, "<leader>2", function()
     closeTerminal()
     require("harpoon.ui").nav_file(2)
-  end, { silent = true })
+  end)
 
   Utils.map({ "n", "t" }, "<leader>3", function()
     closeTerminal()
     require("harpoon.ui").nav_file(3)
-  end, { silent = true })
+  end)
 
   Utils.map({ "n", "t" }, "<leader>4", function()
     closeTerminal()
     require("harpoon.ui").nav_file(4)
-  end, { silent = true })
+  end)
 
   -----------------------------------
   -- Augroups

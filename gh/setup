@@ -1,23 +1,12 @@
 #!/usr/bin/env bash
 
-set -e
-
-if [[ ! -x "$(command -v gh)" ]]; then
-  echo "gh isn't installed, skipping..." >&2
-  exit 1
-fi
-
-DOT_GH="$HOME/github.com/odas0r/gh"
+set -euo pipefail
 
 # create gh config directory
 mkdir -p "$HOME/.config/gh"
 
 # create the symlink to the config
-if [[ $OSTYPE == "darwin"* ]]; then
-  ln -sf "$DOT_GH/config.darwin.yml" "$HOME/.config/gh/config.yml"
-else
-  ln -sf "$DOT_GH/config.yml" "$HOME/.config/gh/config.yml"
-fi
+ln -sf "$DOT/gh/config.yml" "$HOME/.config/gh/config.yml"
 
 echo "Don't forget to: gh auth login"
 

@@ -19,7 +19,7 @@ M.init = function()
   Utils.map("n", "<leader>fp", function()
     return require("telescope.builtin").find_files({
       prompt_title = "github.com",
-      cwd = "/home/odas0r/github.com",
+      cwd = os.getenv("HOME") .. "/github.com",
       follow = true,
       use_regex = false,
       hidden = true,
@@ -28,7 +28,7 @@ M.init = function()
   Utils.map("n", "<leader>fg", function()
     return require("telescope.builtin").live_grep({
       prompt_title = "github.com",
-      cwd = "/home/odas0r/github.com",
+      cwd = os.getenv("HOME") .. "/github.com",
       follow = true,
       use_regex = false,
       hidden = true,
@@ -72,9 +72,9 @@ M.config = function()
         height = 0.95,
         width = 0.95,
         prompt_position = "top",
-        horizontal= {
+        horizontal = {
           preview_width = 60,
-        }
+        },
       },
       sorting_strategy = "ascending",
       mappings = {

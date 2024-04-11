@@ -5,7 +5,7 @@
     followTags = true
 	default = current
 [core]
-    editor = nvim
+    editor = nvimr
     autocrlf = false
 [init]
 	defaultBranch = main
