@@ -8,6 +8,4 @@ mkdir -p "$HOME/.config/gh"
 # create the symlink to the config
 ln -sf "$DOT/gh/config.yml" "$HOME/.config/gh/config.yml"
 
-echo "Don't forget to: gh auth login"
-
 printf "Gh setup done! 🌟\n"

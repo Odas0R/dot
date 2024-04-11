@@ -189,7 +189,7 @@ augroup END
     cmd = "Copilot",
     event = "InsertEnter",
     init = function()
-      vim.g.copilot_node_command = "/home/odas0r/.nvm/versions/node/v20.6.1/bin/node"
+      vim.g.copilot_node_command = "/home/odas0r/.volta/bin/node"
       vim.g.copilot_filetypes = {
         ["*"] = false,
         ["javascript"] = true,

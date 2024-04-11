@@ -18,9 +18,10 @@ readarray -d '' folders < <(
     -not -path "$DOT/.git"
 )
 
-echo "$folders"
-
 for path in $folders; do
+  # if path contains install continue to next
+  [[ "$path" == *install* ]] && continue
+
   cd "$path"
   [[ -f "./setup" ]] && ./setup
   cd - >/dev/null || exit 1
