@@ -7,7 +7,6 @@ local Utils = require("odas0r.utils")
 -- Development (Plugins)
 Utils.cmd("Reload", function(opts)
   local name = opts.fargs[1]
-
   -- call the helper method to reload the module
   -- and give some feedback
   R(name)
@@ -42,16 +41,24 @@ Utils.autocmd("BufWritePost", {
       return
     end
 
-    if #directories == 1 and directories[1] == "odas0r" then
-      local name = "odas0r" .. "." .. vim.fs.basename(bufname):gsub(".lua", "")
-      R(name)
-      -- P(name .. " RELOADED!!!")
+    local modulePath = table.concat(Utils.reverse(directories), ".")
+    local baseFilename = vim.fs.basename(bufname)
+    local module
+
+    if baseFilename == nil then
+      vim.notify("No filename found", vim.log.levels.ERROR)
+      return
     end
 
-    if #directories > 1 then
-      local name = table.concat(Utils.reverse(directories), ".") .. "." .. vim.fs.basename(bufname):gsub(".lua", "")
-      R(name)
-      -- P(name .. " RELOADED!!!")
+    if baseFilename:match("init.lua") then
+      module = modulePath
+    else
+      module = modulePath .. "." .. baseFilename:gsub("%.lua$", "")
+    end
+
+    if module then
+      R(module)
+      P("Reloading " .. module .. "...")
     end
   end,
 })

@@ -19,10 +19,13 @@ M.init = function()
     end
   end)
 
-  Utils.cmd("LuaSnipUpdate", ":so ~/.config/nvim/after/plugin/luasnip.lua", {})
-
   -- load vscode snippets for now, since we're new to this.
   require("luasnip.loaders.from_vscode").lazy_load()
+
+  -- load custom snippets
+  require("luasnip.loaders.from_lua").load({
+    paths = os.getenv("HOME") .. "/.config/nvim/lua/odas0r/snippets",
+  })
 end
 
 M.config = function()

@@ -19,7 +19,7 @@ M.config = function()
   cmp.setup({
     snippet = {
       expand = function(args)
-        -- vim.fn["UltiSnips#Anon"](args.body)
+        require("luasnip").lsp_expand(args.body)
       end,
     },
     experimental = {
@@ -33,13 +33,6 @@ M.config = function()
       disallow_partial_matching = true,
     },
     mapping = {
-      ["<c-a>"] = cmp.mapping.complete({
-        config = {
-          sources = {
-            { name = "cody" },
-          },
-        },
-      }),
       ["<C-n>"] = cmp.mapping.select_next_item(),
       ["<C-p>"] = cmp.mapping.select_prev_item(),
       ["<C-u>"] = cmp.mapping.scroll_docs(-4),
@@ -53,6 +46,7 @@ M.config = function()
       },
       { name = "nvim_lua" },
       { name = "nvim_lsp" },
+      { name = "luasnip" },
       { name = "path" },
       {
         name = "buffer",
@@ -75,6 +69,7 @@ M.config = function()
         menu = {
           nvim_lua = "[Lua]",
           nvim_lsp = "[Lsp]",
+          luasnip = "[Snip]",
           path = "[Path]",
           zet = "[Zet]",
           buffer = "[Buffer]",

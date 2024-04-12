@@ -131,7 +131,7 @@ Utils.autocmd({ "BufEnter" }, {
   group = Utils.augroup("write_current_path"),
   callback = function()
     local buf_path = vim.fn.expand("%:p")
-    local filename = os.getenv("HOME") .. ("/.nvim-buf") -- replace this with your file's path
+    local filename = os.getenv("HOME") .. "/.nvim-buf" -- replace this with your file's path
 
     a.run(function()
       local err, fd = a.uv.fs_open(filename, "w", 438)
