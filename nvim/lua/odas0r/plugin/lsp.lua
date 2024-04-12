@@ -82,9 +82,9 @@ M.config = function()
         on_attach(nil, bufnr)
         -- Mappings.
         Utils.map("n", "gD", "<cmd>TypescriptGoToSourceDefinition<CR>", { buf = bufnr })
-        Utils.map("n", "<leader>gi", "<cmd>TypescriptAddMissingImports<CR>", { buf = bufnr })
-        Utils.map("n", "<leader>go", "<cmd>TypescriptOrganizeImports<CR>", { buf = bufnr })
-        -- buf_set_keymap(bufnr, "n", "<leader>gu", "<cmd>TypescriptRemoveUnused<CR>", opts)
+        Utils.map("n", "gi", "<cmd>TypescriptAddMissingImports<CR>", { buf = bufnr })
+        Utils.map("n", "go", "<cmd>TypescriptOrganizeImports<CR>", { buf = bufnr })
+        Utils.map("n", "gu", "<cmd>TypescriptRemoveUnused<CR>", { buf = bufnr })
       end,
       capabilities = capabilities,
       flags = flags,
