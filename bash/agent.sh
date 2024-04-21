@@ -1,19 +1,21 @@
 #!/bin/bash
 
-declare -r agentEnv=~/.ssh/agent.env
-
-agent_load_env() { test -f "$agentEnv" && . "$agentEnv" >|/dev/null; }
-
-agent_start() {
-  (
-    umask 077
-    ssh-agent >|"$agentEnv"
-  )
-  . "$agentEnv" >|/dev/null
-}
-
+#
 # Reference: https://docs.github.com/en/authentication/connecting-to-github-with-ssh/working-with-ssh-key-passphrases
+#
+
 if [[ "$TERM" == "xterm-kitty" ]]; then
+  AGENT="~/.ssh/agent.env"
+
+  agent_load_env() { test -f "$AGENT" && . "$AGENT" >|/dev/null; }
+
+  agent_start() {
+    (
+      umask 077
+      ssh-agent >|"$AGENT"
+    )
+    . "$AGENT" >|/dev/null
+  }
 
   agent_load_env
 

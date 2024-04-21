@@ -14,7 +14,7 @@ local i = ls.insert_node
 -- local m = require("luasnip.extras").match
 -- local n = require("luasnip.extras").nonempty
 -- local dl = require("luasnip.extras").dynamic_lambda
--- local fmt = require("luasnip.extras.fmt").fmt
+local fmt = require("luasnip.extras.fmt").fmt
 -- local fmta = require("luasnip.extras.fmt").fmta
 -- local types = require("luasnip.util.types")
 -- local conds = require("luasnip.extras.conditions")
@@ -22,17 +22,25 @@ local i = ls.insert_node
 
 return {
   s("#!", {
-    t("#!/bin/sh"),
+    t("#!/bin/bash"),
     i(0),
   }),
   s("safe", {
     t("set -euo pipefail"),
     i(0),
   }),
-  s("cmd-exists", {
-    t("command -v "),
-    i(1),
-    t(" > /dev/null 2>&1"),
-    i(0),
-  }),
+  s(
+    "cmd",
+    fmt(
+      [[
+  if ! command -v {}; then
+    {}
+  fi
+]],
+      {
+        i(1, "nvim"),
+        i(0),
+      }
+    )
+  ),
 }

@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-_luamake() {
-  "$HOME/tools/lua-language-server/3rd/luamake/luamake" "$@"
-}
-
-_luamake "$@"

@@ -80,7 +80,15 @@ local custom_nvim_keymap = function(mode, lhs, rhs, opts)
     options = vim.tbl_extend("force", options, opts)
   end
 
-  vim.keymap.set(mode, lhs, rhs, options)
+  -- if lhs is a table, then we are mapping multiple keys to the same rhs
+  -- e.g. { "a", "b", "c" } -> rhs
+  if vim.tbl_islist(lhs) then
+    for _, key in ipairs(lhs) do
+      vim.keymap.set(mode, key, rhs, options)
+    end
+  else
+    vim.keymap.set(mode, lhs, rhs, options)
+  end
 end
 
 -- Create or get an autocommand group |autocmd-groups|.

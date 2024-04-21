@@ -5,12 +5,12 @@ local M = {}
 M.init = function()
   local ls = require("luasnip")
 
-  Utils.map({ "i", "s" }, "<C-L>", function()
-    ls.jump(1)
-  end)
-
   Utils.map({ "i", "s" }, "<C-H>", function()
     ls.jump(-1)
+  end)
+
+  Utils.map({ "i", "s" }, "<C-L>", function()
+    ls.jump(1)
   end)
 
   Utils.map({ "i", "s" }, "<C-E>", function()
