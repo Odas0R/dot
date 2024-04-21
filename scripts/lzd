@@ -7,5 +7,4 @@ if [[ ! -x "$(command -v lazydocker)" ]]; then
   exit 1
 fi
 
-# popup lazydocker "$@"
-lazydocker "$@"
+popup lazydocker "$@"

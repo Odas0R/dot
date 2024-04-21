@@ -1,24 +1,21 @@
 #!/usr/bin/env bash
 
-set -e
-
-is_in_git_repo() {
-  git rev-parse HEAD -- >/dev/null 2>&1
-}
+set -eo pipefail
 
 if [[ ! -x "$(command -v lazygit)" ]]; then
   echo "You need to install lazygit"
   exit 1
 fi
 
-if [[ -d "$1" ]]; then
-  cd "$1"
-  is_in_git_repo || (echo "You're not in a git repo" && exit 1)
-  root=$(git rev-parse --show-toplevel)
-  popup lazygit -p "$root" "${@:1}"
-
+if [[ -z "$NVIM" ]]; then
+  dir=$(git rev-parse --show-toplevel 2>/dev/null)
+  lazygit -p "$dir" "$@"
 else
-  is_in_git_repo || (echo "You're not in a git repo" && exit 1)
-  root=$(git rev-parse --show-toplevel)
-  popup lazygit -p "$root" "$@"
+  nvimBuf="$(cat "$HOME/.nvim-buf")"
+  nvimBufDirPath="$(dirname "$nvimBuf")"
+  cd "$nvimBufDirPath" || exit 1
+
+  dir=$(git rev-parse --show-toplevel 2>/dev/null)
+
+  lazygit -p "$dir" "$@"
 fi

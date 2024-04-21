@@ -125,16 +125,8 @@ require("lazy").setup({
     init = function()
       vim.g.signify_disable_by_default = 0
 
-      Utils.map(
-        { "n", "i" },
-        "<leader>gj",
-        "<Plug>(signify-next-hunk)<cmd>SignifyHunkDiff<CR>"
-      )
-      Utils.map(
-        { "n", "i" },
-        "<leader>gk",
-        "<Plug>(signify-prev-hunk)<cmd>SignifyHunkDiff<CR>"
-      )
+      Utils.map({ "n", "i" }, "<leader>gj", "<Plug>(signify-next-hunk)<cmd>SignifyHunkDiff<CR>")
+      Utils.map({ "n", "i" }, "<leader>gk", "<Plug>(signify-prev-hunk)<cmd>SignifyHunkDiff<CR>")
       Utils.map({ "n", "i" }, "<leader>gh", "<cmd>SignifyHunkDiff<CR>")
 
       Utils.map({ "n", "i" }, "<leader>gu", "<cmd>SignifyHunkUndo<cr>")
