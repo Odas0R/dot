@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [[ -z "$TMUX" ]]; then
   export NVIM_SOCKET="$HOME/.cache/nvim/nvim_socket.pane_${TMUX_PANE}.pipe"
 else
