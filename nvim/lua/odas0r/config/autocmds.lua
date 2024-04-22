@@ -144,6 +144,20 @@ Utils.autocmd({ "BufEnter" }, {
   end,
 })
 
+-- on vim close delete the content of ~/.nvim-buf
+-- Utils.autocmd({ "VimLeave" }, {
+--   group = Utils.augroup("delete_current_path"),
+--   callback = function()
+--     local filename = os.getenv("HOME") .. "/.nvim-buf" -- replace this with your file's path
+--     a.run(function()
+--       local err, fd = a.uv.fs_open(filename, "w", 438)
+--       assert(not err, err)
+--       err = a.uv.fs_close(fd)
+--       assert(not err, err)
+--     end)
+--   end,
+-- })
+--
 -- when tsconfig.json use json filetype instead of jsonc (jsonc is not supported by lsp)
 -- Utils.autocmd("BufRead", {
 --   pattern = { "tsconfig.json" },

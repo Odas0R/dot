@@ -1,21 +1,12 @@
 #!/usr/bin/env bash
 
-set -eo pipefail
-
 if [[ ! -x "$(command -v lazygit)" ]]; then
   echo "You need to install lazygit"
   exit 1
 fi
 
-if [[ -z "$NVIM" ]]; then
-  dir=$(git rev-parse --show-toplevel 2>/dev/null)
-  lazygit -p "$dir" "$@"
-else
-  nvimBuf="$(cat "$HOME/.nvim-buf")"
-  nvimBufDirPath="$(dirname "$nvimBuf")"
-  cd "$nvimBufDirPath" || exit 1
-
-  dir=$(git rev-parse --show-toplevel 2>/dev/null)
-
-  lazygit -p "$dir" "$@"
-fi
+nvimBuf="$(cat "$HOME/.nvim-buf")"
+nvimBufDirPath="$(dirname "$nvimBuf")"
+cd "$nvimBufDirPath" || exit 1
+dir=$(git rev-parse --show-toplevel 2>/dev/null)
+lazygit -p "$dir" "$@"
