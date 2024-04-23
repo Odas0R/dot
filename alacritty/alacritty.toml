@@ -17,8 +17,8 @@ padding = { x = 8, y = 8 }
 
 # Font Configuration
 [font]
-size = 12.0
-normal = { family = "JetBrains Mono", style = "Semibold" }
+size = 10.0
+normal = { family = "JetBrains Mono", style = "SemiBold" }
 bold = { family = "JetBrains Mono", style = "Bold" }
 italic = { family = "JetBrains Mono", style = "Italic" }
 bold_italic = { family = "JetBrains Mono", style = "Medium Italic" }
@@ -95,7 +95,6 @@ white = "#928374"
 
 
 # Keybindings
-
 [keyboard]
 bindings = [
     { key = "T", mods = "Control", command = { program = "alacritty" } },

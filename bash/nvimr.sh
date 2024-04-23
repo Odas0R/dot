@@ -9,7 +9,7 @@ if [[ "$TERM" == "xterm-kitty" ]]; then
   panel_title=$(echo "$panel_title" | tr -d '"' | tr -d ' ')
 
   export NVIM_SOCKET="$HOME/.cache/nvim/nvim_socket.${panel_pid}.${panel_title}.pipe"
-elif [[ -z "$TMUX" ]]; then
+elif [[ -n "$TMUX" ]]; then
   export NVIM_SOCKET="$HOME/.cache/nvim/nvim_socket.pane_${TMUX_PANE}.pipe"
 else
   export NVIM_SOCKET="$HOME/.cache/nvim/nvim_socket.pipe"

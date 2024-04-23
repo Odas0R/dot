@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
-ln -sf "$DOT/alacritty/alacritty.yml" "$HOME/.alacritty.yml"
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+  mkdir -p "/mnt/c/Users/Guilherme Rosado/AppData/Roaming/alacritty"
+  rm "/mnt/c/Users/Guilherme Rosado/AppData/Roaming/alacritty/alacritty.toml"
+  cp "$DOT/alacritty/alacritty.toml" "/mnt/c/Users/Guilherme Rosado/AppData/Roaming/alacritty/alacritty.toml"
+fi
+
+ln -sf "$DOT/alacritty/alacritty.toml" "$HOME/.alacritty.toml"
 
 printf "Alacritty setup done! 🌟\n"

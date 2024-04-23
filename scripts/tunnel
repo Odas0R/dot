@@ -8,6 +8,10 @@ set -eo pipefail
 
 DEFAULT_TUNNEL="preview"
 
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+  DEFAULT_TUNNEL="guilherme"
+fi
+
 if [[ $# -eq 1 ]]; then
   tunnel="$DEFAULT_TUNNEL"
   localhost="$1"

@@ -85,7 +85,7 @@ require("lazy").setup({
   {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
-    tag = "v0.9.2",
+    -- tag = "v0.9.2",
     cmd = { "TSUpdateSync" },
     dependencies = {
       "JoosepAlviste/nvim-ts-context-commentstring",
