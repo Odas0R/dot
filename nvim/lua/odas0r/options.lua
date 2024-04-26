@@ -2,9 +2,15 @@
 -- Options
 -----------------------------------------
 
+local isWSL = os.getenv("WSL_DISTRO_NAME") == "Ubuntu"
+if isWSL then
+  vim.ui.open = function(arg)
+    vim.fn.system("explorer.exe " .. arg)
+  end
+end
+
 -- copy-paste from
 -- <https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua>
-
 local opt = vim.opt
 
 opt.textwidth = 80 -- Maximum width of text
@@ -14,6 +20,7 @@ opt.formatoptions = "jcroqlnt" -- tcqj
 opt.autowrite = true -- Enable auto write
 opt.clipboard = "unnamedplus" -- Sync with system clipboard
 opt.completeopt = "menu,menuone,noselect"
+opt.termguicolors = true
 opt.conceallevel = 3 -- Hide * markup for bold and italic
 opt.confirm = true -- Confirm to save changes before exiting modified buffer
 opt.cursorline = true -- Enable highlighting of the current line

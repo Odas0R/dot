@@ -4,5 +4,4 @@ prompt: enabled
 pager: less
 aliases:
     co: pr checkout
-browser: "open"
 version: "1"

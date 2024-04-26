@@ -103,4 +103,3 @@
   name: ((identifier) @_const(#lua-match? @_const ".*[J|j]son.*"))
   value: (expression_list (raw_string_literal) @injection.content
    (#set! injection.language "json")))
-

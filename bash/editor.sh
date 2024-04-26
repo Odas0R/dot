@@ -28,6 +28,5 @@ export EDITOR="$VISUAL"
 if [[ -n "${WSL_DISTRO_NAME}" ]]; then
   # execute this to symlink the chrome program
   # ln -sf "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" ~/.local/bin/chrome
-  #
-  export BROWSER=~/.local/bin/chrome
+  export BROWSER="$HOME/.local/bin/chrome"
 fi
