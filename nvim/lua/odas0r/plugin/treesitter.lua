@@ -10,82 +10,67 @@ M.init = function()
     },
     update_in_insert = true,
   })
-
-  ------------------------------------
-  -- Custom Files
-  ------------------------------------
-  vim.filetype.add({
-    extension = {
-      mdx = "mdx",
-    },
-  })
-  local lang = require("vim.treesitter.language")
-  lang.register("markdown", "mdx")
 end
 
 M.config = function()
-  require("nvim-treesitter.configs").setup({
-    highlight = {
-      enable = true,
-    },
-    indent = { enable = false },
-    ensure_installed = {
-      "bash",
-      "c",
-      "go",
-      "html",
-      "javascript",
-      "json",
-      "lua",
-      "luadoc",
-      "luap",
-      "dart",
-      "markdown",
-      "markdown_inline",
-      "python",
-      "query",
-      "regex",
-      "tsx",
-      "typescript",
-      "vim",
-      "vimdoc",
-      "yaml",
-    },
-
-    -- Plugins
-    incremental_selection = {
-      enable = true,
-      keymaps = {
-        init_selection = "<C-Space>",
-        node_incremental = "<C-Space>",
-        scope_incremental = false,
-        node_decremental = "<bs>",
+  -- defer until after first render to improve startup time of 'nvim {filename}'
+  vim.defer_fn(function()
+    require("nvim-treesitter.configs").setup({
+      highlight = {
+        enable = true,
+        disable = {},
+        additional_vim_regex_highlighting = false,
       },
-    },
-    autotag = { enable = true },
-    refactor = {
-      highlight_definitions = { enable = true },
-    },
+      indent = { enable = false },
+      ensure_installed = {
+        "bash",
+        "c",
+        "go",
+        "html",
+        "javascript",
+        "json",
+        "lua",
+        "luadoc",
+        "luap",
+        "dart",
+        "markdown",
+        "markdown_inline",
+        "python",
+        "query",
+        "regex",
+        "tsx",
+        "typescript",
+        "vim",
+        "vimdoc",
+        "yaml",
+        "astro",
+      },
 
-    -- disable slow treesitter highlight for large files
-    -- https://github.com/nvim-treesitter/nvim-treesitter
-    -- disable = function(lang, buf)
-    --   local max_filesize = 100 * 1024 -- 100 KB
-    --   local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-    --   if ok and stats and stats.size > max_filesize then
-    --     return true
-    --   end
-    -- end,
-  })
+      -- Plugins
+      autotag = { enable = true },
+      refactor = {
+        highlight_definitions = { enable = true },
+      },
 
-  -- nvim-ts-context-commentstring integration with Comment.nvim
-  -- https://github.com/JoosepAlviste/nvim-ts-context-commentstring#commentnvim
-  require("ts_context_commentstring").setup({
-    enable_autocmd = false,
-    languages = {
-      typescript = "// %s",
-    },
-  })
+      -- disable slow treesitter highlight for large files
+      -- https://github.com/nvim-treesitter/nvim-treesitter
+      -- disable = function(lang, buf)
+      --   local max_filesize = 100 * 1024 -- 100 KB
+      --   local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+      --   if ok and stats and stats.size > max_filesize then
+      --     return true
+      --   end
+      -- end,
+    })
+    -- nvim-ts-context-commentstring integration with Comment.nvim
+    -- https://github.com/JoosepAlviste/nvim-ts-context-commentstring#commentnvim
+    require("ts_context_commentstring").setup({
+      enable_autocmd = false,
+      languages = {
+        typescript = "// %s",
+      },
+    })
+  end, 0)
 end
 
 return M

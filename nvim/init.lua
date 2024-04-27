@@ -58,12 +58,10 @@ require("lazy").setup({
         contrast = "", -- can be "hard", "soft" or empty string
         palette_overrides = {},
         overrides = {
-          -- https://github.com/ellisonleao/gruvbox.nvim/blob/main/lua/gruvbox/groups.lua
+          -- https://github.com/ellisonleao/gruvbox.nvim/blob/main/lua/gruvbox.lua
           -- Identifiers should be white for better readibility, but not too
           -- bright, the blue is terrible.
           Identifier = { link = "GruvboxFg1" },
-
-          -- This fixes markdown omg!
           ["@text"] = { link = "GruvboxFg1" },
           ["@text.strong"] = { bold = config.bold, fg = colors.yellow },
           ["@text.emphasis"] = {
@@ -76,6 +74,7 @@ require("lazy").setup({
       })
       vim.cmd("colorscheme gruvbox")
       vim.o.background = "dark" -- or "light" for light mode
+      vim.o.termguicolors = true
     end,
   },
 
@@ -241,15 +240,6 @@ augroup END
   {
     "Shougo/defx.nvim",
     build = ":UpdateRemotePlugins",
-  },
-  -- database
-  {
-    "tpope/vim-dadbod",
-    event = { "BufReadPre", "BufNewFile" },
-    init = function()
-      -- vim.g.db = "postgres://postgres:postgres@localhost:5432/postgres"
-      vim.g.completion_matching_ignore_case = 1
-    end,
   },
   -- lsp, Completion Engine
   {
