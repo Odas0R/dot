@@ -1,7 +1,7 @@
+; extends
+
 ; Got this from the ray-x go plugin
 ; https://github.com/ray-x/go.nvim/blob/master/after/queries/go/injections.scm
-
-; extends
 
 ; inject sql in single line strings
 ; e.g. db.GetContext(ctx, "SELECT * FROM users WHERE name = 'John'")

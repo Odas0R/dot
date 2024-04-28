@@ -86,4 +86,3 @@ PATH+="$PNPM_HOME:"
 PATH+="$VOLTA_HOME/bin"
 
 export PATH
-

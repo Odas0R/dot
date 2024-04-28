@@ -14,3 +14,9 @@ Utils.cmd("BufClose", function()
 end, {
   nargs = 0,
 })
+
+Utils.cmd("GoTest", function()
+  local test_command = "go test -v " .. vim.fn.expand("%")
+  local tmux_command = string.format("tmux split-window -h 'cd %s && %s; echo Press Enter to close...; read'", vim.fn.getcwd(), test_command)
+  vim.fn.system(tmux_command)
+end, {})
