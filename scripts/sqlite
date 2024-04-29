@@ -7,4 +7,4 @@ if [[ ! -x "$(command -v sqlite3)" ]]; then
   exit 1
 fi
 
-/usr/local/bin/sqlite3 "$@"
+sqlite3 "$@"

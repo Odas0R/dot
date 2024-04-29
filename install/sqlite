@@ -3,6 +3,7 @@
 set -euo pipefail
 
 # Get the latest SQLite version number
+CURRENT_YEAR=$(date +'%Y')
 SQLITE_VERSION=$(curl -s https://www.sqlite.org/download.html | grep -oP '(?<=sqlite-autoconf-)[0-9]+' | head -1)
 if [[ -z "$SQLITE_VERSION" ]]; then
   echo "Failed to get SQLite version number"
@@ -15,7 +16,7 @@ echo -e "===========================================\n"
 
 cd /tmp
 
-curl "https://www.sqlite.org/2023/sqlite-autoconf-${SQLITE_VERSION}.tar.gz" -o sqlite.tar.gz
+curl "https://www.sqlite.org/${CURRENT_YEAR}/sqlite-autoconf-${SQLITE_VERSION}.tar.gz" -o sqlite.tar.gz
 
 # Extract the source code
 tar -xzf sqlite.tar.gz
@@ -31,7 +32,9 @@ cd "sqlite-autoconf-${SQLITE_VERSION}"
 make
 
 # remove the old binary
-sudo rm /usr/local/bin/sqlite3
+if [[ -f /usr/local/bin/sqlite3 ]]; then
+  sudo rm /usr/local/bin/sqlite3
+fi
 
 # Install SQLite (requires root)
 sudo make install

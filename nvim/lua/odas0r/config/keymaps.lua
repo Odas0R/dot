@@ -53,3 +53,6 @@ map("i", ";", ";<c-g>u")
 -- better indenting
 map("v", "<", "<gv")
 map("v", ">", ">gv")
+
+-- re-run last command
+map("n", "<leader>r", "@:", { noremap = true })

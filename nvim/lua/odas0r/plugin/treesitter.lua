@@ -10,6 +10,8 @@ M.init = function()
     },
     update_in_insert = true,
   })
+
+  vim.filetype.add({ extension = { templ = "templ" } })
 end
 
 M.config = function()
@@ -26,6 +28,8 @@ M.config = function()
         "bash",
         "c",
         "go",
+        "gotmpl",
+        "templ",
         "html",
         "javascript",
         "json",

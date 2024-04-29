@@ -242,9 +242,18 @@ M.config = function()
     },
     on_attach = function(_, bufnr)
       on_attach(_, bufnr)
-      Utils.map("n", "<leader>gi", ":silent! !goimports -w %<CR>", { buf = bufnr })
+      Utils.map("n", "gi", ":silent! !goimports -w %<CR>", { buf = bufnr })
     end,
     capabilities = capabilities,
+    flags = flags,
+  })
+
+  require("lspconfig").templ.setup({
+    capabilities = capabilities,
+    on_attach = function(_, bufnr)
+      on_attach(_, bufnr)
+      Utils.map("n", "gi", ":silent! !goimports -w %<CR>", { buf = bufnr })
+    end,
     flags = flags,
   })
 
