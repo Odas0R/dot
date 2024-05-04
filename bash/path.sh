@@ -41,6 +41,11 @@ export ZET="$HOME/github.com/odas0r/zet"
 export GOROOT="/usr/local/go"
 export GOPATH="$HOME/go"
 
+# CBUILD
+# export CPATH="$HOME/llvm-project/build/lib/clang/19/include:$CPATH"
+# export C_INCLUDE_PATH="$HOME/llvm-project/build/lib/clang/19/include:$C_INCLUDE_PATH"
+# export CPLUS_INCLUDE_PATH="$HOME/llvm-project/build/lib/clang/19/include:$CPLUS_INCLUDE_PATH"
+
 # Cargo
 export CARGOPATH="/home/odas0r/.cargo"
 

@@ -191,39 +191,12 @@ augroup END
   }, -- comment
   {
     "github/copilot.vim",
-    cmd = "Copilot",
-    event = "InsertEnter",
+    -- event = "InsertEnter",
     init = function()
       vim.g.copilot_node_command = "/home/odas0r/.volta/bin/node"
-      vim.g.copilot_filetypes = {
-        ["*"] = false,
-        ["javascript"] = true,
-        ["javascriptreact"] = true,
-        ["typescript"] = true,
-        ["typescriptreact"] = true,
-        ["vue"] = true,
-        ["lua"] = true,
-        ["html"] = true,
-        ["matlab"] = true,
-        ["sql"] = true,
-        ["sh"] = true,
-        ["bash"] = true,
-        ["yaml"] = true,
-        ["yml"] = true,
-        ["dockerfile"] = true,
-        ["go"] = true,
-        ["java"] = true,
-        ["json"] = true,
-        ["python"] = true,
-        ["jsonc"] = true,
-        ["make"] = true,
-        ["astro"] = true,
-        ["dart"] = true,
-        ["css"] = true,
-        ["toml"] = true,
-        ["scss"] = true,
-        ["config"] = true,
-      }
+      -- vim.g.copilot_filetypes = {
+      --   ["*"] = true,
+      -- }
 
       Utils.map({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)")
       Utils.map({ "i", "n" }, "<leader>k", "<Plug>(copilot-next)")

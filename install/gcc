@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+sudo apt-get install gcc-12
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100

@@ -226,6 +226,20 @@ M.config = function()
   --   },
   -- })
 
+  require("lspconfig").marksman.setup({
+    on_attach = on_attach,
+    capabilities = capabilities,
+    flags = flags,
+  })
+
+  -- sudo apt-get install clangd-14
+  -- sudo update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-14 100
+  require("lspconfig").clangd.setup({
+    on_attach = on_attach,
+    capabilities = capabilities,
+    flags = flags,
+  })
+
   -- go install golang.org/x/tools/gopls@latest
   -- go install golang.org/x/tools/cmd/goimports@latest
   require("lspconfig").gopls.setup({
