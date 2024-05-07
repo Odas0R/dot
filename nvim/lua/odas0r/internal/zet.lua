@@ -162,10 +162,16 @@ Utils.cmd("ZetBrokenLinks", zet.brokenlinks, { nargs = 0, desc = "Find broken li
 Utils.cmd("ZetBacklog", zet.backlog, { nargs = 0, desc = "Show the backlog" })
 Utils.cmd("ZetMakePermanent", function()
   local curr_path = vim.fn.expand("%:p")
+  if vim.fn.filereadable(curr_path) == 0 then
+    return
+  end
   zet.permanent(curr_path)
 end, { nargs = 0, desc = "Make a zettel type permanent" })
 Utils.cmd("ZetMakeFleet", function()
   local curr_path = vim.fn.expand("%:p")
+  if vim.fn.filereadable(curr_path) == 0 then
+    return
+  end
   zet.fleet(curr_path)
 end, { nargs = 0, desc = "Make a zettel type fleet" })
 
@@ -179,57 +185,56 @@ Utils.autocmd({ "BufWritePost" }, {
     "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
   },
   callback = function()
-    local curr_path = vim.fn.expand("%:p")
+    local curr_path_buf = vim.fn.expand("%:p")
 
     -- if the file doesn't exist, don't do anything
-    if vim.fn.filereadable(curr_path) == 0 then
+    if vim.fn.filereadable(curr_path_buf) == 0 then
       return
     end
-
-    local zettel = nil
 
     Job
       :new({
         command = "zet",
-        args = { "save", curr_path },
+        args = { "save", curr_path_buf },
         on_exit = function(j, code)
           if code == 0 then
-            zettel = j:result()[1]
+            local result = j:result()[1]
+            local zettel = vim.json.decode(result)
+
+            -- Check that zettel has necessary fields
+            if zettel.path == nil or zettel.slug == nil or zettel.title == nil then
+              print("Error: Missing necessary fields in zettel.")
+              return
+            end
+
+            -- Git Add, Commit, and Push
+            local git_command = table.concat({
+              -- add all changes on the zet directory
+              "git add " .. curr_path_buf,
+              "git commit -m '(save): " .. zettel.title .. "'",
+              "git push",
+            }, " && ")
+
+            Job
+              :new({
+                command = "bash",
+                args = { "-c", git_command },
+                on_exit = function(j, c)
+                  if code == 0 then
+                    print("Saved... \"" .. zettel.title .. "\"")
+                  else
+                    print("Git Error: " .. j:stderr_result()[1])
+                  end
+                end,
+              })
+              :start()
           else
             -- show Error message on red
             print("Zet Error: " .. j:stderr_result()[1])
           end
         end,
       })
-      :sync()
-
-    if zettel == nil then
-      return
-    end
-
-    zettel = vim.json.decode(zettel)
-
-    -- Git Add, Commit, and Push
-    local git_command = string.format(
-      "git add %s && git commit -m '(automatic): saved %s' && git push",
-      curr_path,
-      zettel.slug
-    )
-
-    Job
-      :new({
-        command = "bash",
-        args = { "-c", git_command },
-        on_exit = function(j, code)
-          if code == 0 then
-            print("Saved... [" .. zettel.title .. "]")
-          else
-            print("Git Error: " .. j:stderr_result()[1])
-          end
-        end,
-      })
-      :sync()
-    -- add changest to git and push with a commit message
+      :start()
   end,
 })
 
@@ -251,7 +256,7 @@ Utils.autocmd({ "VimEnter", "VimLeave" }, {
           end
         end,
       })
-      :sync()
+      :start()
   end,
 })
 
