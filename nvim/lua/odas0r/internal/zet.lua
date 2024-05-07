@@ -98,6 +98,26 @@ zet.backlog = function()
   vim.cmd("copen")
 end
 
+zet.history = function()
+  local raw_data = exec("zet", { "history" })
+  if raw_data == nil then
+    return
+  end
+
+  local data = vim.json.decode(raw_data, { array = true })
+  local loclist = {}
+
+  for _, zettel in ipairs(data) do
+    table.insert(loclist, {
+      filename = zettel.path,
+      text = zettel.title,
+    })
+  end
+
+  vim.fn.setqflist(loclist, "r")
+  vim.cmd("copen")
+end
+
 zet.permanent = function(path)
   local raw_data = exec("zet", { "permanent", path })
   if raw_data == nil then
@@ -136,14 +156,15 @@ Utils.cmd("ZetNew", function(opts)
     zet.create(title)
   end
 end, { nargs = "?", desc = "Create a new zet file" })
+Utils.cmd("ZetHistory", zet.history, { nargs = 0, desc = "Show the history" })
 Utils.cmd("ZetLast", zet.open_last, { nargs = 0, desc = "Open the last zettel" })
 Utils.cmd("ZetBrokenLinks", zet.brokenlinks, { nargs = 0, desc = "Find broken links" })
 Utils.cmd("ZetBacklog", zet.backlog, { nargs = 0, desc = "Show the backlog" })
-Utils.cmd("ZetMakePermanent", function(opts)
+Utils.cmd("ZetMakePermanent", function()
   local curr_path = vim.fn.expand("%:p")
   zet.permanent(curr_path)
 end, { nargs = 0, desc = "Make a zettel type permanent" })
-Utils.cmd("ZetMakeFleet", function(opts)
+Utils.cmd("ZetMakeFleet", function()
   local curr_path = vim.fn.expand("%:p")
   zet.fleet(curr_path)
 end, { nargs = 0, desc = "Make a zettel type fleet" })
@@ -222,6 +243,7 @@ Utils.map("n", "<leader>zn", "<cmd>ZetNew<CR>")
 Utils.map("n", "<leader>zl", "<cmd>ZetLast<CR>")
 Utils.map("n", "<leader>zb", "<cmd>ZetBacklog<CR>")
 Utils.map("n", "<leader>zB", "<cmd>ZetBrokenLinks<CR>")
+Utils.map("n", "<leader>zh", "<cmd>ZetHistory<CR>")
 
 --------------------------------
 -- UI
