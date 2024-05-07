@@ -118,7 +118,7 @@ Utils.autocmd({ "BufEnter" }, {
 
 -- Write the current buffer file path to ~/.nvim-buf -- Useful for commands
 -- that require buffer info.
-Utils.autocmd({ "BufEnter" }, {
+Utils.autocmd({ "BufEnter", "FocusGained" }, {
   pattern = { "*" },
   group = Utils.augroup("write_current_path"),
   callback = function()
