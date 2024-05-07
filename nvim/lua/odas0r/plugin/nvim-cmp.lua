@@ -40,10 +40,6 @@ M.config = function()
       ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
     },
     sources = cmp.config.sources({
-      {
-        name = "zet",
-        priority = 1000,
-      },
       { name = "nvim_lua" },
       { name = "nvim_lsp" },
       { name = "luasnip" },
@@ -71,7 +67,6 @@ M.config = function()
           nvim_lsp = "[Lsp]",
           luasnip = "[Snip]",
           path = "[Path]",
-          zet = "[Zet]",
           buffer = "[Buffer]",
         },
       }),

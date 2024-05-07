@@ -64,8 +64,8 @@ end
 local custom_nvim_keymap = function(mode, lhs, rhs, opts)
   local options = { noremap = true, silent = true }
 
+  -- For backwards compatibility 
   if opts then
-    -- fix inconsistencies
     if opts.buf then
       opts.buffer = opts.buf
       opts.buf = nil

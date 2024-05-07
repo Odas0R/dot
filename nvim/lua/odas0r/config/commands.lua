@@ -14,15 +14,3 @@ Utils.cmd("BufClose", function()
 end, {
   nargs = 0,
 })
-
-Utils.cmd("GoTest", function(tbl_args)
-  local test_command = "go test " .. tbl_args.args .. " " .. vim.fn.expand("%")
-  local tmux_command = string.format(
-    "tmux split-window -h 'cd %s && %s; echo Press Enter to close...; read'",
-    vim.fn.getcwd(),
-    test_command
-  )
-  vim.fn.system(tmux_command)
-end, {
-  nargs = "*", -- 0 or more arguments
-})

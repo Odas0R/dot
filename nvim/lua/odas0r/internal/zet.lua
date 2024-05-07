@@ -3,6 +3,25 @@ local Job = require("plenary.job")
 
 local zet = {}
 
+local function exec(cmd, args)
+  local result = nil
+  Job
+    :new({
+      command = cmd,
+      args = args,
+      on_exit = function(j, code)
+        if code == 0 then
+          result = j:result()[1]
+        else
+          -- show Error message on red
+          print("Error: " .. j:stderr_result()[1])
+        end
+      end,
+    })
+    :sync()
+  return result
+end
+
 zet.grep = function(query)
   if terminal ~= nil then
     terminal:close()
@@ -20,53 +39,82 @@ zet.grep = function(query)
 end
 
 zet.create = function(title)
-  local path = nil
-  Job
-    :new({
-      command = "zet",
-      args = { "new", "--raw", title },
-      on_exit = function(j, code)
-        if code == 0 then
-          path = j:result()[1]
-          print("Created: " .. path)
-        else
-          -- show Error message on red
-          print("Error: " .. j:stderr_result()[1])
-        end
-      end,
-    })
-    :sync()
-
-  if path then
-    vim.cmd("e " .. path)
+  local raw_data = exec("zet", { "new", "--raw", title })
+  if raw_data == nil then
+    return
   end
+
+  local zettel = vim.json.decode(raw_data)
+  vim.cmd("e " .. zettel.path)
 end
 
 zet.open_last = function()
-  local path = nil
-  Job
-    :new({
-      command = "zet",
-      args = { "last" },
-      on_exit = function(j, code)
-        if code == 0 then
-          path = j:result()[1]
-          print("Created: " .. path)
-        else
-          -- show Error message on red
-          print("Error: " .. j:stderr_result()[1])
-        end
-      end,
-    })
-    :sync()
-
-  if path then
-    vim.cmd("e " .. path)
+  local raw_data = exec("zet", { "last" })
+  if raw_data == nil then
+    return
   end
+
+  local zettel = vim.json.decode(raw_data)
+  vim.cmd("e " .. zettel.path)
 end
 
-vim.cmd([[highlight FloatBorder guifg=GruvboxFg1]])
-vim.cmd([[highlight FloatTitle guifg=GruvboxFg1]])
+zet.brokenlinks = function()
+  local raw_data = exec("zet", { "brokenlinks" })
+  if raw_data == nil then
+    return
+  end
+
+  local data = vim.json.decode(raw_data, { array = true })
+  local loclist = {}
+
+  for _, zettel in ipairs(data) do
+    table.insert(loclist, {
+      filename = zettel.path,
+      text = zettel.title,
+    })
+  end
+
+  vim.fn.setqflist(loclist, "r")
+  vim.cmd("copen")
+end
+
+zet.backlog = function()
+  local raw_data = exec("zet", { "backlog" })
+  if raw_data == nil then
+    return
+  end
+
+  local data = vim.json.decode(raw_data, { array = true })
+  local loclist = {}
+
+  for _, zettel in ipairs(data) do
+    table.insert(loclist, {
+      filename = zettel.path,
+      text = zettel.title,
+    })
+  end
+
+  vim.fn.setqflist(loclist, "r")
+  vim.cmd("copen")
+end
+
+zet.permanent = function(path)
+  local raw_data = exec("zet", { "permanent", path })
+  if raw_data == nil then
+    return
+  end
+  local zettel = vim.json.decode(raw_data)
+  vim.cmd("e " .. zettel.path)
+end
+
+zet.fleet = function(path)
+  local raw_data = exec("zet", { "fleet", path })
+  if raw_data == nil then
+    return
+  end
+  local zettel = vim.json.decode(raw_data)
+  vim.cmd("e " .. zettel.path)
+end
 
 --------------------------------
 -- Commands
@@ -75,10 +123,7 @@ vim.cmd([[highlight FloatTitle guifg=GruvboxFg1]])
 Utils.cmd("ZetGrep", function(opts)
   local query = opts.fargs[1] or ""
   zet.grep(query)
-end, {
-  nargs = "?",
-  desc = "Grep zet files",
-})
+end, { nargs = "?", desc = "Grep zet files" })
 Utils.cmd("ZetNew", function(opts)
   local title = opts.fargs[1] or ""
   if title == "" then
@@ -90,22 +135,24 @@ Utils.cmd("ZetNew", function(opts)
   else
     zet.create(title)
   end
-end, {
-  nargs = "?",
-  desc = "Create a new zet file",
-})
-Utils.cmd("ZetLast", function(opts)
-  zet.open_last()
-end, {
-  nargs = 0,
-  desc = "Open the last zettel",
-})
+end, { nargs = "?", desc = "Create a new zet file" })
+Utils.cmd("ZetLast", zet.open_last, { nargs = 0, desc = "Open the last zettel" })
+Utils.cmd("ZetBrokenLinks", zet.brokenlinks, { nargs = 0, desc = "Find broken links" })
+Utils.cmd("ZetBacklog", zet.backlog, { nargs = 0, desc = "Show the backlog" })
+Utils.cmd("ZetMakePermanent", function(opts)
+  local curr_path = vim.fn.expand("%:p")
+  zet.permanent(curr_path)
+end, { nargs = 0, desc = "Make a zettel type permanent" })
+Utils.cmd("ZetMakeFleet", function(opts)
+  local curr_path = vim.fn.expand("%:p")
+  zet.fleet(curr_path)
+end, { nargs = 0, desc = "Make a zettel type fleet" })
 
 --------------------------------
 -- Augroups
 --------------------------------
 
-Utils.autocmd({ "BufWritePost", "BufReadPost" }, {
+Utils.autocmd({ "BufWritePost" }, {
   pattern = {
     "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
     "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
@@ -115,7 +162,6 @@ Utils.autocmd({ "BufWritePost", "BufReadPost" }, {
   },
   callback = function()
     local curr_path = vim.fn.expand("%:p")
-    local path = nil
 
     -- if the file doesn't exist, don't do anything
     if vim.fn.filereadable(curr_path) == 0 then
@@ -128,7 +174,7 @@ Utils.autocmd({ "BufWritePost", "BufReadPost" }, {
         args = { "save", curr_path },
         on_exit = function(j, code)
           if code == 0 then
-            path = j:result()[1]
+            local path = j:result()[1]
             print("Saved... [" .. path .. "]")
           else
             -- show Error message on red
@@ -138,10 +184,7 @@ Utils.autocmd({ "BufWritePost", "BufReadPost" }, {
       })
       :sync()
 
-    if path ~= curr_path then
-      -- change the buffer path to the new one
-      vim.api.nvim_buf_set_name(0, path)
-    end
+    -- add changest to git and push with a commit message
   end,
 })
 
@@ -174,11 +217,11 @@ Utils.autocmd({ "VimEnter", "VimLeave" }, {
 -- Keymaps
 -------------------------------
 
-Utils.map("n", "<leader>zf", "<cmd>ZetGrep<CR>", { silent = true })
-Utils.map("n", "<leader>zg", "<cmd>ZetGrep<CR>", { silent = true })
-Utils.map("n", "<leader>zp", "<cmd>ZetGrep<CR>", { silent = true })
-Utils.map("n", "<leader>zn", "<cmd>ZetNew<CR>", { silent = true })
-Utils.map("n", "<leader>zl", "<cmd>ZetLast<CR>", { silent = true })
+Utils.map("n", "<leader>zp", "<cmd>ZetGrep<CR>")
+Utils.map("n", "<leader>zn", "<cmd>ZetNew<CR>")
+Utils.map("n", "<leader>zl", "<cmd>ZetLast<CR>")
+Utils.map("n", "<leader>zb", "<cmd>ZetBacklog<CR>")
+Utils.map("n", "<leader>zB", "<cmd>ZetBrokenLinks<CR>")
 
 --------------------------------
 -- UI
@@ -186,14 +229,15 @@ Utils.map("n", "<leader>zl", "<cmd>ZetLast<CR>", { silent = true })
 
 function Input(opts)
   local original_list_option = vim.o.list
+
   vim.o.list = false
 
   -- create new empty buffer for our window
   local buf = vim.api.nvim_create_buf(false, true)
 
   -- get the editor's maximum width and height
-  local width = vim.api.nvim_get_option("columns")
-  local height = vim.api.nvim_get_option("lines")
+  local width = vim.api.nvim_get_option_value("columns", {})
+  local height = vim.api.nvim_get_option_value("lines", {})
 
   -- calculate our floating window size
   local win_width = math.ceil(width * 0.25) -- Less width
@@ -204,8 +248,12 @@ function Input(opts)
   local col = math.ceil((width - win_width) / 2)
 
   -- set some options for our new buffer
-  vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-  vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
+  vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
+  vim.api.nvim_set_option_value("buftype", "prompt", { buf = buf })
+  vim.cmd([[
+    highlight FloatBorder guifg=GruvboxFg1
+    highlight FloatTitle guifg=GruvboxFg1
+  ]])
 
   -- create a new floating window, centered in the editor
   local win = vim.api.nvim_open_win(buf, true, {
@@ -222,7 +270,7 @@ function Input(opts)
   })
 
   -- hide the line numbers
-  vim.api.nvim_win_set_option(win, "winhighlight", "Normal:FloatBorder") -- Set the background to transparent
+  vim.api.nvim_set_option_value("winhighlight", "Normal:FloatBorder", { win = win })
   vim.cmd(string.format("autocmd WinLeave <buffer=%s> :lua vim.api.nvim_win_close(%s, true)", buf, win))
 
   -- set prompt and make it "centered" by adding leading spaces
@@ -231,11 +279,11 @@ function Input(opts)
     local input = vim.fn.getline("."):sub(3, -1)
     vim.cmd([[q!]])
     opts.callback(input)
-  end, { buffer = buf, silent = true })
+  end, { buf = buf })
 
   Utils.map("i", { "<ESC>", "q", "<C-c>" }, function()
     vim.cmd([[q!]])
-  end, { buffer = buf, silent = true })
+  end, { buf = buf })
 
   vim.cmd([[startinsert!]])
   vim.o.list = original_list_option

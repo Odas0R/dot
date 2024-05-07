@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+  explorer.exe "$@"
+else
+  open "$@"
+fi

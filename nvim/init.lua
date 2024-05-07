@@ -63,11 +63,18 @@ require("lazy").setup({
           -- bright, the blue is terrible.
           Identifier = { link = "GruvboxFg1" },
           ["@text"] = { link = "GruvboxFg1" },
-          ["@text.strong"] = { bold = config.bold, fg = colors.yellow },
-          ["@text.emphasis"] = {
+
+          -- Markdown custom syntax
+          -- 
+          -- If you want to change the color of the syntax, you can use the
+          -- `:Inspect` command to see the current syntax group and then change
+          -- it with the overrides table
+          ["@markup.strong"] = { bold = config.bold, fg = colors.yellow },
+          ["@markup.italic"] = {
             italic = config.italic.emphasis,
             fg = colors.purple,
           },
+          ["@lsp.type.class.markdown"] = { bold = config.bold, fg = colors.orange }
         },
         dim_inactive = false,
         transparent_mode = false,
@@ -194,10 +201,6 @@ augroup END
     -- event = "InsertEnter",
     init = function()
       vim.g.copilot_node_command = "/home/odas0r/.volta/bin/node"
-      -- vim.g.copilot_filetypes = {
-      --   ["*"] = true,
-      -- }
-
       Utils.map({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)")
       Utils.map({ "i", "n" }, "<leader>k", "<Plug>(copilot-next)")
     end,
@@ -245,12 +248,6 @@ augroup END
       "hrsh7th/cmp-buffer",
       "hrsh7th/cmp-path",
       "saadparwaiz1/cmp_luasnip",
-      {
-        "odas0r/cmp-zet",
-        dev = true,
-        config = require("odas0r.cmp-zet").setup,
-        dependencies = { "nvim-lua/plenary.nvim" },
-      },
     },
     init = require("odas0r.plugin.nvim-cmp").init,
     config = require("odas0r.plugin.nvim-cmp").config,

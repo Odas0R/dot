@@ -20,7 +20,9 @@ M.config = function()
     require("nvim-treesitter.configs").setup({
       highlight = {
         enable = true,
-        disable = {},
+        disable = {
+          -- "markdown"
+        },
         additional_vim_regex_highlighting = false,
       },
       indent = { enable = false },

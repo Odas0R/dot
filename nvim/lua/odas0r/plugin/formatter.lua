@@ -66,7 +66,15 @@ M.config = function()
       end,
     },
     sh = {
-      -- Shell Script Formatter
+      function()
+        return {
+          exe = "shfmt",
+          args = { "-i", 2 },
+          stdin = true,
+        }
+      end,
+    },
+    bash = {
       function()
         return {
           exe = "shfmt",

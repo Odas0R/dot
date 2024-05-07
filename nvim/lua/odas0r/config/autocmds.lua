@@ -66,16 +66,6 @@ Utils.autocmd("FileType", {
   end,
 })
 
--- wrap and check for spell in text filetypes
-Utils.autocmd("FileType", {
-  group = Utils.augroup("wrap_spell"),
-  pattern = { "gitcommit", "*.md" },
-  callback = function()
-    vim.opt_local.wrap = true
-    vim.opt_local.spell = true
-  end,
-})
-
 -- Auto create dir when saving a file, in case some intermediate directory does not exist
 Utils.autocmd({ "BufWritePre" }, {
   group = Utils.augroup("auto_create_dir"),
@@ -121,6 +111,8 @@ Utils.autocmd({ "BufEnter" }, {
     -- opt.wrap = true
     -- opt.linebreak = true
     opt.conceallevel = 2
+
+     vim.api.nvim_set_hl(0, "markdownBold", { fg = "#FFD700", bold = true })
   end,
 })
 
