@@ -177,9 +177,6 @@ Utils.autocmd({ "BufWritePost" }, {
   pattern = {
     "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
     "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
-    -- Testing directories
-    "/tmp/zet/fleet/*.md",
-    "/tmp/zet/permanent/*.md",
   },
   callback = function()
     local curr_path = vim.fn.expand("%:p")
@@ -189,22 +186,49 @@ Utils.autocmd({ "BufWritePost" }, {
       return
     end
 
+    local zettel = nil
+
     Job
       :new({
         command = "zet",
         args = { "save", curr_path },
         on_exit = function(j, code)
           if code == 0 then
-            local path = j:result()[1]
-            print("Saved... [" .. path .. "]")
+            zettel = j:result()[1]
           else
             -- show Error message on red
-            print("Error: " .. j:stderr_result()[1])
+            print("Zet Error: " .. j:stderr_result()[1])
           end
         end,
       })
       :sync()
 
+    if zettel == nil then
+      return
+    end
+
+    zettel = vim.json.decode(zettel)
+
+    -- Git Add, Commit, and Push
+    local git_command = string.format(
+      "git add %s && git commit -m '(automatic): saved %s' && git push",
+      curr_path,
+      zettel.slug
+    )
+
+    Job
+      :new({
+        command = "bash",
+        args = { "-c", git_command },
+        on_exit = function(j, code)
+          if code == 0 then
+            print("Saved... [" .. zettel.title .. "]")
+          else
+            print("Git Error: " .. j:stderr_result()[1])
+          end
+        end,
+      })
+      :sync()
     -- add changest to git and push with a commit message
   end,
 })
@@ -213,9 +237,6 @@ Utils.autocmd({ "VimEnter", "VimLeave" }, {
   pattern = {
     "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
     "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
-    -- Testing directories
-    "/tmp/zet/fleet/*.md",
-    "/tmp/zet/permanent/*.md",
   },
   callback = function()
     Job
