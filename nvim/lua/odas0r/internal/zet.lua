@@ -201,11 +201,7 @@ Utils.autocmd({ "BufWritePost" }, {
             local result = j:result()[1]
             local zettel = vim.json.decode(result)
 
-            -- Check that zettel has necessary fields
-            if zettel.path == nil or zettel.slug == nil or zettel.title == nil then
-              print("Error: Missing necessary fields in zettel.")
-              return
-            end
+            local timer = Utils.loading_animation("Saving to GitHub...")
 
             -- Git Add, Commit, and Push
             local git_command = table.concat({
@@ -221,7 +217,8 @@ Utils.autocmd({ "BufWritePost" }, {
                 args = { "-c", git_command },
                 on_exit = function(j, c)
                   if code == 0 then
-                    print("Saved... \"" .. zettel.title .. "\"")
+                    timer:stop()
+                    print('Saved: "' .. zettel.title .. '"')
                   else
                     print("Git Error: " .. j:stderr_result()[1])
                   end

@@ -64,7 +64,7 @@ end
 local custom_nvim_keymap = function(mode, lhs, rhs, opts)
   local options = { noremap = true, silent = true }
 
-  -- For backwards compatibility 
+  -- For backwards compatibility
   if opts then
     if opts.buf then
       opts.buffer = opts.buf
@@ -89,6 +89,22 @@ local custom_nvim_keymap = function(mode, lhs, rhs, opts)
   else
     vim.keymap.set(mode, lhs, rhs, options)
   end
+end
+
+local function loading_animation(str)
+  -- add animation "Saving \|/..."
+  local saving = { "|", "/", "-", "\\" }
+  local i = 1
+  local timer = vim.loop.new_timer()
+  timer:start(
+    100,
+    100,
+    vim.schedule_wrap(function()
+      vim.api.nvim_echo({ { str .. " " .. saving[i] } }, false, {})
+      i = i % 4 + 1
+    end)
+  )
+  return timer
 end
 
 -- Create or get an autocommand group |autocmd-groups|.
@@ -150,5 +166,6 @@ M.augroup = augroup
 M.slugify = slugify
 M.reverse = reverse
 M.set_option = set_option
+M.loading_animation = loading_animation
 
 return M
