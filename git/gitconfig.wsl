@@ -22,3 +22,15 @@
     keepBackup = false
 [pull]
 	rebase = false
+
+[user]
+  signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBf7PspPHJtp5bpdqCAGzU7lVfFXU5q6mH56ebmVlVgo
+
+[gpg]
+  format = ssh
+
+[gpg "ssh"]
+  program = "/mnt/c/Users/Guilherme Rosado/AppData/Local/1Password/app/8/op-ssh-sign-wsl"
+
+[commit]
+  gpgsign = true

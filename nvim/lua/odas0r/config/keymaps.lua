@@ -18,7 +18,7 @@ map("n", "<leader>vu", ":so " .. vim.env.HOME .. "/.config/nvim/init.lua<CR>")
 map("n", "<C-l>", ":nohl<CR>")
 map("n", "<ESC>", ":nohl<CR>")
 map("n", "<leader>s", ":set spell!<CR>")
-map("n", "<leader>p", ":set paste!<CR>")
+-- map("n", "<leader>p", ":set paste!<CR>")
 
 -- Quickfix
 map("n", "<C-j>", ":cnext<CR>")

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 if [[ -n "$WSL_DISTRO_NAME" ]]; then
-  if [[ -z "$TMUX" ]]; then
+  if [[ "$TERM" != "xterm-kitty" ]] && [[ -z "$TMUX" ]]; then
     echo "Starting tmux session..."
     tmux attach -t wsl || tmux new -s wsl
   fi
 fi
 
-if [ -e /etc/bashrc ]; then
+if [[ -e /etc/bashrc ]]; then
   source /etc/bashrc
 fi
 
@@ -19,3 +19,9 @@ done
 for file in $HOME/.bash/autocomplete/*.sh; do
   . $file
 done
+
+# force to reset the DISPLAY variable
+if [[ -n "$WSL_DISTRO_NAME" ]]; then
+  export DISPLAY=:0
+fi
+

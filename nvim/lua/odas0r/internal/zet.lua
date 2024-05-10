@@ -206,7 +206,7 @@ Utils.autocmd({ "BufWritePost" }, {
             -- Git Add, Commit, and Push
             local git_command = table.concat({
               -- add all changes on the zet directory
-              "git add " .. curr_path_buf,
+              "git -C " .. os.getenv("HOME") .. "/github.com/odas0r/zet add .",
               "git commit -m '(save): " .. zettel.title .. "'",
               "git push",
             }, " && ")

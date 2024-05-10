@@ -65,7 +65,7 @@ require("lazy").setup({
           ["@text"] = { link = "GruvboxFg1" },
 
           -- Markdown custom syntax
-          -- 
+          --
           -- If you want to change the color of the syntax, you can use the
           -- `:Inspect` command to see the current syntax group and then change
           -- it with the overrides table
@@ -74,7 +74,7 @@ require("lazy").setup({
             italic = config.italic.emphasis,
             fg = colors.purple,
           },
-          ["@lsp.type.class.markdown"] = { bold = config.bold, fg = colors.orange }
+          ["@lsp.type.class.markdown"] = { bold = config.bold, fg = colors.orange },
         },
         dim_inactive = false,
         transparent_mode = false,
@@ -166,6 +166,34 @@ augroup END
     end,
   },
   { "windwp/nvim-ts-autotag", event = "InsertEnter" },
+  -- {
+  --   "3rd/image.nvim",
+  --   event = "VeryLazy",
+  --   opts = {
+  --     backend = "kitty",
+  --   },
+  -- },
+  {
+    "dfendr/clipboard-image.nvim",
+    init = function()
+      Utils.map({ "n", "i" }, "<leader>p", function()
+        vim.cmd("silent PasteImg")
+      end)
+    end,
+    config = function()
+      require("clipboard-image").setup({
+        -- Default configuration for all filetype
+        default = {
+          img_dir = os.getenv("HOME") .. "/github.com/odas0r/zet/assets",
+          img_dir_txt = os.getenv("HOME") .. "/github.com/odas0r/zet/assets",
+          img_name = function()
+            return os.date("%Y-%m-%d-%H-%M-%S")
+          end,
+          affix = "![Pasted Image](%s)",
+        },
+      })
+    end,
+  },
   {
     "jose-elias-alvarez/typescript.nvim",
     event = { "BufReadPre", "BufNewFile" },

@@ -5,15 +5,11 @@ local M = {}
 M.init = function()
   local ls = require("luasnip")
 
-  Utils.map({ "i", "s" }, "<C-H>", function()
+  Utils.map({ "i", "s" }, "<C-w>", function()
     ls.jump(-1)
   end)
 
-  Utils.map({ "i", "s" }, "<C-L>", function()
-    ls.jump(1)
-  end)
-
-  Utils.map({ "i", "s" }, "<C-E>", function()
+  Utils.map({ "i", "s" }, "<C-e>", function()
     if ls.expand_or_jumpable() then
       ls.expand_or_jump()
     end

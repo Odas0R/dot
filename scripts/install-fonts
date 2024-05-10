@@ -10,8 +10,8 @@ mapfile -t fonts < <(find . -type f \( -iname "*.ttf" -o -iname "*.otf" \))
 
 # Check if any fonts were found
 if [ ${#fonts[@]} -eq 0 ]; then
-    echo "No fonts found. Exiting."
-    exit 1
+  echo "No fonts found. Exiting."
+  exit 1
 fi
 
 # Show the list of fonts found
@@ -20,20 +20,22 @@ printf "%s\n" "${fonts[@]}"
 
 # Ask for confirmation
 read -rp "Proceed with installation? (y/N) " response
-if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]];then
-    # Copy the fonts to the system directory
-    for font in "${fonts[@]}"; do
-        echo "Installing font: $font"
-        sudo cp "$font" "$FONT_DIR"
-    done
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+  # Copy the fonts to the system directory
+  for font in "${fonts[@]}"; do
+    echo "Installing font: $font"
+    sudo cp "$font" "$FONT_DIR"
+  done
 
-    # Update the font cache
-    echo "Updating font cache..."
-    sudo fc-cache -fv
+  # Update the font cache
+  echo "Updating font cache..."
+  sudo fc-cache -fv
 else
-    echo "Font installation cancelled."
-    exit 1
+  echo "Font installation cancelled."
+  exit 1
 fi
 
-# restart figma font service
-sudo systemctl restart figma-linux-font-helper.service
+# if there's a service called figma-linux-font-helper.service, restart it
+if systemctl is-active --quiet figma-linux-font-helper.service; then
+  sudo systemctl restart figma-linux-font-helper.service
+fi
