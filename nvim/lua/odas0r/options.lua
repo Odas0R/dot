@@ -5,7 +5,7 @@
 local isWSL = os.getenv("WSL_DISTRO_NAME") == "Ubuntu"
 if isWSL then
   vim.ui.open = function(arg)
-    vim.fn.system("explorer.exe " .. arg)
+    vim.fn.system("open " .. arg)
   end
 end
 

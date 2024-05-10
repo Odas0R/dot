@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+sudo apt install build-essential checkinstall zlib1g-dev libssl-dev -y
+
+
+VERSION=3.29.3
+
+cd /tmp
+
+rm -rf "cmake-$VERSION"
+
+curl -SLO "https://github.com/Kitware/CMake/releases/download/v$VERSION/cmake-$VERSION.tar.gz"
+tar -xvzf "cmake-$VERSION.tar.gz"
+cd "cmake-$VERSION"
+./bootstrap
+make
+sudo make install

@@ -16,6 +16,8 @@ echo -e "===========================================\n"
 
 cd /tmp
 
+rm -rf sqlite-autoconf-*
+
 curl "https://www.sqlite.org/${CURRENT_YEAR}/sqlite-autoconf-${SQLITE_VERSION}.tar.gz" -o sqlite.tar.gz
 
 # Extract the source code
@@ -26,7 +28,7 @@ cd "sqlite-autoconf-${SQLITE_VERSION}"
 
 # Configure the build
 # CFLAGS="-DSQLITE_ENABLE_FTS5 -DSQLITE_ENABLE_JSON1 -DSQLITE_ENABLE_RTREE -DSQLITE_ENABLE_COLUMN_METADATA" ./configure
-./configure
+CFLAGS="-DSQLITE_ENABLE_FTS5 -DSQLITE_ENABLE_JSON1 -DSQLITE_ENABLE_COLUMN_METADATA" ./configure
 
 # Compile the code
 make

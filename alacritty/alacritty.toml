@@ -1,7 +1,7 @@
 # Environment Variables
 [env]
-TERM = "tmux-256color"
-WINIT_X11_SCALE_FACTOR = "1.0"
+TERM = "alacritty"
+# WINIT_X11_SCALE_FACTOR="1.0"
 
 [shell]
 args = ["--cd ~"]
@@ -17,18 +17,17 @@ padding = { x = 8, y = 8 }
 
 # Font Configuration
 [font]
-size = 10.0
-normal = { family = "JetBrains Mono", style = "SemiBold" }
+size = 12.0
+normal = { family = "JetBrains Mono", style = "Medium" }
 bold = { family = "JetBrains Mono", style = "Bold" }
-italic = { family = "JetBrains Mono", style = "Italic" }
-bold_italic = { family = "JetBrains Mono", style = "Medium Italic" }
+italic = { family = "JetBrains Mono", style = "Medium Italic" }
+bold_italic = { family = "JetBrains Mono", style = "Bold Italic" }
 offset = { x = 0, y = 1 }
 glyph_offset = { x = 0, y = 0 }
 
 # Scrolling
 [scrolling]
 history = 10000
-
 multiplier = 3
 
 [terminal]
@@ -56,7 +55,6 @@ cursor = "CellForeground"
 # Selection Colors
 [colors.selection]
 text = "CellBackground"
-
 background = "CellForeground"
 
 # Bright Colors
@@ -98,9 +96,9 @@ white = "#928374"
 [keyboard]
 bindings = [
     { key = "T", mods = "Control", command = { program = "alacritty" } },
-    { key = "C", mods = "Control", action = "Copy" },
-    { key = "K", mods = "Control", chars = "\u0003"},
-    { key = "V", mods = "Control", action = "Paste"},
+    { key = "C", mods = "Control", chars = "\u0003"},
+    { key = "C", mods = "Control|Shift", action = "Copy" },
+    { key = "V", mods = "Control|Shift", action = "Paste"},
     { key = "PageUp", mods = "Shift", action = "ScrollPageUp", mode = "~Alt" },
     { key = "PageDown", mods = "Shift", action = "ScrollPageDown", mode = "~Alt" },
     { key = "Home", mods = "Shift", action = "ScrollToTop", mode = "~Alt" },

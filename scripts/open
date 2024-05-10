@@ -3,7 +3,16 @@
 set -euo pipefail
 
 if [[ -n "$WSL_DISTRO_NAME" ]]; then
-  explorer.exe "$@"
+  if [[ "$1" =~ ^http.* ]]; then
+    # Debug
+    # tmux split-window -h "explorer.exe '$1'; echo 'URL: "$1"'; read -p 'Press enter to continue...';"
+    explorer.exe "$1"
+  else
+    # Debug
+    # string="$(wslpath -w "$1")"
+    # tmux split-window -h "explorer.exe '$(wslpath -w $1)'; echo 'Path: "$string"'; read -p 'Press enter to continue...';"
+    explorer.exe "$(wslpath -w "$1")"
+  fi
 else
   open "$@"
 fi

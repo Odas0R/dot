@@ -16,7 +16,7 @@ fi
 file=$(
   fd . "$DOT" | fzf-tmux -p 95% --multi \
     --prompt="Search through your dotfiles > " \
-    --preview 'bat --theme=gruvbox-dark --style=numbers --color=always {}'
+    --preview 'batcat --theme=gruvbox-dark --style=numbers --color=always {}'
 )
 
 if [[ -f $file ]]; then
