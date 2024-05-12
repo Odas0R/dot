@@ -19,9 +19,3 @@ done
 for file in $HOME/.bash/autocomplete/*.sh; do
   . $file
 done
-
-# force to reset the DISPLAY variable
-if [[ -n "$WSL_DISTRO_NAME" ]]; then
-  export DISPLAY=:0
-fi
-
