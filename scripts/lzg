@@ -7,6 +7,11 @@ fi
 
 nvimBuf="$(cat "$HOME/.nvim-buf")"
 nvimBufDirPath="$(dirname "$nvimBuf")"
-cd "$nvimBufDirPath" || exit 1
+
+if ! cd "$nvimBufDirPath"; then
+  echo "Failed to cd into $nvimBufDirPath"
+  exit 1
+fi
+
 dir=$(git rev-parse --show-toplevel 2>/dev/null)
 lazygit -p "$dir" "$@"

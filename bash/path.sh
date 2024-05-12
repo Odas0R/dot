@@ -2,7 +2,7 @@
 
 # shellcheck disable=SC2155
 
-export XDG_CONFIG_HOME="$HOME/.config"
+# export XDG_CONFIG_HOME="$HOME/.config"
 export DOT_FILES="$HOME/github.com/odas0r/dot"
 export SPDLOG_LEVEL=debug
 
@@ -90,6 +90,6 @@ PATH+="$ANDROID_SDK_BUILD_TOOLS:"
 PATH+="$ANDROID_SDK_PLATFORM_TOOLS:"
 PATH+="$ANDROID_SDK_EMULATOR:"
 PATH+="$PNPM_HOME:"
-PATH+="$VOLTA_HOME/bin:"
+PATH+="$VOLTA_HOME/bin"
 
 export PATH
