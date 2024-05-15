@@ -179,6 +179,39 @@ end, { nargs = 0, desc = "Make a zettel type fleet" })
 -- Augroups
 --------------------------------
 
+Utils.autocmd({ "BufReadPost" }, {
+  pattern = {
+    "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
+    "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
+  },
+  callback = function()
+    local curr_path_buf = vim.fn.expand("%:p")
+
+    -- if the file doesn't exist, don't do anything
+    if vim.fn.filereadable(curr_path_buf) == 0 then
+      return
+    end
+
+    Job
+      :new({
+        command = "zet",
+        args = { "save", curr_path_buf },
+        on_exit = function(j, code)
+          if code == 0 then
+            local result = j:result()[1]
+            local zettel = vim.json.decode(result)
+            print("Saved: " .. zettel.title)
+          else
+            -- show Error message on red
+            P("Zet Error: ")
+            P(j:stderr_result())
+          end
+        end,
+      })
+      :start()
+  end,
+})
+
 Utils.autocmd({ "BufWritePost" }, {
   pattern = {
     "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
@@ -203,31 +236,42 @@ Utils.autocmd({ "BufWritePost" }, {
 
             local timer = Utils.loading_animation("Saving to GitHub...")
 
+            if not zettel or not zettel.title then
+              print("Error: Missing zettel data")
+              return
+            end
+
             -- Git Add, Commit, and Push
-            local git_command = table.concat({
-              -- add all changes on the zet directory
-              "git -C " .. os.getenv("HOME") .. "/github.com/odas0r/zet add .",
-              "git commit -m '(save): " .. zettel.title .. "'",
-              "git push",
-            }, " && ")
+            local git_command = "cd "
+              .. os.getenv("HOME")
+              .. "/github.com/odas0r/zet && git add . && git commit -m '(save): "
+              .. zettel.title
+              .. "' && git push"
 
             Job
               :new({
                 command = "bash",
                 args = { "-c", git_command },
-                on_exit = function(j, c)
+                on_exit = function(j, code)
+                  timer:stop()
                   if code == 0 then
-                    timer:stop()
                     print('Saved: "' .. zettel.title .. '"')
                   else
-                    print("Git Error: " .. j:stderr_result()[1])
+                    local git_error = table.concat(j:stderr_result(), " ")
+                    if git_error == "" then
+                      git_error = "Unknown Git Error"
+                    end
+                    P("Git Error: " .. git_error)
                   end
                 end,
               })
               :start()
           else
-            -- show Error message on red
-            print("Zet Error: " .. j:stderr_result()[1])
+            local zet_error = table.concat(j:stderr_result(), " ")
+            if zet_error == "" then
+              zet_error = "Unknown Zet Error"
+            end
+            P("Zet Error: " .. zet_error)
           end
         end,
       })

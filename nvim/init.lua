@@ -75,6 +75,10 @@ require("lazy").setup({
             fg = colors.purple,
           },
           ["@lsp.type.class.markdown"] = { bold = config.bold, fg = colors.orange },
+
+          -- Fix the colors for the floating windows
+          FloatBorder = { fg = colors.fg1 },
+          FloatTitle = { fg = colors.fg1 },
         },
         dim_inactive = false,
         transparent_mode = false,
@@ -166,13 +170,6 @@ augroup END
     end,
   },
   { "windwp/nvim-ts-autotag", event = "InsertEnter" },
-  -- {
-  --   "3rd/image.nvim",
-  --   event = "VeryLazy",
-  --   opts = {
-  --     backend = "ueberzug",
-  --   },
-  -- },
   {
     "dfendr/clipboard-image.nvim",
     init = function()
