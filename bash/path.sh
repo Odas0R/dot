@@ -17,7 +17,7 @@ export LD_LIBRARY_PATH="/opt/openssl/lib:${LD_LIBRARY_PATH}"
 export MARKPATH="$HOME/.marks"
 export SNIPPETS="$HOME/snippets"
 export LOCAL_BIN="$HOME/.local/bin"
-export LOCAL_SCRIPTS="$HOME/.local/bin/scripts" # $HOME/.local/bin is the PATH for global scripts
+export LOCAL_BIN_SCRIPTS="$HOME/.local/bin/scripts" # $HOME/.local/bin is the PATH for global scripts
 export TOOLS="$HOME/tools"
 
 # Dot Path
@@ -78,7 +78,7 @@ PATH+="$GOROOT/bin:$GOPATH/bin:"
 PATH+="$CARGOPATH/bin:"
 PATH+="$PERLPATH/bin:"
 PATH+="$DENO_INSTALL/bin:"
-PATH+="$LOCAL_BIN:$LOCAL_SCRIPTS:"
+PATH+="$LOCAL_BIN:$LOCAL_BIN_SCRIPTS:"
 PATH+="$LUA_LANGUAGE_SERVER:"
 PATH+="$GNU_UTILS:"
 PATH+="$LD_LIBRARY_PATH:"
