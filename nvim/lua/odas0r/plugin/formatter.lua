@@ -133,6 +133,15 @@ M.config = function()
         }
       end,
     },
+    templ = {
+      function()
+        return {
+          exe = "templ",
+          args = { "fmt" },
+          stdin = true,
+        }
+      end,
+    },
     caddyfile = {
       function()
         return {

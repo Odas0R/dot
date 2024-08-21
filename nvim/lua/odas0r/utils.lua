@@ -82,7 +82,7 @@ local custom_nvim_keymap = function(mode, lhs, rhs, opts)
 
   -- if lhs is a table, then we are mapping multiple keys to the same rhs
   -- e.g. { "a", "b", "c" } -> rhs
-  if vim.tbl_islist(lhs) then
+  if vim.islist(lhs) then
     for _, key in ipairs(lhs) do
       vim.keymap.set(mode, key, rhs, options)
     end

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 read -r -p "Prefer nightly? [y/Y] " answer
 if [[ $answer =~ [yY](es)* ]]; then
