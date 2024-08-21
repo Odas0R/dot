@@ -1,3 +1,5 @@
+[include]
+  path = ~/.gitconfig.key
 [user]
     name = odas0r
     email = guilherme.odas0r@gmail.com
@@ -21,4 +23,10 @@
     prompt = false
     keepBackup = false
 [pull]
-	rebase = false
+    rebase = false
+[gpg]
+    format = ssh
+[gpg "ssh"]
+    program = "/opt/1Password/op-ssh-sign"
+[commit]
+    gpgsign = true

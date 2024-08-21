@@ -4,7 +4,10 @@ declare INSTALLS_PATH="$HOME/github.com/odas0r/dot/install"
 
 # Generate a list of installer scripts
 installer_scripts=$(find "$INSTALLS_PATH" -mindepth 1 -maxdepth 1 -type f -printf "%p\n" |
-    fzf-tmux -p 40% --multi --prompt="Your installers > ")
+  fzf-tmux -p 40% --multi --prompt="Your installers > ")
 
-# Use xargs to run selected installer scripts in parallel
-echo "$installer_scripts" | xargs -I{} -P 10 bash -c '{}'
+# Run the selected installer scripts
+for script in $installer_scripts; do
+  echo "Running $script"
+  bash "$script"
+done

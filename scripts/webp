@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Check if FFmpeg is installed
+if ! command -v ffmpeg &>/dev/null; then
+  echo "FFmpeg is not installed. Please install FFmpeg and try again."
+  exit 1
+fi
+
+# Check if correct number of arguments is provided
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+  echo "Usage: $0 <input_image> [quality]"
+  echo "Quality is optional and should be between 0-100. Default is 80."
+  exit 1
+fi
+
+input_image="$1"
+quality="${2:-80}"
+
+# Validate quality
+if ! [[ "$quality" =~ ^[0-9]+$ ]] || [ "$quality" -lt 0 ] || [ "$quality" -gt 100 ]; then
+  echo "Error: Quality should be an integer between 0 and 100."
+  exit 1
+fi
+
+# Check if input file exists
+if [ ! -f "$input_image" ]; then
+  echo "Error: Input file does not exist."
+  exit 1
+fi
+
+# Get the base name of the input file without extension
+base_name=$(basename "$input_image")
+name_without_ext="${base_name%.*}"
+
+# Convert image to WebP
+ffmpeg -i "$input_image" -quality "$quality" -preset picture -loop 0 "${name_without_ext}.webp"

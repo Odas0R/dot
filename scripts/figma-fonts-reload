@@ -3,3 +3,5 @@
 set -euo pipefail
 
 sudo systemctl restart figma-linux-font-helper.service
+
+systemctl status figma-linux-font-helper.service

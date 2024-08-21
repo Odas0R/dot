@@ -88,6 +88,7 @@ require("lazy").setup({
       })
       vim.cmd("colorscheme gruvbox")
       vim.o.background = "dark" -- or "light" for light mode
+      -- vim.o.background = "light" -- or "light" for light mode
       vim.o.termguicolors = true
     end,
   },

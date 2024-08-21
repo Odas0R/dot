@@ -2,7 +2,6 @@
 
 # shellcheck disable=SC2155
 
-
 if [[ -n "${WSL_DISTRO_NAME}" ]]; then
   # execute this to symlink the chrome program
   # ln -sf "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" ~/.local/bin/chrome
@@ -79,6 +78,9 @@ export ANDROID_SDK_BUILD_TOOLS="$HOME/Android/Sdk/build-tools/33.0.0"
 export ANDROID_SDK_PLATFORM_TOOLS="$HOME/Android/Sdk/platform-tools"
 export ANDROID_SDK_EMULATOR="$HOME/Android/Sdk/emulator"
 
+# Datagrip
+export DATAGRIP_HOME="/home/odas0r/tools/DataGrip-2024.2.1"
+
 export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
 export FLUTTER_BIN="$HOME/flutter/bin"
@@ -100,6 +102,7 @@ PATH+="$ANDROID_STUDIO_HOME/bin:"
 PATH+="$ANDROID_SDK_BUILD_TOOLS:"
 PATH+="$ANDROID_SDK_PLATFORM_TOOLS:"
 PATH+="$ANDROID_SDK_EMULATOR:"
+PATH+="$DATAGRIP_HOME/bin:"
 PATH+="$PNPM_HOME:"
 PATH+="$VOLTA_HOME/bin:"
 PATH+="$GEM_HOME/bin"

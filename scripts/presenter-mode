@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+STATE_FILE="$HOME/.keymap_state"
+
+if [ -f "$STATE_FILE" ]; then
+  xmodmap -e 'keycode 111 = Up'
+  xmodmap -e 'keycode 116 = Down'
+  rm "$STATE_FILE"
+  echo "Key mappings reset to default."
+else
+  xmodmap -e 'keycode 111 = Left'
+  xmodmap -e 'keycode 116 = Right'
+  touch "$STATE_FILE"
+  echo "Key mappings remapped (Up to Left, Down to Right)."
+fi
+
