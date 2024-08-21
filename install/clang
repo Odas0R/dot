@@ -23,5 +23,8 @@ cmake $LLVM_ROOT/llvm \
   -DLLVM_ENABLE_ASSERTS=On \
   -G Ninja
 
-# Build clangd
-cmake --build . --target clangd
+# Build clang + clangd
+cmake --build .
+
+# Install clang + clangd
+cmake --install .

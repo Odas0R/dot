@@ -119,20 +119,36 @@ zet.history = function()
 end
 
 zet.permanent = function(path)
+  -- remove all buffers with the given path
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_get_name(buf) == path then
+      vim.api.nvim_buf_delete(buf, { force = true })
+    end
+  end
+
   local raw_data = exec("zet", { "permanent", path })
   if raw_data == nil then
     return
   end
   local zettel = vim.json.decode(raw_data)
+
   vim.cmd("e " .. zettel.path)
 end
 
 zet.fleet = function(path)
+  -- remove all buffers with the given path
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_get_name(buf) == path then
+      vim.api.nvim_buf_delete(buf, { force = true })
+    end
+  end
+
   local raw_data = exec("zet", { "fleet", path })
   if raw_data == nil then
     return
   end
   local zettel = vim.json.decode(raw_data)
+
   vim.cmd("e " .. zettel.path)
 end
 
@@ -166,6 +182,7 @@ Utils.cmd("ZetMakePermanent", function()
     return
   end
   zet.permanent(curr_path)
+  vim.cmd("LspRestart")
 end, { nargs = 0, desc = "Make a zettel type permanent" })
 Utils.cmd("ZetMakeFleet", function()
   local curr_path = vim.fn.expand("%:p")

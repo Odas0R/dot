@@ -16,6 +16,12 @@ M.init = function()
       vim.bo.commentstring = "// %s"
     end,
   })
+  Utils.autocmd("FileType", {
+    pattern = "*.templ",
+    callback = function()
+      vim.bo.commentstring = "<!-- %s -->"
+    end,
+  })
 end
 
 M.config = function()
