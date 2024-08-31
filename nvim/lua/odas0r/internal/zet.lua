@@ -322,7 +322,7 @@ Utils.autocmd({ "VimEnter", "VimLeave" }, {
 -- Keymaps
 -------------------------------
 
-Utils.map("n", "<leader>zp", "<cmd>ZetGrep<CR>")
+Utils.map("n", "<leader>zg", "<cmd>ZetGrep<CR>")
 Utils.map("n", "<leader>zn", "<cmd>ZetNew<CR>")
 Utils.map("n", "<leader>zl", "<cmd>ZetLast<CR>")
 Utils.map("n", "<leader>zb", "<cmd>ZetBacklog<CR>")
