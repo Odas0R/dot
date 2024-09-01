@@ -13,8 +13,11 @@ map("n", "gt", ":tabnext<CR>")
 map("n", "gT", ":tabprev<CR>")
 map("n", "gN", ":tabnew<CR>")
 
-map("n", "gT", ":GoTestFunc<CR>")
-map("n", "gF", ":GoTestFile<CR>")
+map("n", "<leader>F", ":GoTestFunc<CR>")
+map("n", "<leader>T", ":GoTestFile<CR>")
+
+-- Trial: close popups, locallist, quickfix
+map("n", "<leader>q", ":cclose<CR>")
 
 -- Move Between buffers
 -- map("n", "<BS>", ":bp<CR>")
