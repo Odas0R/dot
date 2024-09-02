@@ -9,6 +9,7 @@
 [core]
     editor = nvimr
     autocrlf = false
+    sshCommand = ssh.exe
 [init]
     defaultBranch = main
 [diff]

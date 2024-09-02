@@ -4,7 +4,7 @@ set -e
 
 SIGNKEY="$DOT/git/gitconfig.key"
 if [[ ! -f "$SIGNKEY" ]]; then
-  echo "No GPG key found. Please generate one and add it to $SIGNKEY"
+  echo "Add GPG key. Please generate one and add it to $SIGNKEY"
   cat <<EOF
   [user]
     signingkey = YOUR_KEY

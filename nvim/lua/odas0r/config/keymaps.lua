@@ -8,6 +8,21 @@ map({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { expr = true })
 map("n", "<C-w>\\", ":vsplit<CR> | :wincmd l<CR>")
 map("n", "<C-w>-", ":split<CR> | :wincmd b<CR>")
 
+-- Move Between Tabs
+map("n", "gt", ":tabnext<CR>")
+map("n", "gT", ":tabprev<CR>")
+map("n", "gN", ":tabnew<CR>")
+
+map("n", "<leader>F", ":GoTestFunc<CR>")
+map("n", "<leader>T", ":GoTestFile<CR>")
+
+-- Trial: close popups, locallist, quickfix
+map("n", "<leader>q", ":cclose<CR>")
+
+-- Move Between buffers
+-- map("n", "<BS>", ":bp<CR>")
+-- map("n", "<C-BS>", ":bn<CR>")
+
 -- Resize window using <ctrl> arrow keys
 map("n", "<C-Up>", "<cmd>resize +2<cr>", { desc = "Increase window height" })
 map("n", "<C-Down>", "<cmd>resize -2<cr>", { desc = "Decrease window height" })
@@ -43,16 +58,10 @@ map("n", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result
 map("x", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
 map("o", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
 
--- save file
-map({ "i", "v", "n", "s" }, "<C-s>", "<cmd>w<cr><esc>", { desc = "Save file" })
-
 -- Add undo break-points
-map("i", ".", ".<c-g>u")
-map("i", ";", ";<c-g>u")
+-- map("i", ".", ".<c-g>u")
+-- map("i", ";", ";<c-g>u")
 
 -- better indenting
 map("v", "<", "<gv")
 map("v", ">", ">gv")
-
--- re-run last command
-map("n", "<leader>r", "@:", { noremap = true })

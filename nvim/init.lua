@@ -25,6 +25,9 @@ vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
 
 vim.g.mapleader = ","
 
+-- custom filetypes
+vim.filetype.add({ extension = { templ = "templ" } })
+
 -- https://github.com/folke/lazy.nvim#-plugin-spec
 require("lazy").setup({
   {
@@ -214,6 +217,22 @@ augroup END
     config = function()
       require("odas0r.plugin.guess-indent").config()
     end,
+  },
+  {
+    "ray-x/go.nvim",
+    dependencies = { -- optional packages
+      "neovim/nvim-lspconfig",
+      "nvim-treesitter/nvim-treesitter",
+    },
+    config = function()
+      require("go").setup({
+        lsp_inlay_hints = {
+          enable = false,
+        },
+      })
+    end,
+    event = { "CmdlineEnter" },
+    ft = { "go", "gomod" },
   },
   -- File Explorer
   {

@@ -11,7 +11,6 @@ M.init = function()
     update_in_insert = true,
   })
 
-  vim.filetype.add({ extension = { templ = "templ" } })
 end
 
 M.config = function()

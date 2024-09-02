@@ -2,7 +2,9 @@
 
 set -euo pipefail
 
-emulator=$(emulator -list-avds | gum choose --header="Choose an emulator to start")
+GUM="go run github.com/charmbracelet/gum@v0.14.1"
+
+emulator=$(emulator -list-avds | $GUM choose --header="Choose an emulator to start")
 
 if [[ -z "${emulator}" ]]; then
   exit 0

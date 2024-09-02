@@ -2,6 +2,13 @@
 
 # shellcheck disable=SC2155
 
+if [[ -n "${WSL_DISTRO_NAME}" ]]; then
+  # execute this to symlink the chrome program
+  # ln -sf "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" ~/.local/bin/chrome
+  export BROWSER="$HOME/.local/bin/chrome"
+  export CHROME_EXECUTABLE="$HOME/.local/bin/chrome"
+fi
+
 # export XDG_CONFIG_HOME="$HOME/.config"
 export DOT_FILES="$HOME/github.com/odas0r/dot"
 export SPDLOG_LEVEL=debug
@@ -42,6 +49,9 @@ export ZET="$HOME/github.com/odas0r/zet"
 # Go
 export GOROOT="/usr/local/go"
 export GOPATH="$HOME/go"
+
+# Ruby
+export GEM_HOME="$HOME/.gem"
 
 # CBUILD
 # export CPATH="$HOME/llvm-project/build/lib/clang/19/include:$CPATH"
@@ -94,6 +104,7 @@ PATH+="$ANDROID_SDK_PLATFORM_TOOLS:"
 PATH+="$ANDROID_SDK_EMULATOR:"
 PATH+="$DATAGRIP_HOME/bin:"
 PATH+="$PNPM_HOME:"
-PATH+="$VOLTA_HOME/bin"
+PATH+="$VOLTA_HOME/bin:"
+PATH+="$GEM_HOME/bin"
 
 export PATH
