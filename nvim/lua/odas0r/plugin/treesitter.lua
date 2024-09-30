@@ -21,8 +21,9 @@ M.config = function()
         enable = true,
         disable = {
           -- "markdown"
+          "dockerfile",
         },
-        additional_vim_regex_highlighting = false,
+        additional_vim_regex_highlighting = true,
       },
       indent = { enable = false },
       ensure_installed = {

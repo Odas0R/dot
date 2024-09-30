@@ -24,9 +24,3 @@
     keepBackup = false
 [pull]
     rebase = false
-[gpg]
-    format = ssh
-[gpg "ssh"]
-    program = "/opt/1Password/op-ssh-sign"
-[commit]
-    gpgsign = true
