@@ -205,15 +205,6 @@ augroup END
     config = require("odas0r.plugin.comment").config,
   }, -- comment
   {
-    "github/copilot.vim",
-    -- event = "InsertEnter",
-    init = function()
-      vim.g.copilot_node_command = "/home/odas0r/.volta/bin/node"
-      Utils.map({ "i", "n" }, "<leader>j", "<Plug>(copilot-previous)")
-      Utils.map({ "i", "n" }, "<leader>k", "<Plug>(copilot-next)")
-    end,
-  },
-  {
     "nmac427/guess-indent.nvim",
     config = function()
       require("odas0r.plugin.guess-indent").config()
