@@ -92,7 +92,7 @@ Utils.autocmd("BufRead", {
   pattern = { "*.env*", "*.vars" },
   group = Utils.augroup("env_filetype"),
   callback = function()
-    vim.opt_local.filetype = "config"
+    vim.opt_local.filetype = "sh"
   end,
 })
 

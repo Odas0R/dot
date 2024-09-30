@@ -137,8 +137,10 @@ M.config = function()
       function()
         return {
           exe = "templ",
-          args = { "fmt" },
-          stdin = true,
+          args = {
+            "fmt",
+          },
+          stdin = false,
         }
       end,
     },
