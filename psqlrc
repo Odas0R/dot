@@ -33,7 +33,7 @@
 
 -- Admin Queries:
 
-\set show_slow_queries 'select (total_exec_time / 1000 / 60) as total_minutes, (total_exec_time/calls) as average_time, query from pg_stat_statements order by 1 desc limit 100;'
+\set show_slow_queries 'select (total_exec_time / 1001 / 60) as total_minutes, (total_exec_time/calls) as average_time, query from pg_stat_statements order by 1 desc limit 100;'
 
 -- Development Queries:
 

@@ -92,7 +92,6 @@ require("lazy").setup({
       vim.o.termguicolors = true
     end,
   },
-
   -- Treesitter
   -- https://github.com/nvim-treesitter/nvim-treesitter/#adding-queries
   -- https://github.com/JoosepAlviste/nvim-ts-context-commentstring
