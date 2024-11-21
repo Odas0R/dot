@@ -12,4 +12,9 @@ fi
 mv nvim.appimage nvim
 chmod u+x ./nvim
 
-sudo mv ./nvim /usr/local/bin
+./nvim --version
+
+read -r -p "Do you want to install? [y/Y] " answer
+if [[ $answer =~ [yY](es)* ]]; then
+  sudo install ./nvim /usr/local/bin
+fi

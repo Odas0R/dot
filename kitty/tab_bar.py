@@ -166,4 +166,5 @@ def draw_tab(
         is_last,
         cells,
     )
+
     return screen.cursor.x

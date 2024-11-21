@@ -43,7 +43,7 @@ M.config = function()
   local flags = {}
 
   -- npm install -g typescript typescript-language-server
-  require("lspconfig").tsserver.setup({
+  require("lspconfig").ts_ls.setup({
     on_attach = function(_, bufnr)
       on_attach(nil, bufnr)
 
