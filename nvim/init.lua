@@ -124,7 +124,7 @@ require("lazy").setup({
   -- Telescope
   {
     "nvim-telescope/telescope.nvim",
-    tag = "0.1.2",
+    -- tag = "0.1.2",
     lazy = false,
     init = require("odas0r.plugin.telescope").init,
     config = require("odas0r.plugin.telescope").config,
@@ -188,12 +188,6 @@ augroup END
         -- },
       })
     end,
-  },
-  {
-    "s1n7ax/nvim-terminal",
-    keys = require("odas0r.plugin.nvim-terminal").keys(),
-    init = require("odas0r.plugin.nvim-terminal").init,
-    config = require("odas0r.plugin.nvim-terminal").config,
   },
   {
     "numToStr/Comment.nvim",
@@ -271,10 +265,25 @@ augroup END
     init = require("odas0r.plugin.formatter").init,
     config = require("odas0r.plugin.formatter").config,
   },
+
+  -- == Local Plugins ==
+  --
+  --
+  -- odas0r:
+  --
+  -- Apperantly the dir = ".." is not working as intended. It is not injecting
+  -- the terminal module into the lazy.nvim plugin system, so for now we hack it
+  -- and just inject the module.
+  --
+  --
+  vim.tbl_extend("force", {
+    "odas0r/terminal.nvim",
+    dir = "~/github.com/odas0r/dot/nvim/lua/odas0r/plugin/terminal",
+  }, require("odas0r.plugin.terminal")),
 }, {
-  dev = {
-    path = os.getenv("HOME") .. "/github.com/odas0r/dot/nvim/lua/odas0r",
-  },
+  -- dev = {
+  --   path = os.getenv("HOME") .. "/github.com/odas0r/dot/nvim/lua/odas0r/plugin",
+  -- },
   default = {
     lazy = true,
   },

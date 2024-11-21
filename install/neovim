@@ -17,4 +17,5 @@ chmod u+x ./nvim
 read -r -p "Do you want to install? [y/Y] " answer
 if [[ $answer =~ [yY](es)* ]]; then
   sudo install ./nvim /usr/local/bin
+  rm ./nvim
 fi

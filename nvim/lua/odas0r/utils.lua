@@ -52,6 +52,24 @@ local function reverse(t)
   return t
 end
 
+local Lua = {}
+function Lua.merge_tables(t1, t2)
+  for k, v in pairs(t2) do
+    if (type(v) == "table") and (type(t1[k] or false) == "table") then
+      Lua.merge_tables(t1[k], t2[k])
+    else
+      t1[k] = v
+    end
+  end
+
+  return t1
+end
+
+local String = {}
+function String.is_not_empty(str)
+  return str ~= nil and str ~= "" or false
+end
+
 -- Creates a custom keymap using vim.keymap.set with default options, noremap
 -- and silent.
 --
@@ -135,9 +153,7 @@ end
 --
 -- Check `:h nvim_create_autocmd()`
 local autocmd = vim.api.nvim_create_autocmd
-
 local cmd = vim.api.nvim_create_user_command
-
 local set_option = vim.api.nvim_set_option_value
 
 -- vim.ui.input({opts}, {on_confirm})                            *vim.ui.input()*
@@ -164,6 +180,8 @@ M.input = input
 M.map = custom_nvim_keymap
 M.augroup = augroup
 M.slugify = slugify
+M.Lua = Lua
+M.String = String
 M.reverse = reverse
 M.set_option = set_option
 M.loading_animation = loading_animation
