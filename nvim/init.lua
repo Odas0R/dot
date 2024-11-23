@@ -174,10 +174,6 @@ augroup END
   },
   { "windwp/nvim-ts-autotag", event = "InsertEnter" },
   {
-    "jose-elias-alvarez/typescript.nvim",
-    event = { "BufReadPre", "BufNewFile" },
-  },
-  {
     "dmmulroy/tsc.nvim",
     cmd = { "TSC" },
     init = function()

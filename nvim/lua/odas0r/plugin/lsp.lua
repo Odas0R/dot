@@ -44,61 +44,44 @@ M.config = function()
 
   -- npm install -g typescript typescript-language-server
   require("lspconfig").ts_ls.setup({
-    on_attach = function(_, bufnr)
-      on_attach(nil, bufnr)
+    on_attach = function(client, bufnr)
+      on_attach(client, bufnr)
+
+      local function organize_imports()
+        if client.supports_method("workspace/executeCommand") then
+          client:request("workspace/executeCommand", {
+            command = "_typescript.organizeImports",
+            arguments = { vim.api.nvim_buf_get_name(0) },
+          })
+        end
+      end
+
+      local function remove_unused()
+        local context = {
+          diagnostics = vim.lsp.diagnostic.get_line_diagnostics(),
+          only = { "source.removeUnused.ts" },
+        }
+        vim.lsp.buf.code_action({
+          context = context,
+          apply = true,
+        })
+      end
 
       -- Mappings.
-      Utils.map("n", "gD", "<cmd>TypescriptGoToSourceDefinition<CR>", { buf = bufnr })
-      Utils.map("n", "gi", "<cmd>TypescriptAddMissingImports<CR>", { buf = bufnr })
-      Utils.map("n", "go", "<cmd>TypescriptOrganizeImports<CR>", { buf = bufnr })
-      Utils.map("n", "gu", "<cmd>TypescriptRemoveUnused<CR>", { buf = bufnr })
+      Utils.map("n", "gD", "<cmd>lua vim.lsp.buf.type_definition()<CR>", { buf = bufnr })
+      Utils.map("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", { buf = bufnr })
+      Utils.map("n", "go", "<cmd>lua vim.lsp.buf.document_symbol()<CR>", { buf = bufnr })
+      Utils.map("n", "gu", remove_unused, { buf = bufnr })
+      Utils.map("n", "go", organize_imports, { buf = bufnr })
     end,
     capabilities = capabilities,
     flags = flags,
   })
 
-  -- Typescript Commands
-  Utils.cmd("TypescriptAddMissingImports", function()
-    require("typescript").actions.addMissingImports()
-  end, {})
-  Utils.cmd("TypescriptOrganizeImports", function()
-    require("typescript").actions.organizeImports()
-  end, {})
-  Utils.cmd("TypescriptRemoveUnused", function()
-    require("typescript").actions.removeUnused()
-  end, {})
-  Utils.cmd("TypescriptGoToSourceDefinition", function()
-    require("typescript").actions.goToSourceDefinition()
-  end, {})
-
   -- require("lspconfig").denols.setup({
   --   on_attach = on_attach,
   --   capabilities = capabilities,
   --   -- root_dir = util.root_pattern("package.json"),
-  -- })
-
-  -- require("typescript").setup({
-  --   debug = false,
-  --   server = {
-  --     on_attach = function(_, bufnr)
-  --       on_attach(nil, bufnr)
-  --       -- Mappings.
-  --       Utils.map("n", "gD", "<cmd>TypescriptGoToSourceDefinition<CR>", { buf = bufnr })
-  --       Utils.map("n", "gi", "<cmd>TypescriptAddMissingImports<CR>", { buf = bufnr })
-  --       Utils.map("n", "go", "<cmd>TypescriptOrganizeImports<CR>", { buf = bufnr })
-  --       Utils.map("n", "gu", "<cmd>TypescriptRemoveUnused<CR>", { buf = bufnr })
-  --     end,
-  --     capabilities = capabilities,
-  --     flags = flags,
-  --     filetypes = {
-  --       "javascript",
-  --       "javascriptreact",
-  --       "javascript.jsx",
-  --       "typescript",
-  --       "typescriptreact",
-  --       "typescript.tsx",
-  --     },
-  --   },
   -- })
 
   -- npm install -g @astrojs/language-server

@@ -28,14 +28,21 @@ M.config = function()
     -- end
 
     -- set env variable
+    -- return {
+    --   exe = "prettier",
+    --   args = {
+    --     "--stdin-filepath",
+    --     util.escape_path(util.get_current_buffer_file_path()),
+    --   },
+    --   stdin = true,
+    --   try_node_modules = true,
+    -- }
+
     return {
-      exe = "prettier",
-      args = {
-        "--stdin-filepath",
-        util.escape_path(util.get_current_buffer_file_path()),
-      },
-      stdin = true,
+      exe = "prettierd",
+      args = { vim.api.nvim_buf_get_name(0) },
       try_node_modules = true,
+      stdin = true,
     }
   end
 

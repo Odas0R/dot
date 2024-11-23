@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+show_help() {
+  cat <<EOF
+Usage: ./clamp.sh MIN_SIZE MAX_SIZE MIN_WIDTH MAX_WIDTH
+
+Calculate a CSS clamp() function for fluid responsive values.
+All values should be in pixels, output will be in rems.
+
+Arguments:
+ MIN_SIZE   Minimum size in pixels
+ MAX_SIZE   Maximum size in pixels
+ MIN_WIDTH  Minimum viewport width in pixels
+ MAX_WIDTH  Maximum viewport width in pixels
+
+Examples:
+ clamp 14 16 920 1920  # Font size from 14px to 16px
+ clamp 20 40 320 1440  # Padding from 20px to 40px
+EOF
+  exit 1
+}
+
+if [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
+  show_help
+fi
+
+if [ "$#" -ne 4 ]; then
+  echo "Error: All arguments are required"
+  show_help
+fi
+
+px_to_rem() {
+  echo "scale=4; $1/16" | bc
+}
+
+MIN_SIZE=$1
+MAX_SIZE=$2
+MIN_WIDTH=$3
+MAX_WIDTH=$4
+
+MIN_SIZE_REM=$(px_to_rem $MIN_SIZE)
+MAX_SIZE_REM=$(px_to_rem $MAX_SIZE)
+
+# Calculate slope: (max - min) / (maxWidth - minWidth)
+SLOPE=$(echo "scale=4; ($MAX_SIZE - $MIN_SIZE) / ($MAX_WIDTH - $MIN_WIDTH)" | bc)
+
+# Calculate preferred size: min - slope * minWidth
+PREFERRED=$(echo "scale=4; $MIN_SIZE - ($SLOPE * $MIN_WIDTH)" | bc)
+
+SLOPE=$(echo "scale=4; $SLOPE * 100" | bc)
+PREFERRED=$(echo "scale=4; $PREFERRED/16" | bc)
+
+echo "clamp(${MIN_SIZE_REM}rem, ${PREFERRED}rem + ${SLOPE}vw, ${MAX_SIZE_REM}rem)"

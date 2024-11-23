@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Default values
+BASE_SIZE=${1:-16}
+SCALE=${2:-1.2}
+STEPS_DOWN=${3:-3}
+STEPS_UP=${4:-7}
+
+pow() {
+  echo "scale=6; $1^$2" | bc
+}
+
+calc_percentage() {
+  echo "scale=2; $1 * 100" | bc
+}
+
+# Output CSS header
+echo ":root {"
+echo "  --scale: $SCALE;"
+echo "  --base-size: 100%;"
+echo
+
+# Calculate sizes below base
+for ((i = STEPS_DOWN; i > 0; i--)); do
+  size=$(echo "scale=6; $BASE_SIZE / $(pow $SCALE $i)" | bc)
+  percentage=$(calc_percentage "$size"/$BASE_SIZE)
+  echo "  --font-size-${i}down: ${percentage}%; /* ${size}px */"
+done
+
+# Base size
+echo "  --font-size-base: 100%; /* ${BASE_SIZE}px */"
+
+# Calculate sizes above base
+for ((i = 1; i <= STEPS_UP; i++)); do
+  size=$(echo "scale=6; $BASE_SIZE * $(pow $SCALE $i)" | bc)
+  percentage=$(calc_percentage "$size"/$BASE_SIZE)
+  echo "  --font-size-${i}: ${percentage}%; /* ${size}px */"
+done
+
+echo "}"

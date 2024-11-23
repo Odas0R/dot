@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_SIZE=${1:-16}
+
+# Tailwind multipliers (organized from smallest to largest)
+declare -A SIZES=(
+  ["xs"]="0.75"
+  ["sm"]="0.875"
+  ["base"]="1"
+  ["lg"]="1.125"
+  ["xl"]="1.25"
+  ["2xl"]="1.5"
+  ["3xl"]="1.875"
+  ["4xl"]="2.25"
+  ["5xl"]="3"
+  ["6xl"]="3.75"
+  ["7xl"]="4.5"
+  ["8xl"]="6"
+  ["9xl"]="8"
+)
+
+# Line heights as decimals
+declare -A LINE_HEIGHTS=(
+  ["xs"]="1"
+  ["sm"]="1.25"
+  ["base"]="1.5"
+  ["lg"]="1.75"
+  ["xl"]="1.75"
+  ["2xl"]="2"
+  ["3xl"]="2.25"
+  ["4xl"]="2.5"
+  ["5xl"]="1"
+  ["6xl"]="1"
+  ["7xl"]="1"
+  ["8xl"]="1"
+  ["9xl"]="1"
+)
+
+# Generate custom properties
+cat <<EOF
+/* CSS Custom Properties */
+:root {
+  --base-size: 100%;
+
+EOF
+
+# Sort keys from xs to 9xl
+for size in xs sm base lg xl 2xl 3xl 4xl 5xl 6xl 7xl 8xl 9xl; do
+  multiplier=${SIZES[$size]}
+  line_height=${LINE_HEIGHTS[$size]}
+  font_size=$(echo "scale=3; $BASE_SIZE * $multiplier" | bc)
+  percentage=$(echo "scale=2; $multiplier * 100" | bc)
+
+  cat <<EOF
+  --font-size-${size}: ${percentage}%; /* ${font_size}px */
+  --leading-${size}: ${line_height};
+EOF
+done
+
+# Generate default typography settings
+cat <<EOF
+}
+
+/* Default Typography Settings */
+body, p {
+  font-size: var(--font-size-base);
+  line-height: var(--leading-base);
+}
+
+h1 {
+  font-size: var(--font-size-4xl);
+  line-height: var(--leading-4xl);
+}
+
+h2 {
+  font-size: var(--font-size-3xl);
+  line-height: var(--leading-3xl);
+}
+
+h3 {
+  font-size: var(--font-size-2xl);
+  line-height: var(--leading-2xl);
+}
+
+h4 {
+  font-size: var(--font-size-xl);
+  line-height: var(--leading-xl);
+}
+
+h5 {
+  font-size: var(--font-size-lg);
+  line-height: var(--leading-lg);
+}
+
+h6 {
+  font-size: var(--font-size-base);
+  line-height: var(--leading-base);
+}
+
+small {
+  font-size: var(--font-size-sm);
+  line-height: var(--leading-sm);
+}
+EOF
+
+cat << EOF
+
+/* Tailwind Config */
+fontSize: {
+ xs: ['var(--font-size-xs)', { lineHeight: 'var(--leading-xs)' }],
+ sm: ['var(--font-size-sm)', { lineHeight: 'var(--leading-sm)' }],
+ base: ['var(--font-size-base)', { lineHeight: 'var(--leading-base)' }],
+ lg: ['var(--font-size-lg)', { lineHeight: 'var(--leading-lg)' }],
+ xl: ['var(--font-size-xl)', { lineHeight: 'var(--leading-xl)' }],
+ '2xl': ['var(--font-size-2xl)', { lineHeight: 'var(--leading-2xl)' }],
+ '3xl': ['var(--font-size-3xl)', { lineHeight: 'var(--leading-3xl)' }],
+ '4xl': ['var(--font-size-4xl)', { lineHeight: 'var(--leading-4xl)' }],
+ '5xl': ['var(--font-size-5xl)', { lineHeight: 'var(--leading-5xl)' }],
+ '6xl': ['var(--font-size-6xl)', { lineHeight: 'var(--leading-6xl)' }],
+ '7xl': ['var(--font-size-7xl)', { lineHeight: 'var(--leading-7xl)' }],
+ '8xl': ['var(--font-size-8xl)', { lineHeight: 'var(--leading-8xl)' }],
+ '9xl': ['var(--font-size-9xl)', { lineHeight: 'var(--leading-9xl)' }],
+},
+EOF
