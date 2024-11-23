@@ -25,14 +25,23 @@ jump() {
   [ -h "$MARKPATH/$1" ] && cd "$(readlink "${MARKPATH}/${1}")" || echo "mark not found :("
 }
 
-# cd into repos where you'll want to work on
 repos() {
-  local GITHUB_PATH="$HOME/github.com"
-
-  repo=$(
-    find "$GITHUB_PATH" -mindepth 2 -maxdepth 2 -type d |
-      fzf-tmux -p 40% --multi --prompt="Your repositories > "
+  local paths=(
+    "$HOME/github.com"
+    "$HOME/gitlab.com"
   )
 
-  cd "$repo" || return
+  local all_repos=""
+  for path in "${paths[@]}"; do
+    if [[ -d "$path" ]]; then
+      if [[ -z "$all_repos" ]]; then
+        all_repos=$(find "$path" -mindepth 2 -maxdepth 2 -type d)
+      else
+        all_repos="$all_repos"$'\n'"$(find "$path" -mindepth 2 -maxdepth 2 -type d)"
+      fi
+    fi
+  done
+
+  repo=$(echo "$all_repos" | fzf-tmux -p 40% --multi --prompt="Your repositories > ")
+  [ -n "$repo" ] && cd "$repo" || return
 }

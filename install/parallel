@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# download source
+curl -s -L -o /tmp/parallel.tar.bz2 https://ftpmirror.gnu.org/parallel/parallel-latest.tar.bz2
+# extract source
+tar -C /tmp -xjf /tmp/parallel.tar.bz2
+# navigate into extracted source
+cd /tmp/parallel-*
+# build and install
+./configure && make && make install
+# return to previous directory
+cd -
+# verify version of parallel installed
+parallel --version | head -1
+# get past annoying parallel citation prompt
+echo 'will cite' | parallel --citation &>/dev/null || true
