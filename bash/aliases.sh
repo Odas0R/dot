@@ -4,7 +4,6 @@
 alias nv="nvimr"
 alias nvr="nvimr"
 alias nv="nvimr"
-alias task="./Taskfile || echo 'No taskfile found'"
 
 # Utils
 alias ..="cd .."

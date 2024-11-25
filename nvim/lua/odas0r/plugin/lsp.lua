@@ -56,22 +56,22 @@ M.config = function()
         end
       end
 
-      local function remove_unused()
-        local context = {
-          diagnostics = vim.lsp.diagnostic.get_line_diagnostics(),
-          only = { "source.removeUnused.ts" },
-        }
-        vim.lsp.buf.code_action({
-          context = context,
-          apply = true,
-        })
-      end
+      -- local function remove_unused()
+      --   local context = {
+      --     diagnostics = vim.lsp.diagnostic.get_line_diagnostics(),
+      --     only = { "source.removeUnused.ts" },
+      --   }
+      --   vim.lsp.buf.code_action({
+      --     context = context,
+      --     apply = true,
+      --   })
+      -- end
 
       -- Mappings.
       Utils.map("n", "gD", "<cmd>lua vim.lsp.buf.type_definition()<CR>", { buf = bufnr })
       Utils.map("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", { buf = bufnr })
       Utils.map("n", "go", "<cmd>lua vim.lsp.buf.document_symbol()<CR>", { buf = bufnr })
-      Utils.map("n", "gu", remove_unused, { buf = bufnr })
+      Utils.map("n", "gu", organize_imports, { buf = bufnr })
       Utils.map("n", "go", organize_imports, { buf = bufnr })
     end,
     capabilities = capabilities,
