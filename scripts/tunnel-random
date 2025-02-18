@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+if [[ $# -eq 1 ]]; then
+  localhost="$1"
+else
+  echo "usage: tunnel-random <localhost>"
+  exit 1
+fi
+
+echo
+echo "press ctrl-c to stop"
+echo
+
+sudo sysctl -w net.core.rmem_max=2500000
+sudo sysctl -w net.core.wmem_max=2500000
+
+# start the tunnel using quic protoco a.k.a http/3
+cloudflared tunnel --protocol quic --url "$localhost"

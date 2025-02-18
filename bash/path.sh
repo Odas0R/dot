@@ -23,8 +23,10 @@ export LD_LIBRARY_PATH="/opt/openssl/lib:${LD_LIBRARY_PATH}"
 # Utils
 export MARKPATH="$HOME/.marks"
 export SNIPPETS="$HOME/snippets"
+
 export LOCAL_BIN="$HOME/.local/bin"
 export LOCAL_BIN_SCRIPTS="$HOME/.local/bin/scripts" # $HOME/.local/bin is the PATH for global scripts
+
 export TOOLS="$HOME/tools"
 
 # Dot Path
@@ -78,8 +80,10 @@ export ANDROID_SDK_BUILD_TOOLS="$HOME/Android/Sdk/build-tools/33.0.0"
 export ANDROID_SDK_PLATFORM_TOOLS="$HOME/Android/Sdk/platform-tools"
 export ANDROID_SDK_EMULATOR="$HOME/Android/Sdk/emulator"
 
-# Datagrip
-export DATAGRIP_HOME="/home/odas0r/tools/DataGrip-2024.2.1"
+# JetBrains
+
+export JETBRAINS_APPS="$HOME/.local/share/JetBrains/Toolbox/apps"
+export JETBRAINS_DATAGRIP="$JETBRAINS_APPS/datagrip"
 
 export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
@@ -102,7 +106,7 @@ PATH+="$ANDROID_STUDIO_HOME/bin:"
 PATH+="$ANDROID_SDK_BUILD_TOOLS:"
 PATH+="$ANDROID_SDK_PLATFORM_TOOLS:"
 PATH+="$ANDROID_SDK_EMULATOR:"
-PATH+="$DATAGRIP_HOME/bin:"
+PATH+="$JETBRAINS_DATAGRIP/bin:"
 PATH+="$PNPM_HOME:"
 PATH+="$VOLTA_HOME/bin:"
 PATH+="$GEM_HOME/bin"

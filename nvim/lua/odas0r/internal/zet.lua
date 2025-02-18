@@ -387,7 +387,7 @@ function Input(opts)
     opts.callback(input)
   end, { buf = buf })
 
-  Utils.map("i", { "<ESC>", "q", "<C-c>" }, function()
+  Utils.map("n", { "<ESC>", "q", "<C-c>" }, function()
     vim.cmd([[q!]])
   end, { buf = buf })
 

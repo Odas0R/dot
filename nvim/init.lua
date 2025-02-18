@@ -215,6 +215,8 @@ augroup END
     event = { "CmdlineEnter" },
     ft = { "go", "gomod" },
   },
+  -- Copilot
+  -- { "github/copilot.vim" },
   -- File Explorer
   {
     "Shougo/defx.nvim",

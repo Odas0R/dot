@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Input EPUB file (you can modify this to loop through multiple files)
+BOOK="$1"
+
+# Check if an input file is provided
+if [[ -z "$BOOK" ]]; then
+  echo "Usage: $0 <EPUB_FILE>"
+  exit 1
+fi
+
+# Check if the EPUB file exists
+if [[ ! -f "$BOOK" ]]; then
+  echo "Error: File '$BOOK' not found."
+  exit 1
+fi
+
+# Output PDF file (same name as EPUB, .pdf extension)
+PDF_FILE="${BOOK%.*}.pdf"
+
+# Temporary directory for extracted images
+TMP_DIR=$(mktemp -d)
+
+# Conversion command (using xelatex - often more robust than lualatex)
+CONVERT_CMD="pandoc -s -t latex --toc --top-level-division=chapter --pdf-engine=xelatex --extract-media=$TMP_DIR --data-dir=$TMP_DIR \"$BOOK\" -o \"$PDF_FILE\""
+
+# 1. Extract Images and Try Initial Conversion
+echo "Attempting initial conversion..."
+if ! eval "$CONVERT_CMD"; then
+  echo "Initial conversion failed. Attempting image conversion workaround..."
+
+  if [ -d "$TMP_DIR/images" ]; then
+    cd "$TMP_DIR/images" || exit 1
+
+    for i in *.jpg; do
+      convert "$i" "${i%.jpg}.jpeg"
+      rm "$i"
+      mv "${i%.jpg}.jpeg" "$i"
+    done
+
+    cd ..
+
+    echo "Retrying conversion with converted images..."
+    if ! eval "$CONVERT_CMD"; then
+      echo "Error: Conversion failed after image conversion. Check LaTeX output."
+      rm -rf "$TMP_DIR"
+      exit 1
+    fi
+  else
+    echo "Error: No images directory found in the extracted media. Skipping image conversion."
+  fi
+fi
+
+echo "Conversion successful: $PDF_FILE"
+
+rm -rf "$TMP_DIR" # Clean up the temporary directory

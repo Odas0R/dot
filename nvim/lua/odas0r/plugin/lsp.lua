@@ -86,9 +86,63 @@ M.config = function()
 
   -- npm install -g @astrojs/language-server
   require("lspconfig").astro.setup({
-    on_attach = on_attach,
+    on_attach = function(client, bufnr)
+      on_attach(client, bufnr)
+
+      local function organize_imports()
+        if client.supports_method("workspace/executeCommand") then
+          client:request("workspace/executeCommand", {
+            command = "_typescript.organizeImports",
+            arguments = { vim.api.nvim_buf_get_name(0) },
+          })
+        end
+      end
+
+      -- local function remove_unused()
+      --   local context = {
+      --     diagnostics = vim.lsp.diagnostic.get_line_diagnostics(),
+      --     only = { "source.removeUnused.ts" },
+      --   }
+      --   vim.lsp.buf.code_action({
+      --     context = context,
+      --     apply = true,
+      --   })
+      -- end
+
+      -- Mappings.
+      Utils.map("n", "gD", "<cmd>lua vim.lsp.buf.type_definition()<CR>", { buf = bufnr })
+      Utils.map("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", { buf = bufnr })
+      Utils.map("n", "go", "<cmd>lua vim.lsp.buf.document_symbol()<CR>", { buf = bufnr })
+      Utils.map("n", "gu", organize_imports, { buf = bufnr })
+      Utils.map("n", "go", organize_imports, { buf = bufnr })
+    end,
     capabilities = capabilities,
     flags = flags,
+    init_options = {
+      typescript = {
+        tsdk = (function()
+          local current_dir = vim.fn.getcwd()
+
+          -- Start from current directory and traverse up until we find node_modules/typescript
+          local dir = current_dir
+          while dir ~= "/" do
+            local ts_path = dir .. "/node_modules/typescript/lib"
+            if vim.fn.isdirectory(ts_path) == 1 then
+              return ts_path
+            end
+            dir = vim.fn.fnamemodify(dir, ":h")
+          end
+
+          return nil
+        end)(),
+      },
+    },
+    -- Adjust root_dir to handle monorepo structure
+    root_dir = function(fname)
+      -- Check for both the workspace root and the individual package root
+      local util = require("lspconfig").util
+      return util.root_pattern("tsconfig.json", "package.json")(fname) or util.find_git_ancestor(fname)
+    end,
   })
 
   -- npm i -g vscode-langservers-extracted
