@@ -1,82 +1,44 @@
 local M = {}
 
-M.init = function()
-  -- Fix for autotag
-  vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
-    underline = true,
-    virtual_text = {
-      spacing = 5,
-      severity_limit = "Warning",
-    },
-    update_in_insert = true,
-  })
-
-end
+M.init = function() end
 
 M.config = function()
   -- defer until after first render to improve startup time of 'nvim {filename}'
   vim.defer_fn(function()
     require("nvim-treesitter.configs").setup({
+      -- Core configurations
       highlight = {
         enable = true,
-        disable = {
-          -- "markdown"
-          "dockerfile",
-        },
-        additional_vim_regex_highlighting = true,
-      },
-      indent = { enable = false },
-      ensure_installed = {
-        "bash",
-        "c",
-        "go",
-        "gotmpl",
-        "templ",
-        "html",
-        "javascript",
-        "json",
-        "css",
-        "lua",
-        "luadoc",
-        "luap",
-        "dart",
-        "markdown",
-        "markdown_inline",
-        "python",
-        "query",
-        "regex",
-        "tsx",
-        "sql",
-        "typescript",
-        "vim",
-        "vimdoc",
-        "yaml",
-        "astro",
+        disable = function(lang, buf)
+          local max_filesize = 100 * 1024 -- 100 KB
+          local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+          if ok and stats and stats.size > max_filesize then
+            return true
+          end
+
+          -- Disable for specific file types that are problematic
+          local disabled_filetypes = { "dockerfile" }
+          if vim.tbl_contains(disabled_filetypes, lang) then
+            return true
+          end
+
+          -- Limit parsing for very large files
+          local max_lines = 10000
+          if vim.api.nvim_buf_line_count(buf) > max_lines then
+            return true
+          end
+        end,
+        additional_vim_regex_highlighting = false, -- Improves performance
       },
 
-      -- Plugins
-      autotag = { enable = true },
-      refactor = {
-        highlight_definitions = { enable = true },
+      indent = {
+        enable = true, -- Keep this disabled if you don't use treesitter for indentation
       },
 
-      -- disable slow treesitter highlight for large files
-      -- https://github.com/nvim-treesitter/nvim-treesitter
-      -- disable = function(lang, buf)
-      --   local max_filesize = 100 * 1024 -- 100 KB
-      --   local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-      --   if ok and stats and stats.size > max_filesize then
-      --     return true
-      --   end
-      -- end,
-    })
-    -- nvim-ts-context-commentstring integration with Comment.nvim
-    -- https://github.com/JoosepAlviste/nvim-ts-context-commentstring#commentnvim
-    require("ts_context_commentstring").setup({
-      enable_autocmd = false,
-      languages = {
-        typescript = "// %s",
-      },
+      -- Efficiently install parsers - only install what's needed
+      auto_install = true, -- Automatically install missing parsers when entering buffer
+      sync_install = false, -- Install parsers synchronously (only applied to `ensure_installed`)
+      ignore_install = {}, -- List of parsers to ignore installing
     })
   end, 0)
 end

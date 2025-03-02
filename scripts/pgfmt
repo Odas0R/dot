@@ -6,7 +6,7 @@ if [[ ! -x "$(command -v pg_format)" ]]; then
 fi
 
 LANG=C pg_format \
+  --tabs \
   --spaces 2 \
-  --comma-start \
-  --keyword-case 1 \
+  --keyword-case 2 \
   --no-extra-line

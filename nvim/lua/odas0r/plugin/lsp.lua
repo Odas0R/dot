@@ -2,45 +2,68 @@ local Utils = require("odas0r.utils")
 
 local M = {}
 
-M.init = function()
-  vim.g.markdown_fenced_languages = {
-    "ts=typescript",
-  }
-end
+M.init = function() end
 
 M.config = function()
   local on_attach = function(_, bufnr)
     -- Enable completion triggered by <c-x><c-o>
     Utils.set_option("omnifunc", "v:lua.vim.lsp.omnifunc", { buf = bufnr })
 
-    -- Mappings.
-    Utils.map("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", { buf = bufnr })
-    Utils.map("n", "gh", "<cmd>lua vim.lsp.buf.hover()<CR>", { buf = bufnr })
-    Utils.map("n", "gk", "<cmd>lua vim.lsp.buf.references()<CR>", { buf = bufnr })
-    Utils.map("n", "K", "<cmd>lua vim.diagnostic.goto_prev()<CR>", { buf = bufnr })
-    Utils.map("n", "J", "<cmd>lua vim.diagnostic.goto_next()<CR>", { buf = bufnr })
-
-    Utils.map("n", "gr", "<cmd>lua vim.lsp.buf.rename()<CR>", { buf = bufnr })
-    Utils.map("n", "ga", "<cmd>lua vim.lsp.buf.code_action()<CR>", { buf = bufnr })
+    -- Common mappings for all language servers
+    Utils.map("n", "gd", vim.lsp.buf.definition, { buffer = bufnr, desc = "Go to definition" })
+    Utils.map("n", "gD", vim.lsp.buf.declaration, { buffer = bufnr, desc = "Go to declaration" })
+    Utils.map("n", "gi", vim.lsp.buf.implementation, { buffer = bufnr, desc = "Go to implementation" })
+    Utils.map("n", "gh", vim.lsp.buf.hover, { buffer = bufnr, desc = "Show hover information" })
+    Utils.map("n", "gk", vim.lsp.buf.references, { buffer = bufnr, desc = "Show references" })
+    Utils.map("n", "K", function()
+      vim.diagnostic.jump({ count = -1, float = true })
+    end, { buffer = bufnr, desc = "Previous diagnostic" })
+    Utils.map("n", "J", function()
+      vim.diagnostic.jump({ count = 1, float = true })
+    end, { buffer = bufnr, desc = "Next diagnostic" })
+    Utils.map("n", "gr", vim.lsp.buf.rename, { buffer = bufnr, desc = "Rename symbol" })
+    Utils.map("n", "ga", vim.lsp.buf.code_action, { buffer = bufnr, desc = "Code action" })
   end
 
   local util = require("lspconfig").util
 
-  local default_caps = {
-    workspace = {
-      didChangeWatchedFiles = {
-        dynamicRegistration = true,
-      },
-    },
+  local flags = {
+    debounce_text_changes = 50,
   }
 
-  -- Inject lsp thingy into nvim-cmp
-  local capabilities = vim.tbl_deep_extend("keep", default_caps, require("cmp_nvim_lsp").default_capabilities())
+  local function default_capabilities()
+    local capabilities = vim.lsp.protocol.make_client_capabilities()
+    capabilities.textDocument.completion.completionItem = {
+      documentationFormat = { "markdown", "plaintext" },
+      snippetSupport = true,
+      preselectSupport = true,
+      insertReplaceSupport = true,
+      labelDetailsSupport = true,
+      deprecatedSupport = true,
+      commitCharactersSupport = true,
+      tagSupport = { valueSet = { 1 } },
+      resolveSupport = {
+        properties = {
+          "documentation",
+          "detail",
+          "additionalTextEdits",
+        },
+      },
+    }
+    -- AstroLSP needs this
+    capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
+    return capabilities
+  end
+
+  -- Inject nvim_cmp capabilities into LSP capabilities
+  local capabilities = vim.tbl_deep_extend(
+    "keep",
+    default_capabilities(),
+    require("cmp_nvim_lsp").default_capabilities()
+  )
 
   -- set log level to debug for debugging
   -- vim.lsp.set_log_level("DEBUG")
-
-  local flags = {}
 
   -- npm install -g typescript typescript-language-server
   require("lspconfig").ts_ls.setup({
@@ -55,17 +78,6 @@ M.config = function()
           })
         end
       end
-
-      -- local function remove_unused()
-      --   local context = {
-      --     diagnostics = vim.lsp.diagnostic.get_line_diagnostics(),
-      --     only = { "source.removeUnused.ts" },
-      --   }
-      --   vim.lsp.buf.code_action({
-      --     context = context,
-      --     apply = true,
-      --   })
-      -- end
 
       -- Mappings.
       Utils.map("n", "gD", "<cmd>lua vim.lsp.buf.type_definition()<CR>", { buf = bufnr })
@@ -97,17 +109,6 @@ M.config = function()
           })
         end
       end
-
-      -- local function remove_unused()
-      --   local context = {
-      --     diagnostics = vim.lsp.diagnostic.get_line_diagnostics(),
-      --     only = { "source.removeUnused.ts" },
-      --   }
-      --   vim.lsp.buf.code_action({
-      --     context = context,
-      --     apply = true,
-      --   })
-      -- end
 
       -- Mappings.
       Utils.map("n", "gD", "<cmd>lua vim.lsp.buf.type_definition()<CR>", { buf = bufnr })

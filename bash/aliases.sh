@@ -1,9 +1,4 @@
-#!/usr/bin/env bash
-
-# Editor Aliases (incase you misspell)
-alias nv="nvimr"
-alias nvr="nvimr"
-alias nv="nvimr"
+#!/bin/bash
 
 # Utils
 alias ..="cd .."
@@ -17,12 +12,6 @@ alias android-studio="/home/odas0r/tools/android-studio/bin/studio.sh"
 
 # alias ssh="ssh.exe"
 # alias ssh-add="ssh-add.exe"
-
-# you can't cd on the current shell process by "cd-ing" on a shell script
-# https://stackoverflow.com/questions/255414/why-cant-i-change-directories-using-cd-in-a-script
-jump() {
-  [ -h "$MARKPATH/$1" ] && cd "$(readlink "${MARKPATH}/${1}")" || echo "mark not found :("
-}
 
 repos() {
   local paths=(

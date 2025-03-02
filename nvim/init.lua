@@ -98,19 +98,9 @@ require("lazy").setup({
   {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
-    -- tag = "v0.9.2",
     cmd = { "TSUpdateSync" },
-    dependencies = {
-      "JoosepAlviste/nvim-ts-context-commentstring",
-    },
     init = require("odas0r.plugin.treesitter").init,
     config = require("odas0r.plugin.treesitter").config,
-  },
-  -- I disabled autoident from treesitter since it stopped working on dart,
-  -- this is a fix for it:
-  {
-    "nvim-treesitter/playground",
-    cmd = "TSPlaygroundToggle",
   },
   {
     "nvim-lualine/lualine.nvim",
@@ -172,7 +162,38 @@ augroup END
       require("odas0r.plugin.harpoon").config()
     end,
   },
-  { "windwp/nvim-ts-autotag", event = "InsertEnter" },
+  {
+    "zbirenbaum/copilot.lua",
+    event = "InsertEnter",
+    config = function()
+      require("copilot").setup({
+        suggestion = {
+          enabled = true,
+          auto_trigger = true,
+          hide_during_completion = true,
+          debounce = 50,
+          keymap = {
+            accept = "<C-e>",
+            accept_word = false,
+            accept_line = false,
+            next = "<leader>j",
+            prev = "<leader>k",
+            dismiss = "<C-c>",
+          },
+        },
+        filetypes = {
+          ["*"] = true,
+          sh = function()
+            -- disable for .env files
+            if string.match(vim.fs.basename(vim.api.nvim_buf_get_name(0)), "^%.env.*") then
+              return false
+            end
+            return true
+          end,
+        },
+      })
+    end,
+  },
   {
     "dmmulroy/tsc.nvim",
     cmd = { "TSC" },
@@ -183,20 +204,6 @@ augroup END
         --   build = true,
         -- },
       })
-    end,
-  },
-  {
-    "numToStr/Comment.nvim",
-    keys = {
-      { "gc", mode = "v", desc = "Comment visual" },
-      { "gcc", mode = "n", desc = "Comment one line" },
-    },
-    config = require("odas0r.plugin.comment").config,
-  }, -- comment
-  {
-    "nmac427/guess-indent.nvim",
-    config = function()
-      require("odas0r.plugin.guess-indent").config()
     end,
   },
   {
@@ -214,26 +221,6 @@ augroup END
     end,
     event = { "CmdlineEnter" },
     ft = { "go", "gomod" },
-  },
-  -- Copilot
-  -- { "github/copilot.vim" },
-  -- Copilot via lua
-  {
-    "zbirenbaum/copilot-cmp",
-    event = "InsertEnter",
-    config = function()
-      require("copilot_cmp").setup()
-    end,
-    dependencies = {
-      "zbirenbaum/copilot.lua",
-      cmd = "Copilot",
-      config = function()
-        require("copilot").setup({
-          suggestion = { enabled = false },
-          panel = { enabled = false },
-        })
-      end,
-    },
   },
   -- File Explorer
   {
@@ -254,7 +241,7 @@ augroup END
   {
     "L3MON4D3/LuaSnip",
     -- follow latest release.
-    version = "v2.2", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
+    version = "v2.*", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
     -- install jsregexp (optional!).
     build = "make install_jsregexp",
     init = require("odas0r.plugin.luasnip").init,
