@@ -1,10 +1,8 @@
-local M = {}
-
-M.init = function() end
-
-M.config = function()
-  -- defer until after first render to improve startup time of 'nvim {filename}'
-  vim.defer_fn(function()
+return {
+  "nvim-treesitter/nvim-treesitter",
+  event = { "BufReadPost", "BufNewFile" },
+  cmd = { "TSUpdateSync" },
+  config = function()
     require("nvim-treesitter.configs").setup({
       -- Core configurations
       highlight = {
@@ -40,7 +38,5 @@ M.config = function()
       sync_install = false, -- Install parsers synchronously (only applied to `ensure_installed`)
       ignore_install = {}, -- List of parsers to ignore installing
     })
-  end, 0)
-end
-
-return M
+  end,
+}
