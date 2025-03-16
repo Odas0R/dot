@@ -9,7 +9,7 @@ return {
     -- Id is automatically added at the beginning, and name at the end
     -- See :help oil-columns
     columns = {
-      "icon",
+      -- "icon",
       -- "permissions",
       -- "size",
       -- "mtime",
@@ -40,7 +40,7 @@ return {
     -- Oil will automatically delete hidden buffers after this delay
     -- You can set the delay to false to disable cleanup entirely
     -- Note that the cleanup process only starts when none of the oil buffers are currently displayed
-    cleanup_delay_ms = false,
+    cleanup_delay_ms = 2000,
     lsp_file_methods = {
       -- Enable or disable LSP file operations
       enabled = true,
@@ -64,6 +64,7 @@ return {
     keymaps = {
       ["g?"] = { "actions.show_help", mode = "n" },
       ["<CR>"] = "actions.select",
+      ["l"] = "actions.select",
       ["<C-s>"] = false,
       ["<C-h>"] = false,
       ["<C-t>"] = false,
@@ -71,14 +72,43 @@ return {
       ["<C-c>"] = { "actions.close", mode = "n" },
       ["q"] = { "actions.close", mode = "n" },
       ["<C-l>"] = "actions.refresh",
-      ["-"] = { "actions.parent", mode = "n" },
-      ["_"] = { "actions.open_cwd", mode = "n" },
+      ["h"] = { "actions.parent", mode = "n" },
+      ["H"] = { "actions.open_cwd", mode = "n" },
       ["`"] = false,
       ["~"] = false,
+      ["-"] = false,
+      ["_"] = false,
       ["gs"] = { "actions.change_sort", mode = "n" },
       ["gx"] = "actions.open_external",
       ["."] = { "actions.toggle_hidden", mode = "n" },
       ["g\\"] = { "actions.toggle_trash", mode = "n" },
+      ["<leader>o"] = {
+        function()
+          local oil = require("oil")
+          local entry = oil.get_cursor_entry()
+
+          -- Only proceed if the cursor is on a directory
+          if entry and entry.type == "directory" then
+            local current_dir = oil.get_current_dir()
+            local target_dir = current_dir .. "/" .. entry.name
+
+            require("telescope.builtin").find_files({
+              prompt_title = "Subdirectories in " .. entry.name,
+              cwd = target_dir,
+              find_command = { "fd", "--type", "d", "--strip-cwd-prefix" },
+              previewer = false,
+              layout_config = {
+                width = 0.4,
+                height = 0.7,
+              },
+            })
+          else
+            vim.notify("Not a directory", vim.log.levels.WARN)
+          end
+        end,
+        desc = "List subdirectories of directory under cursor",
+        mode = "n",
+      },
     },
     -- Set to false to disable all of the above keymaps
     use_default_keymaps = true,
@@ -207,7 +237,8 @@ return {
   },
   config = function(_, opts)
     require("oil").setup(opts)
-    -- Keymap
+
+    -- Toggle Keymap
     vim.keymap.set("n", "\\", function()
       if vim.bo.filetype == "oil" then
         vim.cmd("b#")
@@ -215,38 +246,5 @@ return {
         vim.cmd("Oil")
       end
     end, { desc = "Toggle Oil file explorer" })
-
-    -- Add a keymap to show all file paths
-    vim.keymap.set("n", "<leader>e", function()
-      if vim.bo.filetype == "oil" then
-        local oil = require("oil")
-        local current_dir = oil.get_current_dir()
-
-        -- Execute shell command to get only files (not directories)
-        local handle = io.popen("find '" .. current_dir .. "' -type f 2>/dev/null | sort")
-        if handle then
-          local result = handle:read("*a")
-          handle:close()
-
-          -- Split the result into lines
-          local paths = vim.split(result, "\n")
-
-          -- Clear the current buffer content
-          local bufnr = vim.api.nvim_get_current_buf()
-          vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
-
-          -- Add relative paths to the buffer
-          for _, path in ipairs(paths) do
-            if path ~= "" then
-              -- Make path relative to current directory
-              local rel_path = path:sub(#current_dir + 1) -- +2 to skip the trailing slash
-              if rel_path ~= "" then
-                vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { rel_path })
-              end
-            end
-          end
-        end
-      end
-    end, { desc = "Show all nested file paths in Oil" })
   end,
 }

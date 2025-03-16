@@ -3,7 +3,7 @@ return {
   lazy = false,
   priority = 1000,
   config = function()
-    local Gruvbox = require("odas0r.gruvbox")
+    local Gruvbox = require("odas0r.internal.gruvbox")
 
     local colors = Gruvbox.colors()
     local config = Gruvbox.config()

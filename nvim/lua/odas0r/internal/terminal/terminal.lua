@@ -1,4 +1,4 @@
-local Window = require("odas0r.plugin.terminal.window")
+local Window = require("odas0r.internal.terminal.window")
 
 local v = vim.api
 local cmd = vim.cmd

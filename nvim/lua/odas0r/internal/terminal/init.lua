@@ -10,8 +10,8 @@ local function get_terminal()
 end
 
 M.setup = function(opts)
-  local Terminal = require("odas0r.plugin.terminal.terminal")
-  local Window = require("odas0r.plugin.terminal.window")
+  local Terminal = require("odas0r.internal.terminal.terminal")
+  local Window = require("odas0r.internal.terminal.window")
 
   local window = Window:new(vim.tbl_deep_extend("force", {
     position = "botright",

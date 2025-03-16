@@ -2,17 +2,16 @@ local Util = require("odas0r.utils")
 
 return {
 	"odas0r/terminal.nvim",
-	dir = "~/github.com/odas0r/dot/nvim/lua/odas0r/plugin/terminal",
-
+	dir = "~/github.com/odas0r/dot/nvim/lua/odas0r/internal/terminal",
+	opts = {},
 	config = function(_, opts)
-		require("odas0r.plugin.terminal").setup(opts)
+		require("odas0r.internal.terminal").setup(opts)
 	end,
-
 	keys = {
 		{
 			"<leader>t",
 			function()
-				require("odas0r.plugin.terminal").toggle()
+				require("odas0r.internal.terminal").toggle()
 			end,
 			mode = { "n", "t" },
 			desc = "Toggle terminal",
