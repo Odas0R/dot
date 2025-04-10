@@ -11,7 +11,6 @@ return {
       -- Define what to do when Neovim is started without arguments. See "Autoload mode" section below.
       autoload_mode = {
         config.AutoloadMode.GitSession,
-        config.AutoloadMode.CurrentDir,
         config.AutoloadMode.LastSession,
       },
       autosave_last_session_on_exit = true, -- Automatically save last session on exit.
@@ -26,18 +25,6 @@ return {
       autosave_only_in_session = false, -- Always autosaves session. If true, only autosaves after a session is active.
       max_path_length = 80, -- Shorten the display path if length exceeds this threshold. Use 0 if don't want to shorten the path at all.
       load_include_current = false, -- The currently loaded session appears in the load_session UI.
-    })
-
-    -- Save and load folds on session
-    vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
-      pattern = { "?*" },
-      desc = "save view (folds), when closing file",
-      command = "mkview",
-    })
-    vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
-      pattern = { "?*" },
-      desc = "load view (folds), when opening file",
-      command = "silent! loadview",
     })
   end,
 }

@@ -58,9 +58,22 @@ opt.winminwidth = 5 -- Minimum window width
 opt.wrap = false -- Disable line wrap
 
 -- folding
-vim.opt.foldmethod = "expr"
-vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-vim.opt.foldlevelstart = 99
+vim.o.foldcolumn = "0"
+vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+vim.o.foldlevelstart = 99
+vim.o.foldenable = true
+
+-- Save and load folds on session
+vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
+  pattern = { "?*" },
+  desc = "save view (folds), when closing file",
+  command = "mkview",
+})
+vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
+  pattern = { "?*" },
+  desc = "load view (folds), when opening file",
+  command = "silent! loadview",
+})
 
 -- more risky, but cleaner
 opt.backup = false
@@ -75,3 +88,4 @@ opt.encoding = "utf-8"
 --   opt.splitkeep = "screen"
 --   opt.shortmess:append({ C = true })
 -- end
+--
