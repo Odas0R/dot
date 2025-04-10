@@ -52,6 +52,12 @@ return {
       python = {
         function()
           return {
+            exe = "autoimport",
+            stdin = false,
+          }
+        end,
+        function()
+          return {
             exe = "python3 -m autopep8",
             args = {
               "--in-place --aggressive",
