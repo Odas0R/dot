@@ -33,6 +33,16 @@ return {
         enable = true, -- Keep this disabled if you don't use treesitter for indentation
       },
 
+      -- incremental_selection = {
+      --   enable = true,
+      --   keymaps = {
+      --     init_selection = "gnn", -- set to `false` to disable one of the mappings
+      --     node_incremental = "grn",
+      --     scope_incremental = "grc",
+      --     node_decremental = "grm",
+      --   },
+      -- },
+
       -- Efficiently install parsers - only install what's needed
       auto_install = true, -- Automatically install missing parsers when entering buffer
       sync_install = false, -- Install parsers synchronously (only applied to `ensure_installed`)

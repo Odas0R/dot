@@ -7,7 +7,13 @@ return {
     require("session_manager").setup({
       -- check: https://github.com/Shatur/neovim-session-manager?tab=readme-ov-file#configuration
       sessions_dir = Path:new(vim.fn.stdpath("data"), "sessions"), -- The directory where the session files will be saved.
-      autoload_mode = config.AutoloadMode.LastSession, -- Define what to do when Neovim is started without arguments. See "Autoload mode" section below.
+
+      -- Define what to do when Neovim is started without arguments. See "Autoload mode" section below.
+      autoload_mode = {
+        config.AutoloadMode.GitSession,
+        config.AutoloadMode.CurrentDir,
+        config.AutoloadMode.LastSession,
+      },
       autosave_last_session_on_exit = true, -- Automatically save last session on exit.
       autosave_last_session_on_switch = true, -- Automatically save last session on switch.
       autosave_ignore_not_normal = true, -- Plugin will not save a session when no buffers are opened, or all of them aren't writable or listed.
@@ -22,18 +28,14 @@ return {
       load_include_current = false, -- The currently loaded session appears in the load_session UI.
     })
 
-    local group = vim.api.nvim_create_augroup("Folds", { clear = true })
-
     -- Save and load folds on session
     vim.api.nvim_create_autocmd({ "BufWinLeave" }, {
-      group = group,
-      pattern = { "*.*" },
+      pattern = { "?*" },
       desc = "save view (folds), when closing file",
       command = "mkview",
     })
     vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
-      group = group,
-      pattern = { "*.*" },
+      pattern = { "?*" },
       desc = "load view (folds), when opening file",
       command = "silent! loadview",
     })

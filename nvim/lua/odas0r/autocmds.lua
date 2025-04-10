@@ -28,24 +28,26 @@ Utils.autocmd({ "VimResized" }, {
   end,
 })
 
+-- Note: sessions make this unnecessary
+--
 -- go to last loc when opening a buffer
-Utils.autocmd("BufReadPost", {
-  group = Utils.augroup("last_loc"),
-  desc = "Jump to last known cursor position on opening a buffer",
-  callback = function()
-    local exclude = { "gitcommit" }
-    local buf = vim.api.nvim_get_current_buf()
-    if vim.tbl_contains(exclude, vim.bo[buf].filetype) then
-      return
-    end
-    local mark = vim.api.nvim_buf_get_mark(buf, '"')
-    local lcount = vim.api.nvim_buf_line_count(buf)
-    -- Check mark is valid and within buffer bounds
-    if mark[1] > 0 and mark[1] <= lcount then
-      pcall(vim.api.nvim_win_set_cursor, 0, mark)
-    end
-  end,
-})
+-- Utils.autocmd("BufReadPost", {
+--   group = Utils.augroup("last_loc"),
+--   desc = "Jump to last known cursor position on opening a buffer",
+--   callback = function()
+--     local exclude = { "gitcommit" }
+--     local buf = vim.api.nvim_get_current_buf()
+--     if vim.tbl_contains(exclude, vim.bo[buf].filetype) then
+--       return
+--     end
+--     local mark = vim.api.nvim_buf_get_mark(buf, '"')
+--     local lcount = vim.api.nvim_buf_line_count(buf)
+--     -- Check mark is valid and within buffer bounds
+--     if mark[1] > 0 and mark[1] <= lcount then
+--       pcall(vim.api.nvim_win_set_cursor, 0, mark)
+--     end
+--   end,
+-- })
 
 -- close some filetypes with <q>
 Utils.autocmd("FileType", {
