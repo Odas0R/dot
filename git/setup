@@ -2,22 +2,17 @@
 
 set -e
 
-SIGNKEY="$DOT/git/gitconfig.key"
-if [[ ! -f "$SIGNKEY" ]]; then
-  echo "Add GPG key. Please generate one and add it to $SIGNKEY"
-  cat <<EOF
-  [user]
-    signingkey = YOUR_KEY
-EOF
-  exit 1
-else
-  ln -sf "$DOT/git/gitconfig.key" "$HOME/.gitconfig.key"
-fi
-
-if [[ -n "$WSL_DISTRO_NAME" ]]; then
-  ln -sf "$DOT/git/gitconfig.wsl" "$HOME/.gitconfig"
-else
-  ln -sf "$DOT/git/gitconfig" "$HOME/.gitconfig"
-fi
+ln -sf "$DOT/git/gitconfig" "$HOME/.gitconfig"
 
 printf "Git setup done! 🌟\n"
+
+cat <<EOF
+
+** DON'T FORGET **
+
+Add GPG key. Please generate one and add it to $SIGNKEY
+
+[user]
+	signingkey = YOUR_KEY
+EOF
+

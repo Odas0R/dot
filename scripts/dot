@@ -2,21 +2,16 @@
 
 set -e
 
-if [[ ! -x "$(command -v fzf-tmux)" ]]; then
-  echo "You need to install fzf-tmux"
-  exit 1
-fi
-
 if [[ -n $1 ]]; then
   # find the files by regex & open them w/ nvim
-  find "$DOT" -type f -name "*$1*" -exec nvimr '{}' +
+  find "$DOT" -type f -name "*$1*" -exec nvim '{}' +
   exit 0
 fi
 
 file=$(
-  fd . "$DOT" | fzf-tmux -p 95% --multi \
+  fd . "$DOT" | fzf --multi \
     --prompt="Search through your dotfiles > " \
-    --preview 'batcat --theme=gruvbox-dark --style=numbers --color=always {}'
+    --preview 'bat --theme=gruvbox-dark --style=numbers --color=always {}'
 )
 
 if [[ -f $file ]]; then
@@ -24,6 +19,6 @@ if [[ -f $file ]]; then
     open "${file}"
     exit 0
   else
-    nvimr "${file}"
+    nvim "${file}"
   fi
 fi

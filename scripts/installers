@@ -3,8 +3,8 @@
 declare INSTALLS_PATH="$HOME/github.com/odas0r/dot/install"
 
 # Generate a list of installer scripts
-installer_scripts=$(find "$INSTALLS_PATH" -mindepth 1 -maxdepth 1 -type f -printf "%p\n" |
-  fzf-tmux -p 40% --multi --prompt="Your installers > ")
+installer_scripts=$(fd --type f --maxdepth 1 . "$INSTALLS_PATH" |
+  fzf --multi --prompt="Your installers > ")
 
 # Run the selected installer scripts
 for script in $installer_scripts; do

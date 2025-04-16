@@ -7,8 +7,7 @@ KITTY="$HOME/.config/kitty"
 mkdir -p "$KITTY"
 
 # create symlinks for the config & theme files
-ln -sf "$DOT/kitty/kitty.conf" "$KITTY/kitty.conf"
-ln -sf "$DOT/kitty/themes" "$KITTY/themes"
-ln -sf "$DOT/kitty/tab_bar.py" "$KITTY/tab_bar.py"
+ln -sf "$HOME/github.com/odas0r/dot/kitty/kitty.conf" "$KITTY/kitty.conf"
+ln -sf "$HOME/github.com/odas0r/dot/kitty/themes" "$KITTY/themes"
 
 echo "Kitty setup done! ⭐"

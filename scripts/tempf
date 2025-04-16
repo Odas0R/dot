@@ -12,4 +12,4 @@ fi
 
 file=$(mktemp -t tmpf.XXXXXX."$extension")
 
-nvimr "$file"
+nvim "$file"

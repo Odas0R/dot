@@ -7,20 +7,10 @@
     followTags = true
     default = current
 [core]
-    editor = nvimr
+    editor = nvim
     autocrlf = false
     sshCommand = ssh
 [init]
     defaultBranch = main
-[diff]
-    tool = nvimr
-[difftool "nvimr"]
-    cmd = nvimr -d $LOCAL $REMOTE
-[merge]
-    tool = nvimr
-[mergetool "nvimr"]
-    cmd = nvimr -d $LOCAL $BASE $REMOTE $MERGED -c 'wincmd J | wincmd ='
-    prompt = false
-    keepBackup = false
 [pull]
     rebase = false

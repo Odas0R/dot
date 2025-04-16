@@ -255,12 +255,6 @@ return {
     --   },
     -- })
 
-    require("lspconfig").marksman.setup({
-      on_attach = on_attach,
-      capabilities = capabilities,
-      flags = flags,
-    })
-
     -- sudo apt-get install clangd-14
     -- sudo update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-14 100
     require("lspconfig").clangd.setup({
@@ -338,15 +332,6 @@ return {
     -- })
     --
 
-    -- ========== Make sure you have: =============
-    --
-    -- sudo apt install lua5.1
-    -- sudo apt install luajit
-    -- sudo apt install luarocks
-    -- luarocks install busted
-
-    -- LSP for lua
-    -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#sumneko_lua
     local sumneko_binary_path = vim.fn.exepath("lua-language-server")
     local sumneko_root_path = vim.fn.fnamemodify(sumneko_binary_path, ":h:h:h")
 

@@ -2,17 +2,11 @@
 -- Options
 -----------------------------------------
 
-local isWSL = os.getenv("WSL_DISTRO_NAME") == "Ubuntu"
-if isWSL then
-  vim.ui.open = function(arg)
-    vim.fn.system("open " .. arg)
-  end
-end
-
 -- copy-paste from
 -- <https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua>
 local opt = vim.opt
 
+opt.shell = "/usr/local/bin/bash"
 opt.textwidth = 120 -- Maximum width of text
 -- opt.colorcolumn = "80" -- Line length marker
 opt.formatoptions = "jcroqlnt" -- tcqj
@@ -83,9 +77,3 @@ opt.swapfile = false
 -- dictionary
 opt.spelllang = { "en", "pt_pt" }
 opt.encoding = "utf-8"
-
--- if vim.fn.has("nvim-0.9.0") == 1 then
---   opt.splitkeep = "screen"
---   opt.shortmess:append({ C = true })
--- end
---

@@ -2,7 +2,7 @@
 
 # source "/usr/share/doc/fzf/examples/key-bindings.bash"
 # source "/usr/share/doc/fzf/examples/completion.bash"
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+[[ -f ~/.fzf.bash ]] && source ~/.fzf.bash
 
 FD_OPTIONS="--follow --exclude .git --exclude node_modules"
 FZF_BINDS="--bind 'f2:toggle-preview,ctrl-d:half-page-down,ctrl-u:half-page-up,ctrl-/:toggle-all'"

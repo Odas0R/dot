@@ -1,28 +1,14 @@
 #!/usr/bin/env bash
 
-export DOT="$HOME/github.com/odas0r/dot"
+DOT="$HOME/github.com/odas0r/dot"
 
 # install custom scripts
 mkdir -p "$HOME/.local/bin"
-ln -sf "$DOT/scripts" "$HOME/.local/bin/scripts"
+ln -sf "$HOME/github.com/odas0r/dot/scripts" "$HOME/.local/bin/scripts"
 
-ln -sf "$DOT/bashrc" "$HOME/.bashrc"
-ln -sf "$DOT/inputrc" "$HOME/.inputrc"
-ln -sf "$DOT/psqlrc" "$HOME/.psqlrc"
-ln -sf "$DOT/bash" "$HOME/.bash"
+ln -sf "$HOME/github.com/odas0r/dot/bashrc" "$HOME/.bashrc"
+ln -sf "$HOME/github.com/odas0r/dot/inputrc" "$HOME/.inputrc"
+ln -sf "$HOME/github.com/odas0r/dot/psqlrc" "$HOME/.psqlrc"
+ln -sf "$HOME/github.com/odas0r/dot/bash" "$HOME/.bash"
 
-printf "Executing all setup scripts ✨...\n"
-
-readarray -d '' folders < <(
-  find "$DOT" -mindepth 1 -maxdepth 1 -type d \
-    -not -path "$DOT/.git"
-)
-
-for path in $folders; do
-  # if path contains install continue to next
-  [[ "$path" == *install* ]] && continue
-
-  cd "$path"
-  [[ -f "./setup" ]] && ./setup
-  cd - >/dev/null || exit 1
-done
+echo "Executing all setup scripts ✨..."

@@ -11,7 +11,7 @@ installerPath="$HOME/github.com/odas0r/dot/install/${installer}"
 if [[ -e $installerPath ]]; then
   read -r -p "${1} already exists. Edit?" yes
   case "$yes" in
-  y | yes | ok | okay) nvimr "$installerPath" ;;
+  y | yes | ok | okay) nvim "$installerPath" ;;
   esac
   exit 0
 fi
@@ -24,4 +24,4 @@ set -euo pipefail
 EOF
 
 chmod +x "$installerPath"
-nvimr "$installerPath"
+nvim "$installerPath"

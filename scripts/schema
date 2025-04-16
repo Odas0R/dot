@@ -2,4 +2,4 @@
 
 set -euo pipefail
 
-sqlite-utils schema "$@"
+sqlite3 "$@" .schema

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-nvimr -c "ZetLast"
+nvim -c "ZetLast"

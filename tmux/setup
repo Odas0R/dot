@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-ln -sf "$DOT/tmux/tmux.conf" "$HOME/.tmux.conf"
-
-echo "Tmux setup done! 🌟"
