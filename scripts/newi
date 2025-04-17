@@ -24,4 +24,4 @@ set -euo pipefail
 EOF
 
 chmod +x "$installerPath"
-nvim "$installerPath"
+nvr "$installerPath"

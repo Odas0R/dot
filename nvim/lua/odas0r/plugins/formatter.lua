@@ -1,14 +1,15 @@
-local Utils = require("odas0r.utils")
+local util = require("odas0r.utils")
 
 return {
   "mhartington/formatter.nvim",
   cmd = "FormatWrite",
   init = function()
-    Utils.map("n", "gp", function()
+    util.map("n", "gp", function()
       vim.cmd("FormatWrite")
     end, { silent = false })
   end,
   config = function()
+    local fmtUtil = require("formatter.util")
     local formatter = require("formatter")
 
     local prettierConfig = function()
@@ -17,21 +18,21 @@ return {
       -- end
 
       -- set env variable
-      -- return {
-      --   exe = "prettier",
-      --   args = {
-      --     "--stdin-filepath",
-      --     util.escape_path(util.get_current_buffer_file_path()),
-      --   },
-      --   stdin = true,
-      --   try_node_modules = true,
-      -- }
-
       return {
-        exe = "prettierd",
-        args = { vim.api.nvim_buf_get_name(0) },
+        exe = "prettier",
+        args = {
+          "--stdin-filepath",
+          fmtUtil.escape_path(fmtUtil.get_current_buffer_file_path()),
+        },
         stdin = true,
+        try_node_modules = true,
       }
+
+      -- return {
+      --   exe = "prettierd",
+      --   args = { vim.api.nvim_buf_get_name(0) },
+      --   stdin = true,
+      -- }
     end
 
     local formatterConfig = {

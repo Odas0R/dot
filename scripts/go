@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
-version="1.22.0"
+version="1.24.2"
+
+# check if the command is available
+if ! command -v "go${version}" &> /dev/null; then
+	echo "go${version} not found, please install it first."
+	exit 1
+fi
 
 exec "go${version}" "$@"
