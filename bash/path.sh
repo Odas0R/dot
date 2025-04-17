@@ -19,8 +19,20 @@ export ZET="$HOME/github.com/odas0r/zet"
 export GOROOT="/usr/local/go"
 export GOPATH="$HOME/go"
 
+# Fixing GNU utils in macOS
+#
+# brew install coreutils findutils gnu-sed gawk grep gnu-tar
+#
+GNU_UTILS=""
+GNU_UTILS+="/opt/homebrew/opt/coreutils/libexec/gnubin/man:"
+GNU_UTILS+="/opt/homebrew/opt/findutils/libexec/gnubin:" # find
+GNU_UTILS+="/opt/homebrew/opt/grep/libexec/gnubin:" # grep
+GNU_UTILS+="/opt/homebrew/opt/gawk/libexec/gnubin:" # awk
+GNU_UTILS+="/opt/homebrew/opt/gnu-sed/libexec/gnubin:" # sed
+GNU_UTILS+="/opt/homebrew/opt/gnu-tar/libexec/gnubin" # tar
+
 # Global Path
-PATH="$PATH:/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin:"
+PATH="$GNU_UTILS:$PATH:/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin:"
 
 PATH+="$LOCAL_BIN:$LOCAL_BIN_SCRIPTS:"
 PATH+="$GOROOT/bin:$GOPATH/bin:"
