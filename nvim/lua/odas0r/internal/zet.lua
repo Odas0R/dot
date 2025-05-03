@@ -5,20 +5,18 @@ local zet = {}
 
 local function exec(cmd, args)
   local result = nil
-  Job
-    :new({
-      command = cmd,
-      args = args,
-      on_exit = function(j, code)
-        if code == 0 then
-          result = j:result()[1]
-        else
-          -- show Error message on red
-          print("Error: " .. j:stderr_result()[1])
-        end
-      end,
-    })
-    :sync()
+  Job:new({
+    command = cmd,
+    args = args,
+    on_exit = function(j, code)
+      if code == 0 then
+        result = j:result()[1]
+      else
+        -- show Error message on red
+        print("Error: " .. j:stderr_result()[1])
+      end
+    end,
+  }):sync()
   return result
 end
 
@@ -26,16 +24,18 @@ zet.grep = function(query)
   if terminal ~= nil then
     terminal:close()
   end
-  require("telescope.builtin").live_grep(require("telescope.themes").get_dropdown({
-    prompt_title = "Zet Query",
-    cwd = "$HOME/github.com/odas0r/zet",
-    preview_width = 0.6,
-    search_dirs = {
-      "fleet",
-      "permanent",
-    },
-    default_text = query or "",
-  }))
+  require("telescope.builtin").live_grep(
+    require("telescope.themes").get_dropdown({
+      prompt_title = "Zet Query",
+      cwd = "$HOME/github.com/odas0r/zet",
+      preview_width = 0.6,
+      search_dirs = {
+        "fleet",
+        "permanent",
+      },
+      default_text = query or "",
+    })
+  )
 end
 
 zet.create = function(title)
@@ -173,8 +173,16 @@ Utils.cmd("ZetNew", function(opts)
   end
 end, { nargs = "?", desc = "Create a new zet file" })
 Utils.cmd("ZetHistory", zet.history, { nargs = 0, desc = "Show the history" })
-Utils.cmd("ZetLast", zet.open_last, { nargs = 0, desc = "Open the last zettel" })
-Utils.cmd("ZetBrokenLinks", zet.brokenlinks, { nargs = 0, desc = "Find broken links" })
+Utils.cmd(
+  "ZetLast",
+  zet.open_last,
+  { nargs = 0, desc = "Open the last zettel" }
+)
+Utils.cmd(
+  "ZetBrokenLinks",
+  zet.brokenlinks,
+  { nargs = 0, desc = "Find broken links" }
+)
 Utils.cmd("ZetBacklog", zet.backlog, { nargs = 0, desc = "Show the backlog" })
 Utils.cmd("ZetMakePermanent", function()
   local curr_path = vim.fn.expand("%:p")
@@ -198,8 +206,8 @@ end, { nargs = 0, desc = "Make a zettel type fleet" })
 
 Utils.autocmd({ "BufReadPost" }, {
   pattern = {
-    "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
-    "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
+    os.getenv("HOME") .. "/github.com/odas0r/zet/permanent/*.md",
+    os.getenv("HOME") .. "/github.com/odas0r/zet/fleet/*.md",
   },
   callback = function()
     local curr_path_buf = vim.fn.expand("%:p")
@@ -209,30 +217,28 @@ Utils.autocmd({ "BufReadPost" }, {
       return
     end
 
-    Job
-      :new({
-        command = "zet",
-        args = { "save", curr_path_buf },
-        on_exit = function(j, code)
-          if code == 0 then
-            local result = j:result()[1]
-            local zettel = vim.json.decode(result)
-            print("Saved: " .. zettel.title)
-          else
-            -- show Error message on red
-            P("Zet Error: ")
-            P(j:stderr_result())
-          end
-        end,
-      })
-      :start()
+    Job:new({
+      command = "zet",
+      args = { "save", curr_path_buf },
+      on_exit = function(j, code)
+        if code == 0 then
+          local result = j:result()[1]
+          local zettel = vim.json.decode(result)
+          print("Saved: " .. zettel.title)
+        else
+          -- show Error message on red
+          P("Zet Error: ")
+          P(j:stderr_result())
+        end
+      end,
+    }):start()
   end,
 })
 
 Utils.autocmd({ "BufWritePost" }, {
   pattern = {
-    "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
-    "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
+    os.getenv("HOME") .. "/github.com/odas0r/zet/permanent/*.md",
+    os.getenv("HOME") .. "/github.com/odas0r/zet/fleet/*.md",
   },
   callback = function()
     local curr_path_buf = vim.fn.expand("%:p")
@@ -265,24 +271,22 @@ Utils.autocmd({ "BufWritePost" }, {
               .. zettel.title
               .. "' && git push"
 
-            Job
-              :new({
-                command = "bash",
-                args = { "-c", git_command },
-                on_exit = function(j, code)
-                  timer:stop()
-                  if code == 0 then
-                    print('Saved: "' .. zettel.title .. '"')
-                  else
-                    local git_error = table.concat(j:stderr_result(), " ")
-                    if git_error == "" then
-                      git_error = "Unknown Git Error"
-                    end
-                    P("Git Error: " .. git_error)
+            Job:new({
+              command = "bash",
+              args = { "-c", git_command },
+              on_exit = function(j, code)
+                timer:stop()
+                if code == 0 then
+                  print('Saved: "' .. zettel.title .. '"')
+                else
+                  local git_error = table.concat(j:stderr_result(), " ")
+                  if git_error == "" then
+                    git_error = "Unknown Git Error"
                   end
-                end,
-              })
-              :start()
+                  P("Git Error: " .. git_error)
+                end
+              end,
+            }):start()
           else
             local zet_error = table.concat(j:stderr_result(), " ")
             if zet_error == "" then
@@ -298,23 +302,21 @@ Utils.autocmd({ "BufWritePost" }, {
 
 Utils.autocmd({ "VimEnter", "VimLeave" }, {
   pattern = {
-    "/home/odas0r/github.com/odas0r/zet/permanent/*.md",
-    "/home/odas0r/github.com/odas0r/zet/fleet/*.md",
+    os.getenv("HOME") .. "/github.com/odas0r/zet/permanent/*.md",
+    os.getenv("HOME") .. "/github.com/odas0r/zet/fleet/*.md",
   },
   callback = function()
-    Job
-      :new({
-        command = "zet",
-        args = { "sync" },
-        on_exit = function(j, code)
-          if code == 0 then
-            print("Synced successfully...")
-          else
-            print("Error: " .. j:stderr_result()[1])
-          end
-        end,
-      })
-      :start()
+    Job:new({
+      command = "zet",
+      args = { "sync" },
+      on_exit = function(j, code)
+        if code == 0 then
+          print("Synced successfully...")
+        else
+          print("Error: " .. j:stderr_result()[1])
+        end
+      end,
+    }):start()
   end,
 })
 
@@ -376,8 +378,18 @@ function Input(opts)
   })
 
   -- hide the line numbers
-  vim.api.nvim_set_option_value("winhighlight", "Normal:FloatBorder", { win = win })
-  vim.cmd(string.format("autocmd WinLeave <buffer=%s> :lua vim.api.nvim_win_close(%s, true)", buf, win))
+  vim.api.nvim_set_option_value(
+    "winhighlight",
+    "Normal:FloatBorder",
+    { win = win }
+  )
+  vim.cmd(
+    string.format(
+      "autocmd WinLeave <buffer=%s> :lua vim.api.nvim_win_close(%s, true)",
+      buf,
+      win
+    )
+  )
 
   -- set prompt and make it "centered" by adding leading spaces
   vim.fn.prompt_setprompt(buf, "  ")

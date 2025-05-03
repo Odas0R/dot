@@ -10,6 +10,7 @@ return {
 
       -- Define what to do when Neovim is started without arguments. See "Autoload mode" section below.
       autoload_mode = {
+        config.AutoloadMode.CurrentDir,
         config.AutoloadMode.GitSession,
         config.AutoloadMode.LastSession,
       },

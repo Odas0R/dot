@@ -1,3 +1,5 @@
+#!/usr/local/bin/bash
+
 _taskfile_completions() {
   local cur tasks
   cur=${COMP_WORDS[COMP_CWORD]}
