@@ -1,16 +1,4 @@
-[include]
-  path = ~/.gitconfig.key
-[user]
-    name = odas0r
-    email = guilherme.odas0r@gmail.com
-[push]
-    followTags = true
-    default = current
-[core]
-    editor = nvim
-    autocrlf = false
-    sshCommand = ssh
-[init]
-    defaultBranch = main
-[pull]
-    rebase = false
+[includeIf "gitdir:~/github.com/"]
+    path = ~/.gitconfig-github
+[includeIf "gitdir:~/gitlab.com/"]
+    path = ~/.gitconfig-gitlab

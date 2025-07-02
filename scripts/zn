@@ -2,4 +2,4 @@
 
 set -euo pipefail
 
-nvr "$(zet new "$@")"
+nvim "$(zet new "$@")"

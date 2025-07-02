@@ -1,42 +1,116 @@
-#!/usr/bin/env bash
+#!/usr/bin/env node
 
-set -euo pipefail
+/**
+ * Generates the CSS for the typographic scale.
+ * @param {object} options - The configuration for the scale.
+ * @param {number} options.baseSize - The base font size in pixels.
+ * @param {number} options.scale - The multiplier for the scale.
+ * @param {number} options.stepsDown - The number of smaller sizes to generate.
+ * @param {number} options.stepsUp - The number of larger sizes to generate.
+ * @returns {string} The formatted CSS string.
+ */
+function generateTypographyScale(options) {
+  const { baseSize, scale, stepsDown, stepsUp } = options;
 
-# Default values
-BASE_SIZE=${1:-16}
-SCALE=${2:-1.2}
-STEPS_DOWN=${3:-3}
-STEPS_UP=${4:-7}
+  const results = [];
+  const downNames = ["sm", "xs", "2xs", "3xs", "4xs"]; // Names for steps below base
 
-pow() {
-  echo "scale=6; $1^$2" | bc
+  // 1. Calculate sizes below base
+  for (let i = 1; i <= stepsDown; i++) {
+    const size = baseSize / Math.pow(scale, i);
+    // Use pre-defined names, or fall back to a generic name if stepsDown > length of downNames
+    const name = downNames[i - 1] || `${i + 1}s`;
+    results.push({
+      name,
+      px: size,
+      percentage: (size / baseSize) * 100,
+    });
+  }
+  // Reverse to have smallest sizes first in the array for processing
+  results.reverse();
+
+  // 2. Add the base size
+  results.push({
+    name: "base",
+    px: baseSize,
+    percentage: 100,
+  });
+
+  // 3. Calculate sizes above base
+  for (let i = 1; i <= stepsUp; i++) {
+    const size = baseSize * Math.pow(scale, i);
+    let name;
+    // Use specific names for the first few steps up
+    switch (i) {
+      case 1:
+        name = "lg";
+        break;
+      case 2:
+        name = "xl";
+        break;
+      default:
+        name = `${i}x`;
+        break;
+    }
+    results.push({
+      name,
+      px: size,
+      percentage: (size / baseSize) * 100,
+    });
+  }
+
+  // 4. Format the final CSS string
+  const cssLines = results.map((res) => {
+    // Round percentage to the nearest whole number
+    const percentageVal = Math.round(res.percentage);
+    // Format pixel value to 6 decimal places to match original script's precision
+    const pxVal = res.px.toFixed(6);
+    return `  --text-${res.name}: ${percentageVal}%; /* ${pxVal}px */`;
+  });
+
+  // Add a blank line for readability after the base size
+  const baseIndex = results.findIndex((res) => res.name === "base");
+  if (baseIndex !== -1 && baseIndex < cssLines.length - 1) {
+    cssLines.splice(baseIndex + 1, 0, "");
+  }
+
+  // Assemble the final output
+  let output = `:root {\n`;
+  output += `  --scale: ${scale};\n`;
+  output += `  --base-size: 100%; /* ${baseSize}px */\n\n`;
+  output += cssLines.join("\n");
+  output += `\n}\n`;
+
+  return output;
 }
 
-calc_percentage() {
-  echo "scale=2; $1 * 100" | bc
+/**
+ * Main execution block
+ */
+function main() {
+  const baseSizeArg = process.argv[2];
+  const scaleArg = process.argv[3];
+  const stepsDownArg = process.argv[4];
+  const stepsUpArg = process.argv[5];
+
+  const baseSize = baseSizeArg ? parseFloat(baseSizeArg) : 16;
+  const scale = scaleArg ? parseFloat(scaleArg) : 1.125;
+  const stepsDown = stepsDownArg ? parseInt(stepsDownArg, 10) : 2;
+  const stepsUp = stepsUpArg ? parseInt(stepsUpArg, 10) : 12;
+
+  // Validate that parsing was successful and arguments are numbers
+  if (isNaN(baseSize) || isNaN(scale) || isNaN(stepsDown) || isNaN(stepsUp)) {
+    console.error("Error: Invalid arguments. All arguments must be numbers.");
+    console.error(
+      "Usage: scale [baseSize] [scale] [stepsDown] [stepsUp]",
+    );
+    process.exit(1);
+  }
+
+  const options = { baseSize, scale, stepsDown, stepsUp };
+  const cssOutput = generateTypographyScale(options);
+  process.stdout.write(cssOutput);
 }
 
-# Output CSS header
-echo ":root {"
-echo "  --scale: $SCALE;"
-echo "  --base-size: 100%;"
-echo
-
-# Calculate sizes below base
-for ((i = STEPS_DOWN; i > 0; i--)); do
-  size=$(echo "scale=6; $BASE_SIZE / $(pow $SCALE $i)" | bc)
-  percentage=$(calc_percentage "$size"/$BASE_SIZE)
-  echo "  --font-size-${i}down: ${percentage}%; /* ${size}px */"
-done
-
-# Base size
-echo "  --font-size-base: 100%; /* ${BASE_SIZE}px */"
-
-# Calculate sizes above base
-for ((i = 1; i <= STEPS_UP; i++)); do
-  size=$(echo "scale=6; $BASE_SIZE * $(pow $SCALE $i)" | bc)
-  percentage=$(calc_percentage "$size"/$BASE_SIZE)
-  echo "  --font-size-${i}: ${percentage}%; /* ${size}px */"
-done
-
-echo "}"
+// Run the script
+main();

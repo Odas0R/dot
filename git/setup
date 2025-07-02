@@ -2,7 +2,16 @@
 
 set -e
 
+DOT="$HOME/github.com/odas0r/dot"
+
+mkdir -p $HOME/github.com
+mkdir -p $HOME/gitlab.com
+
 ln -sf "$DOT/git/gitconfig" "$HOME/.gitconfig"
+ln -sf "$DOT/git/gitconfig-github" "$HOME/.gitconfig-github"
+cp "$DOT/git/gitconfig-github-key" "$HOME/.gitconfig-github-key"
+ln -sf "$DOT/git/gitconfig-gitlab" "$HOME/.gitconfig-gitlab"
+cp "$DOT/git/gitconfig-gitlab-key" "$HOME/.gitconfig-gitlab-key"
 
 printf "Git setup done! 🌟\n"
 
@@ -15,4 +24,3 @@ Add GPG key. Please generate one and add it to $SIGNKEY
 [user]
 	signingkey = YOUR_KEY
 EOF
-

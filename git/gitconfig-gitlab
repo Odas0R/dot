@@ -1,0 +1,16 @@
+[include]
+	path = ~/.gitconfig-gitlab-key
+[user]
+	name = Guilherme Rosado
+	email = guilherme.rosado@mypolis.eu
+[push]
+	followTags = true
+	default = current
+[core]
+	editor = nvim
+	autocrlf = false
+	sshCommand = ssh
+[init]
+	defaultBranch = main
+[pull]
+	rebase = false

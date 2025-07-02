@@ -8,6 +8,8 @@ alias sb="source ~/.bashrc"
 alias luamake="$HOME/tools/lua-language-server/3rd/luamake/luamake"
 alias android-studio="$HOME/tools/android-studio/bin/studio.sh"
 
+alias yarn="yarnpkg"
+
 repos() {
   local paths=(
     "$HOME/github.com"

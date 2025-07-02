@@ -22,7 +22,7 @@ local fmt = require("luasnip.extras.fmt").fmt
 
 return {
   s("#!", {
-    t("#!/bin/bash"),
+    t("#!/usr/bin/env bash"),
     i(0),
   }),
   s("safe", {
