@@ -24,7 +24,8 @@ done
 # --- Usage Message ---
 usage() {
   echo "Usage: version <major|minor|patch|prerelease|rc|version> [--preid=<id>]"
-  echo "  Bumps the version in package.json and creates a git commit and tag."
+  echo "  Bumps the version by creating a git tag."
+  echo "  If package.json is present, it's also updated and committed."
   echo ""
   echo "Commands:"
   echo "  major, minor, patch    Bump the respective version part."
@@ -33,18 +34,7 @@ usage() {
   echo ""
   echo "Options:"
   echo "  --preid=<id>           Specify the identifier for prereleases (default: 'rc')."
-  echo ""
-  echo "Examples:"
-  echo "  version minor"
-  echo "  version prerelease"
-  echo "  version prerelease --preid=beta"
 }
-
-# --- Check for dependencies ---
-if ! command -v jq &>/dev/null; then
-  echo "Error: jq is not installed. Please install it to continue."
-  exit 1
-fi
 
 # --- Check for clean git working directory ---
 if ! git diff-index --quiet HEAD --; then
@@ -60,19 +50,18 @@ fi
 
 # --- Main Logic ---
 
-current_version=$(jq -r '.version' package.json)
-current_version_v="v${current_version//v/}"
-
 # Check for specific version set
 if [[ "$BUMP_TYPE" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.+)?[0-9]*$ || "$BUMP_TYPE" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.+)?[0-9]*$ ]]; then
   new_version_v="v${BUMP_TYPE//v/}"
 else
+  # Source the current version from the latest git tag.
+  # Fallback to v0.0.0 if no tags are found.
+  current_version=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+  echo "Current version (from git tag): $current_version"
+
   # --- Advanced Version Parsing ---
-  # Separate core version from prerelease suffix (e.g., "1.2.3" and "rc.0")
   current_version_clean="${current_version//v/}"
   IFS='-' read -r core_version prerelease_part <<<"$current_version_clean"
-
-  # Parse the core version numbers
   IFS='.' read -r major minor patch <<<"$core_version"
 
   # --- Bumping Logic ---
@@ -89,28 +78,18 @@ else
     new_version_v="v$major.$minor.$patch"
     ;;
   patch)
-    # If graduating from a prerelease, the version stays the same.
-    # Otherwise, increment the patch number.
-    if [ -z "$prerelease_part" ]; then
-      patch=$((patch + 1))
-    fi
+    if [ -z "$prerelease_part" ]; then patch=$((patch + 1)); fi
     new_version_v="v$major.$minor.$patch"
     ;;
   prerelease | rc)
     if [ -z "$prerelease_part" ]; then
-      # STARTING a prerelease series from a stable version
-      # Bumps patch version first, e.g., 1.2.0 -> 1.2.1-rc.0
       patch=$((patch + 1))
       new_version_v="v$major.$minor.$patch-$PREID.0"
     else
-      # INCREMENTING an existing prerelease series
       IFS='.' read -r current_preid current_prenum <<<"$prerelease_part"
-
       if [ "$current_preid" != "$PREID" ]; then
-        # If the preid is different (e.g. from 'alpha' to 'rc'), start at 0
         new_version_v="v$major.$minor.$patch-$PREID.0"
       else
-        # If the preid is the same, just increment the number
         current_prenum=$((current_prenum + 1))
         new_version_v="v$major.$minor.$patch-$current_preid.$current_prenum"
       fi
@@ -124,20 +103,13 @@ else
   esac
 fi
 
-# Remove the 'v' for the package.json version string
+# Remove the 'v' for the version string if exists
 new_version="${new_version_v//v/}"
 
-echo "Bumping version from $current_version to $new_version"
+echo "New version: $new_version_v"
 
-# Update package.json using jq and a temporary file for safety
-jq ".version = \"$new_version\"" package.json >package.json.tmp && mv package.json.tmp package.json
-
-echo "Updated package.json to version $new_version"
-
-# --- Git Actions ---
-git add package.json
-git commit -m "chore(release): ${new_version_v}"
+# Otherwise, just create the tag on the current commit
 git tag -a "${new_version_v}" -m "Release ${new_version_v}"
 
-echo "Successfully created commit and tag ${new_version_v}"
-echo "Run 'git push && git push --tags' to publish."
+echo "✅ Successfully created tag ${new_version_v}"
+echo "Run 'git push --tags' to publish the new tag."
