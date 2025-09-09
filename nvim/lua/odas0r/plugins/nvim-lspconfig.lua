@@ -9,19 +9,54 @@ return {
       Utils.set_option("omnifunc", "v:lua.vim.lsp.omnifunc", { buf = bufnr })
 
       -- Common mappings for all language servers
-      Utils.map("n", "gd", vim.lsp.buf.definition, { buffer = bufnr, desc = "Go to definition" })
-      Utils.map("n", "gD", vim.lsp.buf.declaration, { buffer = bufnr, desc = "Go to declaration" })
-      Utils.map("n", "gi", vim.lsp.buf.implementation, { buffer = bufnr, desc = "Go to implementation" })
-      Utils.map("n", "gh", vim.lsp.buf.hover, { buffer = bufnr, desc = "Show hover information" })
-      Utils.map("n", "gk", vim.lsp.buf.references, { buffer = bufnr, desc = "Show references" })
+      Utils.map(
+        "n",
+        "gd",
+        vim.lsp.buf.definition,
+        { buffer = bufnr, desc = "Go to definition" }
+      )
+      Utils.map(
+        "n",
+        "gD",
+        vim.lsp.buf.declaration,
+        { buffer = bufnr, desc = "Go to declaration" }
+      )
+      Utils.map(
+        "n",
+        "gi",
+        vim.lsp.buf.implementation,
+        { buffer = bufnr, desc = "Go to implementation" }
+      )
+      Utils.map(
+        "n",
+        "gh",
+        vim.lsp.buf.hover,
+        { buffer = bufnr, desc = "Show hover information" }
+      )
+      Utils.map(
+        "n",
+        "gk",
+        vim.lsp.buf.references,
+        { buffer = bufnr, desc = "Show references" }
+      )
       Utils.map("n", "K", function()
         vim.diagnostic.jump({ count = -1, float = true })
       end, { buffer = bufnr, desc = "Previous diagnostic" })
       Utils.map("n", "J", function()
         vim.diagnostic.jump({ count = 1, float = true })
       end, { buffer = bufnr, desc = "Next diagnostic" })
-      Utils.map("n", "gr", vim.lsp.buf.rename, { buffer = bufnr, desc = "Rename symbol" })
-      Utils.map("n", "ga", vim.lsp.buf.code_action, { buffer = bufnr, desc = "Code action" })
+      Utils.map(
+        "n",
+        "gr",
+        vim.lsp.buf.rename,
+        { buffer = bufnr, desc = "Rename symbol" }
+      )
+      Utils.map(
+        "n",
+        "ga",
+        vim.lsp.buf.code_action,
+        { buffer = bufnr, desc = "Code action" }
+      )
     end
 
     local util = require("lspconfig").util
@@ -79,8 +114,18 @@ return {
         end
 
         -- Mappings.
-        Utils.map("n", "gD", "<cmd>lua vim.lsp.buf.type_definition()<CR>", { buf = bufnr })
-        Utils.map("n", "go", "<cmd>lua vim.lsp.buf.document_symbol()<CR>", { buf = bufnr })
+        Utils.map(
+          "n",
+          "gD",
+          "<cmd>lua vim.lsp.buf.type_definition()<CR>",
+          { buf = bufnr }
+        )
+        Utils.map(
+          "n",
+          "go",
+          "<cmd>lua vim.lsp.buf.document_symbol()<CR>",
+          { buf = bufnr }
+        )
         Utils.map("n", "go", organize_imports, { buf = bufnr })
       end,
       capabilities = capabilities,
@@ -108,9 +153,24 @@ return {
         end
 
         -- Mappings.
-        Utils.map("n", "gD", "<cmd>lua vim.lsp.buf.type_definition()<CR>", { buf = bufnr })
-        Utils.map("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", { buf = bufnr })
-        Utils.map("n", "go", "<cmd>lua vim.lsp.buf.document_symbol()<CR>", { buf = bufnr })
+        Utils.map(
+          "n",
+          "gD",
+          "<cmd>lua vim.lsp.buf.type_definition()<CR>",
+          { buf = bufnr }
+        )
+        Utils.map(
+          "n",
+          "gi",
+          "<cmd>lua vim.lsp.buf.implementation()<CR>",
+          { buf = bufnr }
+        )
+        Utils.map(
+          "n",
+          "go",
+          "<cmd>lua vim.lsp.buf.document_symbol()<CR>",
+          { buf = bufnr }
+        )
         Utils.map("n", "gu", organize_imports, { buf = bufnr })
         Utils.map("n", "go", organize_imports, { buf = bufnr })
       end,
@@ -217,7 +277,14 @@ return {
     require("lspconfig").tailwindcss.setup({
       on_attach = on_attach,
       capabilities = capabilities,
-      filetypes = { "templ", "astro", "html", "css", "javascript", "typescript" },
+      filetypes = {
+        "templ",
+        "astro",
+        "html",
+        "css",
+        "javascript",
+        "typescript",
+      },
       init_options = { userLanguages = { templ = "html" } },
     })
 
@@ -349,7 +416,11 @@ return {
       on_attach = on_attach,
       capabilities = capabilities,
       flags = flags,
-      cmd = { sumneko_binary_path, "-E", sumneko_root_path .. "/lua-language-server/main.lua" },
+      cmd = {
+        sumneko_binary_path,
+        "-E",
+        sumneko_root_path .. "/lua-language-server/main.lua",
+      },
       settings = {
         Lua = {
           runtime = {
@@ -381,5 +452,27 @@ return {
         },
       },
     })
+
+    -- Fix for bug https://github.com/neovim/neovim/issues/12970
+    vim.lsp.util.apply_text_document_edit = function(
+      text_document_edit,
+      index,
+      offset_encoding
+    )
+      local text_document = text_document_edit.textDocument
+      local buf = vim.uri_to_bufnr(text_document.uri)
+      if offset_encoding == nil then
+        vim.notify_once(
+          "apply_text_document_edit must be called with valid offset encoding",
+          vim.log.levels.WARN
+        )
+      end
+
+      vim.lsp.util.apply_text_edits(
+        text_document_edit.edits,
+        buf,
+        offset_encoding
+      )
+    end
   end,
 }

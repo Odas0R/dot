@@ -2,4 +2,5 @@
 
 set -euo pipefail
 
-fmt -w 80 -p "${1:-}"
+# fmt -w 80 -p "${1:-}"
+par -r -w80

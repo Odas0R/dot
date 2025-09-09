@@ -1,12 +1,47 @@
 #!/usr/bin/env bash
 
+# Check if pg_format is installed
 if [[ ! -x "$(command -v pg_format)" ]]; then
-  echo "You need to install pg_format"
+  echo "Error: pg_format is not installed or not in PATH"
+  echo "Install it via: cpan install pgFormatter"
   exit 1
 fi
 
+# Run pg_format with idiomatic PostgreSQL formatting options
 LANG=C pg_format \
   --tabs \
-  --spaces 2 \
+  --spaces 4 \
   --keyword-case 2 \
-  --no-extra-line
+  --function-case 1 \
+  --type-case 2 \
+  --no-extra-line \
+  --wrap-limit 120 \
+  --wrap-after 1 \
+  --comma-end \
+  --comma-break \
+  --format-type \
+  --no-space-function \
+  --placeholder "^(\\$\\d+|\\?)$" \
+  "$@"
+
+# Option explanations:
+# --tabs: Use tabs for indentation
+# --spaces 2: Use 2 spaces for alignment (not indentation)
+# --keyword-case 2: Keywords in uppercase (SELECT, FROM, WHERE)
+# --function-case 1: Functions in lowercase (count(), sum())
+# --type-case 2: Data types in uppercase (VARCHAR, INTEGER)
+# --no-extra-line: No extra blank lines
+# --wrap-limit 80: Wrap lines at 80 characters
+# --wrap-after 1: Wrap after first element in lists
+# --comma-end: Place commas at end of line (SQL standard)
+# --comma-break: Break after commas in lists
+# --format-type: Format data type definitions
+# --no-space-function: No space between function name and parentheses
+# --placeholder: Regex for placeholder recognition ($1, $2, ?)
+# "$@": Pass through any additional arguments
+
+# Note: Use either --tabs OR --spaces for indentation, not both
+# If you prefer spaces for indentation, use:
+#   --spaces 2 (without --tabs)
+# If you prefer tabs for indentation, use:
+#   --tabs --spaces 2 (spaces for alignment only)

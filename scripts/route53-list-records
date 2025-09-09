@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ZONE_ID="$1"
+if [[ -z "$ZONE_ID" ]]; then
+  echo "Usage: $0 <hosted-zone-id> [aws-profile]"
+  exit 1
+fi
+
+PROFILE="${2:-}"
+if [[ -z "$PROFILE" ]]; then
+  echo "Usage: $0 <hosted-zone-id> [aws-profile]"
+  exit 1
+fi
+
+aws route53 list-resource-record-sets --hosted-zone-id "$ZONE_ID" --profile "$PROFILE" --output json
