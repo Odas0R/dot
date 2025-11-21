@@ -10,6 +10,26 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 RESET='\033[0m'
 
+#
+# Usage Message
+#
+
+usage() {
+  echo "Usage: version <command> [--pre] [--preid=<id>]"
+  echo ""
+  echo "Commands:"
+  echo "  major, minor, patch   Bump the respective version part."
+  echo "                        (If current is RC, 'patch' graduates to stable)."
+  echo "  release               Explicitly graduates an RC to stable (strips suffix)."
+  echo "  prerelease            Increment the RC number (e.g. rc.1 -> rc.2)."
+  echo "  <version>             Set specific version (e.g. v1.2.3)."
+  echo ""
+  echo "Options:"
+  echo "  --pre                 Create a pre-release for the requested bump."
+  echo "                        (e.g. 'minor --pre' -> 0.3.0-rc.0)"
+  echo "  --preid=<id>          Set id (default: 'rc')."
+}
+
 list_versions() {
   echo -e "\n${BOLD}Project Version History${RESET}"
   echo -e "------------------------------------------------------------------"
@@ -17,9 +37,11 @@ list_versions() {
   echo -e "------------------------------------------------------------------"
 
   # Git tag format:
-  # - sort=-v:refname (Sorts semantic versions correctly: v0.10 comes after v0.9)
+  # - sort=-v:refname (Sorts semantic versions correctly)
   # - format: pipe-delimited string for easy parsing
-  git tag -l --sort=-v:refname --format='%(refname:short)|%(creatordate:short)|%(taggername)|%(subject)' | head -n 15 |
+  # - grep -v "\-rc": Filters out any tag containing '-rc'
+  # - head -n 15: Takes the top 15 *after* filtering
+  git tag -l --sort=-v:refname --format='%(refname:short)|%(creatordate:short)|%(taggername)|%(subject)' | grep -v "\-rc" | head -n 15 |
     while IFS='|' read -r tag date author subject; do
 
       if [ -z "$author" ]; then
@@ -27,6 +49,8 @@ list_versions() {
         author=$(git log -1 --format='%an' "$commit_hash")
       fi
 
+      # Logic to colorize versions (Stable=Green, Pre-release=Yellow)
+      # Even though we filtered RCs, other pre-releases (like beta/alpha) might still appear
       if [[ "$tag" == *"-"* ]]; then
         version_col="${YELLOW}${tag}${RESET}"
       else
@@ -81,32 +105,16 @@ while [[ $# -gt 0 ]]; do
     BUMP_TYPE="$1"
     shift
     ;;
+  --help)
+    usage
+    exit 0
+    ;;
   *)
     echo "Error: Unknown argument '$1'"
     exit 1
     ;;
   esac
 done
-
-#
-# Usage Message
-#
-
-usage() {
-  echo "Usage: version <command> [--pre] [--preid=<id>]"
-  echo ""
-  echo "Commands:"
-  echo "  major, minor, patch   Bump the respective version part."
-  echo "                        (If current is RC, 'patch' graduates to stable)."
-  echo "  release               Explicitly graduates an RC to stable (strips suffix)."
-  echo "  prerelease            Increment the RC number (e.g. rc.1 -> rc.2)."
-  echo "  <version>             Set specific version (e.g. v1.2.3)."
-  echo ""
-  echo "Options:"
-  echo "  --pre                 Create a pre-release for the requested bump."
-  echo "                        (e.g. 'minor --pre' -> 0.3.0-rc.0)"
-  echo "  --preid=<id>          Set id (default: 'rc')."
-}
 
 #
 # Check for clean git
@@ -218,12 +226,6 @@ fi
 echo "New version: $new_version_v"
 
 #
-# Execution
-#
-
-git tag -a "${new_version_v}" -m "Release ${new_version_v}"
-
-#
 # Update package.json if it exists (Node.js specific)
 #
 
@@ -236,6 +238,8 @@ if [ -f "package.json" ]; then
   git add package.json
   git commit -m "chore(release): ${new_version_v}"
 fi
+
+git tag -a "${new_version_v}" -m "Release ${new_version_v}"
 
 echo "✅ Successfully created tag ${new_version_v}"
 echo "Run 'git push --tags' to publish."
