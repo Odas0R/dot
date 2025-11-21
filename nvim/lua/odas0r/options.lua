@@ -7,7 +7,7 @@
 local opt = vim.opt
 
 opt.shell = "/usr/local/bin/bash"
-opt.textwidth = 120 -- Maximum width of text
+opt.textwidth = 80 -- Maximum width of text
 -- opt.colorcolumn = "80" -- Line length marker
 opt.formatoptions = "jcroqlnt" -- tcqj
 

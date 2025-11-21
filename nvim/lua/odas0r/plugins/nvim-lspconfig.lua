@@ -59,7 +59,7 @@ return {
       )
     end
 
-    local util = require("lspconfig").util
+    local util = vim.lsp.util
 
     local flags = {
       debounce_text_changes = 50,
@@ -96,11 +96,17 @@ return {
       require("cmp_nvim_lsp").default_capabilities()
     )
 
+    vim.lsp.config("*", {
+      capabilities = capabilities,
+      flags = flags,
+      root_markers = { ".git" },
+    })
+
     -- set log level to debug for debugging
     -- vim.lsp.set_log_level("DEBUG")
 
     -- npm install -g typescript typescript-language-server
-    require("lspconfig").ts_ls.setup({
+    vim.lsp.config("ts_ls", {
       on_attach = function(client, bufnr)
         on_attach(client, bufnr)
 
@@ -128,18 +134,11 @@ return {
         )
         Utils.map("n", "go", organize_imports, { buf = bufnr })
       end,
-      capabilities = capabilities,
-      flags = flags,
     })
-
-    -- require("lspconfig").denols.setup({
-    --   on_attach = on_attach,
-    --   capabilities = capabilities,
-    --   -- root_dir = util.root_pattern("package.json"),
-    -- })
+    vim.lsp.enable("ts_ls")
 
     -- npm install -g @astrojs/language-server
-    require("lspconfig").astro.setup({
+    vim.lsp.config("astro", {
       on_attach = function(client, bufnr)
         on_attach(client, bufnr)
 
@@ -174,72 +173,37 @@ return {
         Utils.map("n", "gu", organize_imports, { buf = bufnr })
         Utils.map("n", "go", organize_imports, { buf = bufnr })
       end,
-      capabilities = capabilities,
-      flags = flags,
-      -- init_options = {
-      -- 	typescript = {
-      -- 		tsdk = (function()
-      -- 			local current_dir = vim.fn.getcwd()
-      --
-      -- 			-- Start from current directory and traverse up until we find node_modules/typescript
-      -- 			local dir = current_dir
-      -- 			while dir ~= "/" do
-      -- 				local ts_path = dir .. "/node_modules/typescript/lib"
-      -- 				if vim.fn.isdirectory(ts_path) == 1 then
-      -- 					return ts_path
-      -- 				end
-      -- 				dir = vim.fn.fnamemodify(dir, ":h")
-      -- 			end
-      --
-      -- 			return nil
-      -- 		end)(),
-      -- 	},
-      -- },
-      -- Adjust root_dir to handle monorepo structure
-      root_dir = function(fname)
-        return require("lspconfig").util.find_git_ancestor(fname)
-      end,
     })
+    vim.lsp.enable("astro")
+
+    -- Fix for bug https://github.com/neovim/neovim/issues/12970
+    vim.lsp.util.apply_text_document_edit = function(
+      text_document_edit,
+      index,
+      offset_encoding
+    )
+      local text_document = text_document_edit.textDocument
+      local buf = vim.uri_to_bufnr(text_document.uri)
+      if offset_encoding == nil then
+        vim.notify_once(
+          "apply_text_document_edit must be called with valid offset encoding",
+          vim.log.levels.WARN
+        )
+      end
+
+      vim.lsp.util.apply_text_edits(
+        text_document_edit.edits,
+        buf,
+        offset_encoding
+      )
+    end
 
     -- npm i -g vscode-langservers-extracted
-    require("lspconfig").jsonls.setup({
-      capabilities = capabilities,
-    })
+    vim.lsp.enable("jsonls")
 
     -- npm i -g vscode-langservers-extracted
-    -- require("lspconfig").eslint.setup({
-    --   -- Magically fixes eslint on monorepos?
-    --   -- https://github.com/neovim/nvim-lspconfig/issues/1427#issuecomment-980783000
-    --   capabilities = capabilities,
-    --   flags = flags,
-    --   settings = {
-    --     workingDirectory = { mode = "location" },
-    --     codeAction = {
-    --       disableRuleComment = {
-    --         enable = true,
-    --         location = "sameLine",
-    --       },
-    --       showDocumentation = {
-    --         enable = true,
-    --       },
-    --     },
-    --   },
-    --   root_dir = util.root_pattern(
-    --     ".eslintrc.cjs",
-    --     ".eslintrc.js",
-    --     ".eslintrc.json",
-    --     ".eslintrc.yaml",
-    --     ".eslintrc.yml",
-    --     ".eslintrc",
-    --     "package.json"
-    --   ),
-    -- })
-
-    -- npm i -g vscode-langservers-extracted
-    require("lspconfig").cssls.setup({
+    vim.lsp.config("cssls", {
       on_attach = on_attach,
-      capabilities = capabilities,
-      flags = flags,
       settings = {
         scss = {
           lint = {
@@ -253,30 +217,28 @@ return {
         },
       },
     })
+    vim.lsp.enable("cssls")
 
     -- npm i -g yaml-language-server
-    require("lspconfig").yamlls.setup({
+    vim.lsp.config("yamlls", {
       on_attach = on_attach,
-      capabilities = capabilities,
-      flags = flags,
       settings = {
         schemas = {
           ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
         },
       },
     })
+    vim.lsp.enable("yamlls")
 
     -- npm i -g bash-language-server
-    require("lspconfig").bashls.setup({
+    vim.lsp.config("bashls", {
       on_attach = on_attach,
-      capabilities = capabilities,
-      flags = flags,
     })
+    vim.lsp.enable("bashls")
 
     --  npm install -g @tailwindcss/language-server
-    require("lspconfig").tailwindcss.setup({
+    vim.lsp.config("tailwindcss", {
       on_attach = on_attach,
-      capabilities = capabilities,
       filetypes = {
         "templ",
         "astro",
@@ -287,59 +249,36 @@ return {
       },
       init_options = { userLanguages = { templ = "html" } },
     })
+    vim.lsp.enable("tailwindcss")
 
     -- pip install 'python-lsp-server[all]'
     -- pip install pylsp-rope
     -- pip install autoimport
-    require("lspconfig").pylsp.setup({
+    vim.lsp.config("pylsp", {
       on_attach = on_attach,
-      capabilities = capabilities,
-      flags = flags,
     })
+    vim.lsp.enable("pylsp")
 
-    require("lspconfig").dartls.setup({
+    vim.lsp.config("dartls", {
       on_attach = on_attach,
-      capabilities = capabilities,
-      flags = flags,
     })
+    vim.lsp.enable("dartls")
 
-    -- require("lspconfig").sqls.setup({
-    --   on_attach = lsp_keymaps,
-    --   capabilities = capabilities,
-    --   flags = flags,
-    --   filetype = { "sql", "mysql" },
-    --   settings = {
-    --     sqls = {
-    --       connections = {
-    --         {
-    --           driver = "postgresql",
-    --           dataSourceName = "host=127.0.0.1 port=5432 user=postgres password=postgres dbname=postgres sslmode=disable",
-    --         },
-    --       },
-    --     },
-    --   },
-    -- })
-
-    require("lspconfig").marksman.setup({
+    vim.lsp.config("marksman", {
       on_attach = on_attach,
-      capabilities = capabilities,
-      flags = flags,
     })
+    vim.lsp.enable("marksman")
 
     -- sudo apt-get install clangd-14
     -- sudo update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-14 100
-    require("lspconfig").clangd.setup({
+    vim.lsp.config("clangd", {
       on_attach = on_attach,
-      capabilities = capabilities,
-      flags = flags,
     })
+    vim.lsp.enable("clangd")
 
     -- go install golang.org/x/tools/gopls@latest
     -- go install golang.org/x/tools/cmd/goimports@latest
-    require("lspconfig").gopls.setup({
-      cmd = { "gopls", "serve" },
-      filetypes = { "go", "gomod" },
-      root_dir = util.root_pattern("go.work", "go.mod", ".git"),
+    vim.lsp.config("gopls", {
       settings = {
         gopls = {
           analyses = {
@@ -352,32 +291,28 @@ return {
         on_attach(_, bufnr)
         Utils.map("n", "gi", ":silent! !goimports -w %<CR>", { buf = bufnr })
       end,
-      capabilities = capabilities,
-      flags = flags,
     })
+    vim.lsp.enable("gopls")
 
-    require("lspconfig").html.setup({
+    vim.lsp.config("html", {
       on_attach = on_attach,
-      capabilities = capabilities,
       filetypes = { "html", "templ" },
     })
+    vim.lsp.enable("html")
 
-    require("lspconfig").templ.setup({
+    vim.lsp.config("templ", {
       capabilities = capabilities,
       on_attach = function(_, bufnr)
         on_attach(_, bufnr)
         Utils.map("n", "gi", ":silent! !goimports -w %<CR>", { buf = bufnr })
       end,
-      flags = flags,
     })
+    vim.lsp.enable("templ")
 
-    require("lspconfig").efm.setup({
+    vim.lsp.config("efm", {
       on_attach = on_attach,
       init_options = { documentFormatting = false },
       filetypes = { "sh" },
-      root_dir = function(fname)
-        return util.root_pattern(".git")(fname) or ""
-      end,
       settings = {
         rootMarkers = { ".git/" },
         languages = {
@@ -393,15 +328,7 @@ return {
         },
       },
     })
-
-    -- npm i -g stylelint-lsp
-    -- require("lspconfig").stylelint_lsp.setup({
-    --   on_attach = on_attach,
-    --   capabilities = capabilities,
-    --   flags = flags,
-    --   filetypes = { "css", "less", "scss" },
-    -- })
-    --
+    vim.lsp.enable("efm")
 
     -- LSP for lua
     -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#sumneko_lua
@@ -412,10 +339,8 @@ return {
     table.insert(runtime_path, "lua/?.lua")
     table.insert(runtime_path, "lua/?/init.lua")
 
-    require("lspconfig").lua_ls.setup({
+    vim.lsp.config("lua_ls", {
       on_attach = on_attach,
-      capabilities = capabilities,
-      flags = flags,
       cmd = {
         sumneko_binary_path,
         "-E",
@@ -452,27 +377,6 @@ return {
         },
       },
     })
-
-    -- Fix for bug https://github.com/neovim/neovim/issues/12970
-    vim.lsp.util.apply_text_document_edit = function(
-      text_document_edit,
-      index,
-      offset_encoding
-    )
-      local text_document = text_document_edit.textDocument
-      local buf = vim.uri_to_bufnr(text_document.uri)
-      if offset_encoding == nil then
-        vim.notify_once(
-          "apply_text_document_edit must be called with valid offset encoding",
-          vim.log.levels.WARN
-        )
-      end
-
-      vim.lsp.util.apply_text_edits(
-        text_document_edit.edits,
-        buf,
-        offset_encoding
-      )
-    end
+    vim.lsp.enable("lua_ls")
   end,
 }

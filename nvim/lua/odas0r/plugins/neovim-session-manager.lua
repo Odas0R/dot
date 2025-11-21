@@ -8,6 +8,9 @@ return {
       -- check: https://github.com/Shatur/neovim-session-manager?tab=readme-ov-file#configuration
       sessions_dir = Path:new(vim.fn.stdpath("data"), "sessions"), -- The directory where the session files will be saved.
 
+      -- This is a quick fix, will need to fix the plugin code later.
+      session_options = "blank,buffers,curdir,folds,help,tabpages", -- Exclude 'winsize'
+
       -- Define what to do when Neovim is started without arguments. See "Autoload mode" section below.
       autoload_mode = {
         config.AutoloadMode.CurrentDir,

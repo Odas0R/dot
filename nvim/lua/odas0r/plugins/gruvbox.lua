@@ -45,7 +45,10 @@ return {
           italic = config.italic.emphasis,
           fg = colors.purple,
         },
-        ["@lsp.type.class.markdown"] = { bold = config.bold, fg = colors.orange },
+        ["@lsp.type.class.markdown"] = {
+          bold = config.bold,
+          fg = colors.orange,
+        },
 
         -- Fix the colors for the floating windows
         FloatBorder = { fg = colors.fg1 },

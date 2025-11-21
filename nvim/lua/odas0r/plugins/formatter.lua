@@ -181,6 +181,7 @@ return {
       "xml",
       "svg",
       "astro",
+      "graphql",
       "javascript",
       "javascriptreact",
       "typescript",
