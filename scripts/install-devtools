@@ -2,17 +2,14 @@
 
 npm install -g \
   prettier \
-  gemini \
-  aws-static-deploy \
+  @google/gemini-cli@latest \
+  @mypolis.eu/aws-static-deploy \
   bash-language-server \
   fixjson \
   typescript-language-server \
-  vscode-css-language-server \
-  vscode-html-language-server \
-  vscode-json-language-server \
-  vscode-markdown-language-server \
+	vscode-langservers-extracted \
   @astrojs/language-server \
-  yml-language-server
+  yaml-language-server
 
 # go install golang.org/x/tools/gopls@latest
 # go install golang.org/x/tools/cmd/goimports@latest
