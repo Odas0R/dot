@@ -230,14 +230,28 @@ echo "New version: $new_version_v"
 #
 
 if [ -f "package.json" ]; then
-  # Use npm if available, otherwise sed
+  # Use npm if available
   if command -v npm >/dev/null 2>&1; then
-    # npm version command updates package.json without git tag (since we do it manually)
+    # Update the file content
     npm version "${new_version_v}" --no-git-tag-version --allow-same-version >/dev/null
   fi
-  git add package.json
-  git commit -m "chore(release): ${new_version_v}"
+
+  # Stage the files (include lockfile if it exists)
+  git add package.json package-lock.json 2>/dev/null || git add package.json
+
+  # ONLY commit if there are staged changes.
+  # git diff-index --quiet HEAD returns 1 if there are changes, 0 if clean.
+  if ! git diff-index --quiet HEAD --; then
+    git commit -m "chore(release): ${new_version_v}"
+    echo "📦 Updated and committed package.json"
+  else
+    echo "⚠️ package.json already at ${new_version_v}, skipping commit."
+  fi
 fi
+
+#
+# Create Tag (This now runs even if the commit was skipped)
+#
 
 git tag -a "${new_version_v}" -m "Release ${new_version_v}"
 

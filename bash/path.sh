@@ -8,7 +8,7 @@ export LOCAL_BIN="$HOME/.local/bin"
 export LOCAL_BIN_SCRIPTS="$HOME/.local/bin/scripts"
 
 export PNPM_HOME="$HOME/.local/share/pnpm"
-export VOLTA_HOME="$HOME/.volta"
+export NODE_HOME="$HOME/nodejs/current"
 
 export ZET="$HOME/github.com/odas0r/zet"
 
@@ -34,6 +34,6 @@ PATH="$GNU_UTILS:$PATH:/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin:"
 PATH+="$LOCAL_BIN:$LOCAL_BIN_SCRIPTS:"
 PATH+="$GOROOT/bin:$GOPATH/bin:"
 PATH+="$PNPM_HOME:"
-PATH+="$VOLTA_HOME/bin"
+PATH+="$NODE_HOME/bin"
 
 export PATH

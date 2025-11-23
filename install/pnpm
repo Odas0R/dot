@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=10.8.1 sh -

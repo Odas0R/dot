@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+NODE_VER="$1"
+
+# validate version semver format
+if ! [[ $NODE_VER =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Invalid version format. Please use semver format (e.g., v1.24.2)."
+  exit 1
+fi
+
+ARCH="arm64"
+
+mkdir -p "$HOME/nodejs"
+
+cd /tmp
+curl -O "https://nodejs.org/dist/$NODE_VER/node-$NODE_VER-darwin-$ARCH.tar.gz"
+
+tar -xzf "node-$NODE_VER-darwin-$ARCH.tar.gz" -C "$HOME/nodejs"
+
+# Link the specific version to 'current'
+ln -sfn "$HOME/nodejs/node-$NODE_VER-darwin-$ARCH" "$HOME/nodejs/current"
