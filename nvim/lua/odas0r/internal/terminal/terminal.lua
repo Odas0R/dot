@@ -3,10 +3,9 @@ local Window = require("odas0r.internal.terminal.window")
 local api = vim.api
 
 local Terminal = {
-  bufs = {},
-  job_ids = {},
+  buf = nil,
+  job_id = nil,
   last_winid = nil,
-  last_term = 1,
 }
 
 function Terminal:new(window)
@@ -23,7 +22,7 @@ function Terminal:_create_buf()
   return bufnr
 end
 
-function Terminal:_spawn_shell(bufnr, term_number)
+function Terminal:_spawn_shell(bufnr)
   local opts = {
     on_stdout = function(_, data)
       -- Terminal output is handled automatically by Neovim
@@ -44,7 +43,7 @@ function Terminal:_spawn_shell(bufnr, term_number)
       end
     end,
     on_exit = function(_, code)
-      self.job_ids[term_number] = nil
+      self.job_id = nil
       if code ~= 0 then
         vim.schedule(function()
           vim.notify("Terminal process exited with code: " .. code, vim.log.levels.INFO)
@@ -56,8 +55,8 @@ function Terminal:_spawn_shell(bufnr, term_number)
   }
 
   local job_id = vim.fn.termopen(vim.o.shell, opts)
-  self.job_ids[term_number] = job_id
-  self.bufs[term_number] = bufnr
+  self.job_id = job_id
+  self.buf = bufnr
 
   -- Buffer local settings
   vim.api.nvim_set_option_value("undolevels", -1, { buf = bufnr })
@@ -82,12 +81,9 @@ function Terminal:_spawn_shell(bufnr, term_number)
   })
 end
 
-function Terminal:open(term_number)
-  term_number = term_number or 1
-  self.last_term = term_number
-
+function Terminal:open()
   local win_valid = self.window:is_valid()
-  local buf_valid = self.bufs[term_number] and api.nvim_buf_is_valid(self.bufs[term_number])
+  local buf_valid = self.buf and api.nvim_buf_is_valid(self.buf)
 
   if not win_valid then
     self.last_winid = api.nvim_get_current_win()
@@ -97,11 +93,11 @@ function Terminal:open(term_number)
   if not win_valid and not buf_valid then
     local bufnr = self:_create_buf()
     self.window:create(bufnr)
-    self:_spawn_shell(bufnr, term_number)
+    self:_spawn_shell(bufnr)
 
   -- Case 2: No Window, Valid Buffer
   elseif not win_valid and buf_valid then
-    self.window:create(self.bufs[term_number])
+    self.window:create(self.buf)
     -- Re-enter insert mode
     vim.cmd("startinsert")
 
@@ -110,12 +106,12 @@ function Terminal:open(term_number)
     self.window:focus()
     local bufnr = self:_create_buf()
     self.window:set_buf(bufnr)
-    self:_spawn_shell(bufnr, term_number)
+    self:_spawn_shell(bufnr)
 
   -- Case 4: Both exist
   else
-    if self.window:get_bufno() ~= self.bufs[term_number] then
-      self.window:set_buf(self.bufs[term_number])
+    if self.window:get_bufno() ~= self.buf then
+      self.window:set_buf(self.buf)
     end
     self.window:focus()
     vim.cmd("startinsert")
@@ -145,17 +141,15 @@ function Terminal:toggle()
   if self.window:is_valid() then
     self:close()
   else
-    self:open(self.last_term or 1)
+    self:open()
   end
 end
 
-function Terminal:send(cmd, term_number)
-  term_number = term_number or self.last_term or 1
-
+function Terminal:send(cmd)
   -- Ensure terminal is open and focused
-  self:open(term_number)
+  self:open()
 
-  local job_id = self.job_ids[term_number]
+  local job_id = self.job_id
   if job_id then
     api.nvim_chan_send(job_id, cmd .. "\r")
     vim.cmd("normal! G")

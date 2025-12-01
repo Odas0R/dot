@@ -77,18 +77,6 @@ M.setup = function(opts)
         get_terminal().window:change_width(-M.config.window_width_change_amount)
       end, vim.tbl_extend("force", opts_desc, { desc = "Decrease Terminal Width" }))
     end
-
-    -- Specific Terminals
-
-    if M.config.terminals then
-      for i, term in ipairs(M.config.terminals) do
-        if term.keymap then
-          set_keymap("n", term.keymap, function()
-            M.open(i)
-          end, vim.tbl_extend("force", opts_desc, { desc = "Open Terminal " .. i }))
-        end
-      end
-    end
   end
 
   -- Auto-close terminal on navigation
@@ -122,8 +110,8 @@ M.toggle = function()
   get_terminal():toggle()
 end
 
-M.open = function(n)
-  get_terminal():open(n)
+M.open = function()
+  get_terminal():open()
 end
 
 M.close = function()

@@ -39,15 +39,6 @@ local config = {
 
   -- Close the terminal window when opening a new file or navigating to a new window
   close_on_nav = true,
-
-  terminals = {
-    -- keymaps to open nth terminal
-    { keymap = "<leader>1" },
-    { keymap = "<leader>2" },
-    { keymap = "<leader>3" },
-    { keymap = "<leader>4" },
-    { keymap = "<leader>5" },
-  },
 }
 
 return config
