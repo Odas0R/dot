@@ -16,6 +16,10 @@ export ZET="$HOME/github.com/odas0r/zet"
 export GOROOT="/usr/local/go"
 export GOPATH="$HOME/go"
 
+# emsdk
+export EMSDK_ROOT="$HOME/emsdk"
+export EMSCRIPTEN_ROOT="$HOME/emsdk/upstream/emscripten"
+
 # Fixing GNU utils in macOS
 #
 # brew install coreutils findutils gnu-sed gawk grep gnu-tar
@@ -34,6 +38,8 @@ PATH="$GNU_UTILS:$PATH:/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin:"
 PATH+="$LOCAL_BIN:$LOCAL_BIN_SCRIPTS:"
 PATH+="$GOROOT/bin:$GOPATH/bin:"
 PATH+="$PNPM_HOME:"
-PATH+="$NODE_HOME/bin"
+PATH+="$NODE_HOME/bin:"
+PATH+="$EMSDK_ROOT:"
+PATH+="$EMSCRIPTEN_ROOT"
 
 export PATH

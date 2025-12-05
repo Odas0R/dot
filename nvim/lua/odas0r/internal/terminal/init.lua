@@ -97,7 +97,7 @@ M.setup = function(opts)
     })
   end
 
-  vim.api.nvim_create_user_command("T", function(cmd_opts)
+  vim.api.nvim_create_user_command("Term", function(cmd_opts)
     M.execute(cmd_opts.args)
   end, {
     nargs = "*",
