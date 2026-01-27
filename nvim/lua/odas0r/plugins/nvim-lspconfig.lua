@@ -62,37 +62,13 @@ return {
     local util = vim.lsp.util
 
     local flags = {
-      debounce_text_changes = 50,
+      debounce_text_changes = 150,
     }
-
-    local function default_capabilities()
-      local capabilities = vim.lsp.protocol.make_client_capabilities()
-      capabilities.textDocument.completion.completionItem = {
-        documentationFormat = { "markdown", "plaintext" },
-        snippetSupport = true,
-        preselectSupport = true,
-        insertReplaceSupport = true,
-        labelDetailsSupport = true,
-        deprecatedSupport = true,
-        commitCharactersSupport = true,
-        tagSupport = { valueSet = { 1 } },
-        resolveSupport = {
-          properties = {
-            "documentation",
-            "detail",
-            "additionalTextEdits",
-          },
-        },
-      }
-      -- AstroLSP needs this
-      capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
-      return capabilities
-    end
 
     -- Inject nvim_cmp capabilities into LSP capabilities
     local capabilities = vim.tbl_deep_extend(
       "keep",
-      default_capabilities(),
+      vim.lsp.protocol.make_client_capabilities(),
       require("cmp_nvim_lsp").default_capabilities()
     )
 
@@ -142,15 +118,6 @@ return {
       on_attach = function(client, bufnr)
         on_attach(client, bufnr)
 
-        local function organize_imports()
-          if client.supports_method("workspace/executeCommand") then
-            client:request("workspace/executeCommand", {
-              command = "_typescript.organizeImports",
-              arguments = { vim.api.nvim_buf_get_name(0) },
-            })
-          end
-        end
-
         -- Mappings.
         Utils.map(
           "n",
@@ -170,33 +137,9 @@ return {
           "<cmd>lua vim.lsp.buf.document_symbol()<CR>",
           { buf = bufnr }
         )
-        Utils.map("n", "gu", organize_imports, { buf = bufnr })
-        Utils.map("n", "go", organize_imports, { buf = bufnr })
       end,
     })
     vim.lsp.enable("astro")
-
-    -- Fix for bug https://github.com/neovim/neovim/issues/12970
-    vim.lsp.util.apply_text_document_edit = function(
-      text_document_edit,
-      index,
-      offset_encoding
-    )
-      local text_document = text_document_edit.textDocument
-      local buf = vim.uri_to_bufnr(text_document.uri)
-      if offset_encoding == nil then
-        vim.notify_once(
-          "apply_text_document_edit must be called with valid offset encoding",
-          vim.log.levels.WARN
-        )
-      end
-
-      vim.lsp.util.apply_text_edits(
-        text_document_edit.edits,
-        buf,
-        offset_encoding
-      )
-    end
 
     -- npm i -g vscode-langservers-extracted
     vim.lsp.enable("jsonls")

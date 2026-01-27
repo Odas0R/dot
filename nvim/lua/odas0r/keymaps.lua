@@ -105,22 +105,3 @@ map(
 -- better indenting
 map("v", "<", "<gv")
 map("v", ">", ">gv")
-
--- Remap § to output < and ± to output >
--- In ducky keyboard layout these keys are incorrectly mapped, so... this is a workaround
---
--- ## 1. For Typing ##
--- In Insert and Command-line mode, swap the characters.
-vim.keymap.set({ "i", "c" }, "§", "<", { noremap = true })
-vim.keymap.set({ "i", "c" }, "±", ">", { noremap = true })
-
--- ## 2. For Normal Mode ##
--- Map the DOUBLE-PRESS sequence directly to the indent commands.
--- This avoids any timing issues.
-vim.keymap.set("n", "§§", "<<", { noremap = true, desc = "Un-indent line" })
-vim.keymap.set("n", "±±", ">>", { noremap = true, desc = "Indent line" })
-
--- ## 3. For Visual Mode ##
--- A SINGLE-PRESS on a selection will indent/un-indent.
-vim.keymap.set("v", "§", "<", { noremap = true, desc = "Un-indent selection" })
-vim.keymap.set("v", "±", ">", { noremap = true, desc = "Indent selection" })

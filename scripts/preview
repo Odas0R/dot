@@ -1,11 +1,170 @@
-#!/usr/bin/env bash
+#!/usr/bin/env node
 
-if [ ! -x "$(command -v browser-sync)" ]; then
-  echo 'Need to install browser-sync.'
-  exit 1
-fi
+import http from "http";
+import fs from "fs";
+import path from "path";
 
-browser-sync "$@" \
-  --no-notify --no-ui \
-  --ignore '*~formatting*' \
-  -sw
+// Configuration
+let currentPort = parseInt(process.argv[2]) || 3000;
+const WATCH_DIR = process.cwd();
+
+// MIME Types Dictionary
+const MIMES = {
+  ".html": "text/html",
+  ".css": "text/css",
+  ".js": "text/javascript",
+  ".json": "application/json",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".gif": "image/gif",
+  ".svg": "image/svg+xml",
+  ".ico": "image/x-icon",
+};
+
+// State for Server-Sent Events
+let clients = [];
+
+// Helper: Debounce
+const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
+/**
+ * Request Handler
+ */
+const handler = (req, res) => {
+  // 1. Handle SSE Endpoint
+  if (req.url === "/_reload") {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    });
+    clients.push(res);
+    return;
+  }
+
+  // 2. Resolve File Path (Securely)
+  const parsedUrl = new URL(
+    req.url,
+    `http://${req.headers.host || "localhost"}`,
+  );
+  let pathname = parsedUrl.pathname;
+
+  try {
+    pathname = decodeURIComponent(pathname);
+  } catch (e) {
+    res.writeHead(400);
+    res.end("400: Bad Request");
+    return;
+  }
+
+  // Default to index.html
+  if (pathname === "/") {
+    pathname = "/index.html";
+  }
+
+  // Normalize path and join with current working directory
+  const filePath = path.join(WATCH_DIR, pathname);
+
+  // Directory traversal attack check
+  const relativePath = path.relative(WATCH_DIR, filePath);
+  const isSafe =
+    !relativePath.startsWith("..") && !path.isAbsolute(relativePath);
+
+  if (!isSafe) {
+    res.writeHead(403);
+    res.end("403: Forbidden - Access Denied");
+    return;
+  }
+
+  const ext = path.extname(filePath);
+  const contentType = MIMES[ext] || "application/octet-stream";
+
+  // 3. Serve File
+  fs.readFile(filePath, (err, content) => {
+    if (err) {
+      if (err.code === "ENOENT") {
+        res.writeHead(404);
+        res.end(`404: File Not Found\nPath: ${pathname}`);
+      } else {
+        res.writeHead(500);
+        res.end(`500: Internal Server Error\n${err.code}`);
+      }
+      return;
+    }
+
+    res.writeHead(200, { "Content-Type": contentType });
+
+    // 4. Inject Live Reload Script (HTML only)
+    if (contentType === "text/html") {
+      const reloadScript = `
+                <script>
+                    (function() {
+                        const evtSource = new EventSource('/_reload');
+                        evtSource.onmessage = function(e) {
+                            if (e.data === 'reload') location.reload();
+                        };
+                    })();
+                </script>
+                </body>
+            `;
+      res.end(content.toString().replace("</body>", reloadScript));
+    } else {
+      res.end(content);
+    }
+  });
+};
+
+/**
+ * Start Server with Port Hunting
+ */
+const startServer = (port) => {
+  const server = http.createServer(handler);
+
+  server.on("error", (e) => {
+    if (e.code === "EADDRINUSE") {
+      console.log(
+        `\x1b[33m Port ${port} is in use, trying ${port + 1}...\x1b[0m`,
+      );
+      startServer(port + 1);
+    } else {
+      console.error(e);
+    }
+  });
+
+  server.listen(port, (e) => {
+    console.log(`\x1b[32m Serving:  ${WATCH_DIR} \x1b[0m`);
+    console.log(`\x1b[32m Local:    http://localhost:${port} \x1b[0m`);
+  });
+};
+
+// Start the process
+startServer(currentPort);
+
+/**
+ * Start Watcher
+ */
+const reloadClients = debounce((filename) => {
+  if (
+    filename &&
+    !filename.includes("node_modules") &&
+    !filename.startsWith(".")
+  ) {
+    console.log(`\x1b[33m[Change]\x1b[0m ${filename}`);
+    clients.forEach((res) => res.write("data: reload\n\n"));
+    clients = clients.filter((res) => !res.finished);
+  }
+}, 100);
+
+try {
+  fs.watch(WATCH_DIR, { recursive: true }, (_, filename) =>
+    reloadClients(filename),
+  );
+} catch (e) {
+  fs.watch(WATCH_DIR, (_, filename) => reloadClients(filename));
+}

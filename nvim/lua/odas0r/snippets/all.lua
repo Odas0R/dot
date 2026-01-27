@@ -4,7 +4,7 @@ local s = ls.snippet
 -- local sn = ls.snippet_node
 local t = ls.text_node
 -- local i = ls.insert_node
--- local f = ls.function_node
+local f = ls.function_node
 -- local c = ls.choice_node
 -- local d = ls.dynamic_node
 -- local r = ls.restore_node
@@ -23,5 +23,11 @@ local t = ls.text_node
 return {
   s("date", {
     t(os.date()),
+  }),
+  s("uuid", {
+    f(function()
+      local uuid = vim.fn.system("uuidgen")
+      return string.lower(vim.trim(uuid))
+    end),
   }),
 }

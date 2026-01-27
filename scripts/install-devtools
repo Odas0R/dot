@@ -2,12 +2,13 @@
 
 npm install -g \
   prettier \
-  @google/gemini-cli@latest \
+  @google/gemini-cli \
   @mypolis.eu/aws-static-deploy \
   bash-language-server \
   fixjson \
+  typescript \
   typescript-language-server \
-	vscode-langservers-extracted \
+  vscode-langservers-extracted \
   @astrojs/language-server \
   yaml-language-server
 
