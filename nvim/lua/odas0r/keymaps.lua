@@ -13,8 +13,7 @@ map("n", "gt", ":tabnext<CR>")
 map("n", "gT", ":tabprev<CR>")
 map("n", "gN", ":tabnew<CR>")
 
-map("n", "<leader>F", ":GoTestFunc<CR>")
-map("n", "<leader>T", ":GoTestFile<CR>")
+map("n", "<leader>zg", "<cmd>ZetGrep<CR>")
 
 -- Trial: close popups, locallist, quickfix
 map("n", "<leader>q", ":cclose<CR>")

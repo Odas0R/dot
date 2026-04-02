@@ -20,6 +20,9 @@ export GOPATH="$HOME/go"
 export EMSDK_ROOT="$HOME/emsdk"
 export EMSCRIPTEN_ROOT="$HOME/emsdk/upstream/emscripten"
 
+# opencode
+export OPEN_CODE="$HOME/.opencode/bin"
+
 # Fixing GNU utils in macOS
 #
 # brew install coreutils findutils gnu-sed gawk grep gnu-tar
@@ -40,6 +43,7 @@ PATH+="$GOROOT/bin:$GOPATH/bin:"
 PATH+="$PNPM_HOME:"
 PATH+="$NODE_HOME/bin:"
 PATH+="$EMSDK_ROOT:"
-PATH+="$EMSCRIPTEN_ROOT"
+PATH+="$EMSCRIPTEN_ROOT:"
+PATH+="$OPEN_CODE"
 
 export PATH

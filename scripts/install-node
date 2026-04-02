@@ -1,24 +1,35 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
 NODE_VER="$1"
 
-# validate version semver format
 if ! [[ $NODE_VER =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo "Invalid version format. Please use semver format (e.g., 1.24.2)."
   exit 1
 fi
 
 NODE_VER="v${NODE_VER}"
-
 ARCH="arm64"
 
+# CAPTURE EXISTING GLOBALS (before making changes)
+OLD_PACKAGES=""
+if [ -x "$HOME/nodejs/current/bin/npm" ]; then
+  echo "Scanning current global packages..."
+  # Extracts package names from parseable output, filtering out npm and corepack
+  OLD_PACKAGES=$("$HOME/nodejs/current/bin/npm" ls -g --depth=0 --parseable |
+    grep node_modules/ |
+    sed 's|.*/node_modules/||' |
+    grep -vE '^(npm|corepack)$' |
+    tr '\n' ' ')
+fi
+
 mkdir -p "$HOME/nodejs"
-
 cd /tmp
-curl -O "https://nodejs.org/dist/$NODE_VER/node-$NODE_VER-darwin-$ARCH.tar.gz"
 
+echo "Downloading Node $NODE_VER..."
+curl -sO "https://nodejs.org/dist/$NODE_VER/node-$NODE_VER-darwin-$ARCH.tar.gz"
+
+echo "Extracting..."
 tar -xzf "node-$NODE_VER-darwin-$ARCH.tar.gz" -C "$HOME/nodejs"
 
 # Link the specific version to 'current'
@@ -26,3 +37,10 @@ ln -sfn "$HOME/nodejs/node-$NODE_VER-darwin-$ARCH" "$HOME/nodejs/current"
 
 # Ensure npm can traverse and modify the library folder
 chmod -R 755 "$HOME/nodejs/current/lib/node_modules"
+
+if [ -n "$OLD_PACKAGES" ]; then
+  echo "Porting global packages: $OLD_PACKAGES"
+  "$HOME/nodejs/current/bin/npm" install --global $OLD_PACKAGES
+fi
+
+echo "Done! Node $NODE_VER installed and configured."
