@@ -1,3 +1,5 @@
+#!/usr/local/bin/bash
+
 _ssh() {
   local cur prev opts
   COMPREPLY=()

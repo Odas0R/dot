@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# remaps § to < and ± to >
+hidutil property --matching '{"VendorID": 1452, "ProductID": 591}' --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000064,"HIDKeyboardModifierMappingDst":0x700000035},{"HIDKeyboardModifierMappingSrc":0x700000035,"HIDKeyboardModifierMappingDst":0x700000064}]}'

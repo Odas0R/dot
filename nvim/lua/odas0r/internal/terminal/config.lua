@@ -6,11 +6,8 @@ local config = {
     -- Do `:h split` for more information
     split = "sp",
 
-    -- Width of the terminal
-    width = 50,
-
     -- Height of the terminal
-    height = 15,
+    height = 25,
   },
 
   -- keymap to disablesb all the default keymaps
@@ -37,14 +34,11 @@ local config = {
   -- keymap to decrease the window height
   decrease_height_keymap = "<leader>-",
 
-  terminals = {
-    -- keymaps to open nth terminal
-    { keymap = "<leader>1" },
-    { keymap = "<leader>2" },
-    { keymap = "<leader>3" },
-    { keymap = "<leader>4" },
-    { keymap = "<leader>5" },
-  },
+  -- Map <Esc> to <C-\><C-n> to exit terminal mode
+  esc_to_exit = true,
+
+  -- Close the terminal window when opening a new file or navigating to a new window
+  close_on_nav = true,
 }
 
 return config

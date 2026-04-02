@@ -1,0 +1,16 @@
+[include]
+	path = ~/.gitconfig-github-key
+[user]
+	name = odas0r
+	email = guilherme@muxit.co
+[push]
+	followTags = true
+	default = current
+[core]
+	editor = nvim
+	autocrlf = false
+	sshCommand = ssh
+[init]
+	defaultBranch = main
+[pull]
+	rebase = false

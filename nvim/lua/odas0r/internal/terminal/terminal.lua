@@ -1,154 +1,161 @@
 local Window = require("odas0r.internal.terminal.window")
 
-local v = vim.api
-local cmd = vim.cmd
+local api = vim.api
 
-local Terminal = { bufs = {}, last_winid = nil, last_term = nil }
+local Terminal = {
+  buf = nil,
+  job_id = nil,
+  last_winid = nil,
+}
 
-function Terminal:new(window, opt)
+function Terminal:new(window)
   self.window = window or Window:new()
-  -- Add terminal options
-  self.term_opts = {
-    scrollback = 1000,
-    on_stderr = function(_, data) end,
-    on_exit = function() end,
-  }
   return self
 end
 
-function Terminal:open(term_number)
-  term_number = term_number or 1
-  local create_win = not self.window:is_valid()
-  local create_buf = self.bufs[term_number] == nil or not v.nvim_buf_is_valid(self.bufs[term_number])
+function Terminal:_create_buf()
+  local bufnr = api.nvim_create_buf(false, true)
+  -- Set buffer options
+  vim.bo[bufnr].bufhidden = "hide"
+  vim.bo[bufnr].buflisted = false
+  vim.bo[bufnr].filetype = "terminal"
+  return bufnr
+end
 
-  if create_win then
-    self.last_winid = v.nvim_get_current_win()
-  end
-
-  -- Window and buffer does not exist
-  if create_win and create_buf then
-    -- Create new terminal buffer with async job control
-    local bufnr = vim.api.nvim_create_buf(false, true)
-
-    -- Set buffer options before creating terminal
-    vim.bo[bufnr].bufhidden = "hide"
-    vim.bo[bufnr].buflisted = false
-
-    -- Create window with the prepared buffer
-    self.window:create(bufnr)
-
-    -- Setup terminal with proper job control
-    vim.fn.termopen(vim.o.shell, {
-      on_stdout = function(_, data)
-        -- Terminal output is handled automatically by Neovim
-      end,
-      on_stderr = function(_, data)
-        if data then
-          vim.schedule(function()
-            vim.notify("Terminal error: " .. vim.inspect(data), vim.log.levels.ERROR)
-          end)
-        end
-      end,
-      on_exit = function(_, code)
-        vim.schedule(function()
-          if code ~= 0 then
-            vim.notify("Process exited with code: " .. code)
+function Terminal:_spawn_shell(bufnr)
+  local opts = {
+    on_stdout = function(_, data)
+      -- Terminal output is handled automatically by Neovim
+    end,
+    on_stderr = function(_, data)
+      if data then
+        local valid_data = false
+        for _, line in ipairs(data) do
+          if line ~= "" then
+            valid_data = true
+            break
           end
+        end
+        if valid_data then
+          -- Optional: Log errors or silently ignore if they are just shell noise
+          -- vim.notify("Terminal stderr: " .. vim.inspect(data), vim.log.levels.WARN)
+        end
+      end
+    end,
+    on_exit = function(_, code)
+      self.job_id = nil
+      if code ~= 0 then
+        vim.schedule(function()
+          vim.notify("Terminal process exited with code: " .. code, vim.log.levels.INFO)
         end)
-      end,
-      -- Enable proper PTY handling
-      pty = true,
-      -- Ensure environment is copied
-      env = vim.fn.environ(),
-    })
+      end
+    end,
+    pty = true,
+    env = vim.fn.environ(),
+  }
 
-    self.bufs[term_number] = bufnr
+  local job_id = vim.fn.termopen(vim.o.shell, opts)
+  self.job_id = job_id
+  self.buf = bufnr
 
-    -- Set terminal-specific window options
-    vim.wo[self.window.winid].wrap = true
-    vim.wo[self.window.winid].number = true
-    vim.wo[self.window.winid].relativenumber = false
-
-    -- Window does not exist but buffer does
-  elseif create_win then
-    self.window:create(self.bufs[term_number])
-
-    -- Buffer does not exist but window does
-  elseif create_buf then
-    self.window:focus()
-    local bufnr = vim.api.nvim_create_buf(false, true)
-
-    vim.fn.termopen(vim.o.shell, {
-      pty = true,
-      env = vim.fn.environ(),
-    })
-
-    self.bufs[term_number] = bufnr
-
-    -- Buffer and window exist
-  else
-    local curr_term_buf = self.bufs[term_number]
-    local last_term_buf = self.bufs[self.last_term]
-
-    if curr_term_buf ~= last_term_buf then
-      self.window:set_buf(curr_term_buf)
-    end
-  end
-
-  self.last_term = term_number
-
-  -- Enter terminal mode safely
-  vim.schedule(function()
-    local bufnr = self.bufs[term_number]
-    local buftype = vim.api.nvim_get_option_value("buftype", { buf = bufnr })
-    if buftype == "terminal" then
-      vim.cmd("startinsert")
-    end
-  end)
-
-  -- Set up autocmd for better terminal handling
-  vim.cmd([[
-    augroup TerminalBuffer
-      autocmd! * <buffer>
-      autocmd TermOpen <buffer> setlocal nonumber norelativenumber signcolumn=no
-      autocmd TermOpen <buffer> startinsert
-      autocmd BufEnter <buffer> startinsert
-    augroup END
-  ]])
-
-  -- Set buffer-local options for better performance
-  local bufnr = self.bufs[term_number]
+  -- Buffer local settings
   vim.api.nvim_set_option_value("undolevels", -1, { buf = bufnr })
   vim.api.nvim_set_option_value("swapfile", false, { buf = bufnr })
+
+  -- Setup autocmds for this buffer
+  local grp = api.nvim_create_augroup("TerminalBuffer_" .. bufnr, { clear = true })
+  api.nvim_create_autocmd("TermOpen", {
+    buffer = bufnr,
+    group = grp,
+    command = "setlocal nonumber norelativenumber signcolumn=no cursorline=no | startinsert",
+  })
+  api.nvim_create_autocmd("BufEnter", {
+    buffer = bufnr,
+    group = grp,
+    command = "startinsert",
+  })
+  api.nvim_create_autocmd("TermLeave", {
+    buffer = bufnr,
+    group = grp,
+    command = "stopinsert",
+  })
+end
+
+function Terminal:open()
+  local win_valid = self.window:is_valid()
+  local buf_valid = self.buf and api.nvim_buf_is_valid(self.buf)
+
+  if not win_valid then
+    self.last_winid = api.nvim_get_current_win()
+  end
+
+  -- Case 1: No Window, No Buffer (or invalid buffer)
+  if not win_valid and not buf_valid then
+    local bufnr = self:_create_buf()
+    self.window:create(bufnr)
+    self:_spawn_shell(bufnr)
+
+  -- Case 2: No Window, Valid Buffer
+  elseif not win_valid and buf_valid then
+    self.window:create(self.buf)
+    -- Re-enter insert mode
+    vim.cmd("startinsert")
+
+  -- Case 3: Window exists, No Buffer
+  elseif win_valid and not buf_valid then
+    self.window:focus()
+    local bufnr = self:_create_buf()
+    self.window:set_buf(bufnr)
+    self:_spawn_shell(bufnr)
+
+  -- Case 4: Both exist
+  else
+    if self.window:get_bufno() ~= self.buf then
+      self.window:set_buf(self.buf)
+    end
+    self.window:focus()
+    vim.cmd("startinsert")
+  end
+
+  -- Ensure window options are set
+  local winid = self.window.winid
+  if winid and api.nvim_win_is_valid(winid) then
+    vim.wo[winid].wrap = true
+    vim.wo[winid].number = true
+    vim.wo[winid].relativenumber = false
+    vim.wo[winid].signcolumn = "no"
+  end
 end
 
 function Terminal:close()
-  local current_winid = v.nvim_get_current_win()
+  local current_winid = api.nvim_get_current_win()
   if self.window:is_valid() then
-    -- Save terminal state before closing
-    local bufnr = self.window:get_bufno()
     self.window:close()
-
-    -- Clean up terminal job if needed
-    if vim.fn.jobwait({ bufnr }, 0)[1] == -1 then
-      vim.fn.jobstop(bufnr)
-    end
-
-    if current_winid == self.window.winid then
-      v.nvim_set_current_win(self.last_winid)
+    if current_winid == self.window.winid and self.last_winid and api.nvim_win_is_valid(self.last_winid) then
+      api.nvim_set_current_win(self.last_winid)
     end
   end
 end
 
 function Terminal:toggle()
-  self.last_term = self.last_term and self.last_term or 1
-
-  local opened = self.window:is_valid()
-
-  if opened then
+  if self.window:is_valid() then
     self:close()
   else
-    self:open(self.last_term)
+    self:open()
+  end
+end
+
+function Terminal:send(cmd)
+  -- Ensure terminal is open and focused
+  self:open()
+
+  local job_id = self.job_id
+  if job_id then
+    api.nvim_chan_send(job_id, cmd .. "\r")
+    vim.cmd("normal! G")
+    vim.cmd("startinsert")
+  else
+    vim.notify("Terminal job not found. Please restart terminal.", vim.log.levels.ERROR)
   end
 end
 

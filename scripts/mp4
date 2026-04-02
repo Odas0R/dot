@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+file="$1"
+
+if [[ ! -f "$file" ]]; then
+  echo "error: a valid file is required"
+  exit 1
+fi
+
+base="$(basename "$file")"
+base="${base%.*}"
+
+ffmpeg -i "$1" -crf 30 "${base}.optimized.mp4"

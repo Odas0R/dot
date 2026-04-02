@@ -16,14 +16,15 @@ if [[ ! -f $FILE_TEMPLATE ]]; then
   exit 1
 fi
 
+# to allow arithmetic expansion or command substitution uncomment one of following lines:
+# line=${line//\\\$\(/\$\(}     # de-escape $( and $(( - allows $(( 1 + 2 )) or $( command ) - UNSECURE
+# line=${line//\\\$\(\(/\$\(\(} # de-escape $((        - allows $(( 1 + 2 ))
+
 while IFS=$'\n\r' read -r line; do
   line=${line//\\/\\\\}   # escape backslashes
   line=${line//\"/\\\"}   # escape "
   line=${line//\`/\\\`}   # escape `
   line=${line//\$/\\\$}   # escape $
   line=${line//\\\${/\${} # de-escape ${         - allows variable substitution: ${var} ${var:-default_value} etc
-  # to allow arithmetic expansion or command substitution uncomment one of following lines:
-  # line=${line//\\\$\(/\$\(}     # de-escape $( and $(( - allows $(( 1 + 2 )) or $( command ) - UNSECURE
-  # line=${line//\\\$\(\(/\$\(\(} # de-escape $((        - allows $(( 1 + 2 ))
   eval "echo \"${line}\""
 done <"$FILE_TEMPLATE"

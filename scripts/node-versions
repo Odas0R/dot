@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+curl -s https://nodejs.org/dist/index.tab | awk 'NR>1 {print $1}' | head -n 25

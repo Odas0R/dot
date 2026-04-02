@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-set -e
-
-sudo systemctl restart docker.socket docker.service

@@ -1,4 +1,4 @@
 os:
-  edit: "nvimr {{filename}}" # see 'Configuring File Editing' section
+  edit: "nvim {{filename}}" # see 'Configuring File Editing' section
   open: "open {{filename}}"
   # copyToClipboardCmd: "win32yank.exe"

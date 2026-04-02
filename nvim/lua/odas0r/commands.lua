@@ -33,3 +33,18 @@ Utils.cmd("BufClose", function()
 end, {
   nargs = 0,
 })
+
+Utils.cmd("ZetGrep", function(opts)
+  if terminal ~= nil then
+    terminal:close()
+  end
+  local query = opts.fargs[1] or ""
+  require("telescope.builtin").live_grep(
+    require("telescope.themes").get_dropdown({
+      prompt_title = "Zet Query",
+      cwd = "$HOME/github.com/odas0r/zettelkasten",
+      preview_width = 0.6,
+      default_text = query or "",
+    })
+  )
+end, { nargs = "?", desc = "Grep zet files" })

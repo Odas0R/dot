@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+mkdir -p "$HOME/.config/lazygit"
+
 ln -sf "$DOT/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
 
 printf "Lazygit setup done! 🌟\n"

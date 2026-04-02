@@ -13,8 +13,7 @@ map("n", "gt", ":tabnext<CR>")
 map("n", "gT", ":tabprev<CR>")
 map("n", "gN", ":tabnew<CR>")
 
-map("n", "<leader>F", ":GoTestFunc<CR>")
-map("n", "<leader>T", ":GoTestFile<CR>")
+map("n", "<leader>zg", "<cmd>ZetGrep<CR>")
 
 -- Trial: close popups, locallist, quickfix
 map("n", "<leader>q", ":cclose<CR>")
@@ -26,8 +25,18 @@ map("n", "<leader>q", ":cclose<CR>")
 -- Resize window using <ctrl> arrow keys
 map("n", "<C-Up>", "<cmd>resize +2<cr>", { desc = "Increase window height" })
 map("n", "<C-Down>", "<cmd>resize -2<cr>", { desc = "Decrease window height" })
-map("n", "<C-Left>", "<cmd>vertical resize +2<cr>", { desc = "Decrease window width" })
-map("n", "<C-Right>", "<cmd>vertical resize -2<cr>", { desc = "Increase window width" })
+map(
+  "n",
+  "<C-Left>",
+  "<cmd>vertical resize +2<cr>",
+  { desc = "Decrease window width" }
+)
+map(
+  "n",
+  "<C-Right>",
+  "<cmd>vertical resize -2<cr>",
+  { desc = "Increase window width" }
+)
 
 map("n", "<leader>vu", ":so " .. vim.env.HOME .. "/.config/nvim/init.lua<CR>")
 map("n", "<C-l>", ":nohl<CR>")
@@ -51,12 +60,42 @@ map(
 map({ "n", "x" }, "gw", "*N", { desc = "Search word under cursor" })
 
 -- https://github.com/mhinz/vim-galore#saner-behavior-of-n-and-n
-map("n", "n", "'Nn'[v:searchforward]", { expr = true, desc = "Next search result" })
-map("x", "n", "'Nn'[v:searchforward]", { expr = true, desc = "Next search result" })
-map("o", "n", "'Nn'[v:searchforward]", { expr = true, desc = "Next search result" })
-map("n", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
-map("x", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
-map("o", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
+map(
+  "n",
+  "n",
+  "'Nn'[v:searchforward]",
+  { expr = true, desc = "Next search result" }
+)
+map(
+  "x",
+  "n",
+  "'Nn'[v:searchforward]",
+  { expr = true, desc = "Next search result" }
+)
+map(
+  "o",
+  "n",
+  "'Nn'[v:searchforward]",
+  { expr = true, desc = "Next search result" }
+)
+map(
+  "n",
+  "N",
+  "'nN'[v:searchforward]",
+  { expr = true, desc = "Prev search result" }
+)
+map(
+  "x",
+  "N",
+  "'nN'[v:searchforward]",
+  { expr = true, desc = "Prev search result" }
+)
+map(
+  "o",
+  "N",
+  "'nN'[v:searchforward]",
+  { expr = true, desc = "Prev search result" }
+)
 
 -- Add undo break-points
 -- map("i", ".", ".<c-g>u")

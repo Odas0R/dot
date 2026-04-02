@@ -7,12 +7,17 @@ if [[ $# -ne 2 ]]; then
   exit 1
 fi
 
-if ! [[ $1 =~ ^[0-9]+$ ]] || ! [[ $2 =~ ^[0-9]+$ ]]; then
-  echo "Error: Please provide valid numbers"
+padding=$1
+inner_radius=$2
+
+# Use bc for floating-point addition
+# We echo the expression "padding + inner_radius" and pipe it to bc
+border_radius=$(echo "$padding + $inner_radius" | bc)
+
+# Optional: Add a check in case bc fails or outputs nothing
+if [[ -z "$border_radius" ]]; then
+  echo "Error: Calculation failed." >&2 # Print error to stderr
   exit 1
 fi
 
-padding=$1
-inner_radius=$2
-border_radius=$((padding + inner_radius))
 echo "Outer Radius: border-radius: ${border_radius}px;"

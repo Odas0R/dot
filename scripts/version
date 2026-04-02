@@ -1,0 +1,259 @@
+#!/usr/bin/env bash
+
+set -e
+
+BOLD='\033[1m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+RESET='\033[0m'
+
+#
+# Usage Message
+#
+
+usage() {
+  echo "Usage: version <command> [--pre] [--preid=<id>]"
+  echo ""
+  echo "Commands:"
+  echo "  major, minor, patch   Bump the respective version part."
+  echo "                        (If current is RC, 'patch' graduates to stable)."
+  echo "  release               Explicitly graduates an RC to stable (strips suffix)."
+  echo "  prerelease            Increment the RC number (e.g. rc.1 -> rc.2)."
+  echo "  <version>             Set specific version (e.g. v1.2.3)."
+  echo ""
+  echo "Options:"
+  echo "  --pre                 Create a pre-release for the requested bump."
+  echo "                        (e.g. 'minor --pre' -> 0.3.0-rc.0)"
+  echo "  --preid=<id>          Set id (default: 'rc')."
+}
+
+list_versions() {
+  echo -e "\n${BOLD}Project Version History${RESET}"
+  echo -e "------------------------------------------------------------------"
+  printf "${BOLD}%-16s %-14s %-20s %-s${RESET}\n" "VERSION" "DATE" "AUTHOR" "MESSAGE"
+  echo -e "------------------------------------------------------------------"
+
+  # Git tag format:
+  # - sort=-v:refname (Sorts semantic versions correctly)
+  # - format: pipe-delimited string for easy parsing
+  # - grep -v "\-rc": Filters out any tag containing '-rc'
+  # - head -n 15: Takes the top 15 *after* filtering
+  git tag -l --sort=-v:refname --format='%(refname:short)|%(creatordate:short)|%(taggername)|%(subject)' | grep -v "\-rc" | head -n 15 |
+    while IFS='|' read -r tag date author subject; do
+
+      if [ -z "$author" ]; then
+        commit_hash=$(git rev-list -n 1 "$tag")
+        author=$(git log -1 --format='%an' "$commit_hash")
+      fi
+
+      # Logic to colorize versions (Stable=Green, Pre-release=Yellow)
+      # Even though we filtered RCs, other pre-releases (like beta/alpha) might still appear
+      if [[ "$tag" == *"-"* ]]; then
+        version_col="${YELLOW}${tag}${RESET}"
+      else
+        version_col="${GREEN}${tag}${RESET}"
+      fi
+
+      if [ ${#subject} -gt 40 ]; then
+        subject="${subject:0:37}..."
+      fi
+
+      printf "%-25b %-14s %-20s %-s\n" "$version_col" "$date" "${author:0:18}" "$subject"
+    done
+
+  echo -e "------------------------------------------------------------------"
+  echo -e "${CYAN}Tip: Run 'version --help' to see available commands.${RESET}\n"
+}
+
+if [ $# -eq 0 ]; then
+  list_versions
+  exit 0
+fi
+
+#
+# Defaults / Globals
+#
+
+PREID="rc"
+IS_PRERELEASE_FLAG=false
+BUMP_TYPE=""
+
+#
+# We loop through args to find flags and the command
+#
+
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+  --preid=*)
+    PREID="${key#*=}"
+    shift
+    ;;
+  --pre | --prerelease)
+    IS_PRERELEASE_FLAG=true
+    shift
+    ;;
+  major | minor | patch | release | prerelease)
+    BUMP_TYPE="$1"
+    shift
+    ;;
+  v[0-9]* | [0-9]*)
+    # Catch explicit version setting (e.g. v1.0.0)
+    BUMP_TYPE="$1"
+    shift
+    ;;
+  --help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "Error: Unknown argument '$1'"
+    exit 1
+    ;;
+  esac
+done
+
+#
+# Check for clean git
+#
+
+if ! git diff-index --quiet HEAD --; then
+  echo "Error: Uncommitted changes detected. Commit or stash first."
+  exit 1
+fi
+
+if [[ -z "$BUMP_TYPE" ]]; then
+  usage
+  exit 1
+fi
+
+#
+# Main Logic
+#
+
+# Handle Explicit Version Setting
+if [[ "$BUMP_TYPE" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-.+)?$ ]]; then
+  new_version_v="v${BUMP_TYPE//v/}" # Ensure it starts with v
+  echo "Setting explicit version: $new_version_v"
+
+else
+  # Get Current Version
+  current_version=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+  echo "Current version: $current_version"
+
+  # Clean and Parse
+  current_version_clean="${current_version//v/}"
+  IFS='-' read -r core_version prerelease_part <<<"$current_version_clean"
+  IFS='.' read -r major minor patch <<<"$core_version"
+
+  # Defaults for new state
+  new_major=$major
+  new_minor=$minor
+  new_patch=$patch
+
+  # 3. Calculate New Core Numbers
+  case $BUMP_TYPE in
+  major)
+    new_major=$((major + 1))
+    new_minor=0
+    new_patch=0
+    ;;
+  minor)
+    new_minor=$((minor + 1))
+    new_patch=0
+    ;;
+  patch)
+    # If we are on a prerelease (1.0.0-rc.1), 'patch' usually means "Release 1.0.0"
+    if [ -n "$prerelease_part" ]; then
+      echo "Graduating prerelease to stable..."
+      # We keep numbers as is, effectively just stripping the suffix
+    else
+      new_patch=$((patch + 1))
+    fi
+    ;;
+  release)
+    if [ -z "$prerelease_part" ]; then
+      echo "Error: Version $current_version is already stable."
+      exit 1
+    fi
+    # Keep numbers, just strip suffix
+    ;;
+  prerelease)
+    # Handled in next step
+    ;;
+  esac
+
+  # 4. Construct the Version String
+
+  # If the user requested --pre OR run 'prerelease' command
+  if [ "$IS_PRERELEASE_FLAG" = true ] || [ "$BUMP_TYPE" == "prerelease" ]; then
+
+    # logic: If we just bumped the numbers (e.g. minor 0.2 -> 0.3), start at 0
+    # If we didn't bump numbers (current was 0.3.0-rc.1 and we ran prerelease), increment rc
+
+    if [ "$BUMP_TYPE" == "prerelease" ]; then
+      # Standard prerelease increment logic
+      if [ -n "$prerelease_part" ]; then
+        IFS='.' read -r current_preid current_prenum <<<"$prerelease_part"
+        if [ "$current_preid" == "$PREID" ]; then
+          new_prenum=$((current_prenum + 1))
+          new_ver="$new_major.$new_minor.$new_patch-$PREID.$new_prenum"
+        else
+          # Changing ID (e.g. beta -> rc)
+          new_ver="$new_major.$new_minor.$new_patch-$PREID.0"
+        fi
+      else
+        # Converting stable to pre (patch bump implicit usually)
+        new_patch=$((patch + 1))
+        new_ver="$new_major.$new_minor.$new_patch-$PREID.0"
+      fi
+    else
+      # User ran 'minor --pre' or 'major --pre'
+      # We accept the bumped numbers from Step 3 and just add rc.0
+      new_ver="$new_major.$new_minor.$new_patch-$PREID.0"
+    fi
+  else
+    # Standard release (no --pre flag)
+    new_ver="$new_major.$new_minor.$new_patch"
+  fi
+
+  new_version_v="v$new_ver"
+fi
+
+echo "New version: $new_version_v"
+
+#
+# Update package.json if it exists (Node.js specific)
+#
+
+if [ -f "package.json" ]; then
+  # Use npm if available
+  if command -v npm >/dev/null 2>&1; then
+    # Update the file content
+    npm version "${new_version_v}" --no-git-tag-version --allow-same-version >/dev/null
+  fi
+
+  # Stage the files (include lockfile if it exists)
+  git add package.json package-lock.json 2>/dev/null || git add package.json
+
+  # ONLY commit if there are staged changes.
+  # git diff-index --quiet HEAD returns 1 if there are changes, 0 if clean.
+  if ! git diff-index --quiet HEAD --; then
+    git commit -m "chore(release): ${new_version_v}"
+    echo "📦 Updated and committed package.json"
+  else
+    echo "⚠️ package.json already at ${new_version_v}, skipping commit."
+  fi
+fi
+
+#
+# Create Tag (This now runs even if the commit was skipped)
+#
+
+git tag -a "${new_version_v}" -m "Release ${new_version_v}"
+
+echo "✅ Successfully created tag ${new_version_v}"
+echo "Run 'git push --tags' to publish."

@@ -21,7 +21,7 @@ local fmt = require("luasnip.extras.fmt").fmt
 -- local conds_expand = require("luasnip.extras.conditions.expand")
 return {
   s("#!", {
-    t("#!/bin/bash"),
+    t("#!/bin/sh"),
     i(0),
   }),
   s("safe", {

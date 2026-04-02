@@ -3,13 +3,15 @@ return {
   lazy = false,
   priority = 1000,
   config = function()
-    local Gruvbox = require("odas0r.internal.gruvbox")
+    -- 1. Load the module directly
+    local gruvbox = require("gruvbox")
 
-    local colors = Gruvbox.colors()
-    local config = Gruvbox.config()
+    -- 2. Access the palette and default config
+    local palette = gruvbox.palette
+    local config = gruvbox.config
 
-    require("gruvbox").setup({
-      terminal_colors = true, -- add neovim terminal colors
+    gruvbox.setup({
+      terminal_colors = true,
       undercurl = true,
       underline = true,
       bold = true,
@@ -25,8 +27,8 @@ return {
       invert_signs = false,
       invert_tabline = false,
       invert_intend_guides = false,
-      inverse = true, -- invert background for search, diffs, statuslines and errors
-      contrast = "", -- can be "hard", "soft" or empty string
+      inverse = true,
+      contrast = "",
       palette_overrides = {},
       overrides = {
         -- https://github.com/ellisonleao/gruvbox.nvim/blob/main/lua/gruvbox.lua
@@ -40,23 +42,25 @@ return {
         -- If you want to change the color of the syntax, you can use the
         -- `:Inspect` command to see the current syntax group and then change
         -- it with the overrides table
-        ["@markup.strong"] = { bold = config.bold, fg = colors.yellow },
+        ["@markup.strong"] = {
+          bold = config.bold,
+          fg = palette.bright_yellow,
+        },
         ["@markup.italic"] = {
           italic = config.italic.emphasis,
-          fg = colors.purple,
+          fg = palette.bright_purple,
         },
-        ["@lsp.type.class.markdown"] = { bold = config.bold, fg = colors.orange },
-
-        -- Fix the colors for the floating windows
-        FloatBorder = { fg = colors.fg1 },
-        FloatTitle = { fg = colors.fg1 },
+        ["@lsp.type.class.markdown"] = {
+          bold = config.bold,
+          fg = palette.bright_orange,
+        },
       },
       dim_inactive = false,
       transparent_mode = false,
     })
+
     vim.cmd("colorscheme gruvbox")
-    vim.o.background = "dark" -- or "light" for light mode
-    -- vim.o.background = "light" -- or "light" for light mode
+    vim.o.background = "dark"
     vim.o.termguicolors = true
   end,
 }

@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-set -e
-
-curl https://get.volta.sh | bash
-
-# install LTS node version
-volta install node

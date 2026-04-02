@@ -1,55 +1,83 @@
-#!/usr/bin/env bash
+#!/usr/bin/env node
 
-set -euo pipefail
-
-show_help() {
-  cat <<EOF
-Usage: ./clamp.sh MIN_SIZE MAX_SIZE MIN_WIDTH MAX_WIDTH
+function showHelp() {
+  console.log(`
+Usage: node ./clamp.js MIN_SIZE MAX_SIZE MIN_WIDTH MAX_WIDTH [ROOT_PX_SIZE]
 
 Calculate a CSS clamp() function for fluid responsive values.
 All values should be in pixels, output will be in rems.
 
 Arguments:
- MIN_SIZE   Minimum size in pixels
- MAX_SIZE   Maximum size in pixels
- MIN_WIDTH  Minimum viewport width in pixels
- MAX_WIDTH  Maximum viewport width in pixels
+  MIN_SIZE      Minimum size in pixels (required)
+  MAX_SIZE      Maximum size in pixels (required)
+  MIN_WIDTH     Minimum viewport width in pixels (required)
+  MAX_WIDTH     Maximum viewport width in pixels (required)
+  ROOT_PX_SIZE  Root font size for rem conversion (optional, default: 16)
 
 Examples:
- clamp 14 16 920 1920  # Font size from 14px to 16px
- clamp 20 40 320 1440  # Padding from 20px to 40px
-EOF
-  exit 1
+  node ./clamp.js 14 16 920 1920  # Font size from 14px to 16px
+  node ./clamp.js 20 40 320 1440 10 # Padding from 20px to 40px with a 10px root
+`);
+  process.exit(1);
 }
 
-if [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
-  show_help
-fi
+/**
+ * Main execution block
+ */
+function main() {
+  const args = process.argv.slice(2);
 
-if [ "$#" -ne 4 ]; then
-  echo "Error: All arguments are required"
-  show_help
-fi
+  if (args.includes("--help") || args.includes("-h")) {
+    showHelp();
+  }
 
-px_to_rem() {
-  echo "scale=4; $1/16" | bc
+  if (args.length < 4) {
+    console.error("Error: Not enough arguments.");
+    showHelp();
+  }
+
+  const minSize = parseFloat(args[0]);
+  const maxSize = parseFloat(args[1]);
+  const minWidth = parseFloat(args[2]);
+  const maxWidth = parseFloat(args[3]);
+  const rootSize = args[4] ? parseFloat(args[4]) : 16;
+
+  if ([minSize, maxSize, minWidth, maxWidth, rootSize].some(isNaN)) {
+    console.error("Error: All arguments must be numbers.");
+    showHelp();
+  }
+
+  if (minWidth === maxWidth) {
+    console.error("Error: MIN_WIDTH and MAX_WIDTH cannot be the same.");
+    process.exit(1);
+  }
+
+  // To mimic the fixed precision of the original bash script's `bc -l`,
+  // we round each intermediate calculation.
+  const round = (num) => parseFloat(num.toFixed(4));
+
+  const pxToRem = (px) => px / rootSize;
+
+  const minSizeRem = round(pxToRem(minSize));
+  const maxSizeRem = round(pxToRem(maxSize));
+
+  // Calculate the slope of the line (the fluid part of the clamp)
+  // (maxSize - minSize) / (maxWidth - minWidth)
+  const slope = (maxSize - minSize) / (maxWidth - minWidth);
+
+  // Calculate the y-intercept (the 'preferred' value)
+  // This is where the line would cross the y-axis (at 0 viewport width)
+  // y = mx + b  =>  b = y - mx
+  // Using min values: intercept = minSize - slope * minWidth
+  const yInterceptPx = minSize - slope * minWidth;
+  const yInterceptRem = round(pxToRem(yInterceptPx));
+
+  // The slope is multiplied by 100 to convert it to a 'vw' unit
+  const slopeVw = round(slope * 100);
+
+  const clampValue = `clamp(${minSizeRem}rem, ${yInterceptRem}rem + ${slopeVw}vw, ${maxSizeRem}rem)`;
+
+  console.log(clampValue);
 }
 
-MIN_SIZE=$1
-MAX_SIZE=$2
-MIN_WIDTH=$3
-MAX_WIDTH=$4
-
-MIN_SIZE_REM=$(px_to_rem $MIN_SIZE)
-MAX_SIZE_REM=$(px_to_rem $MAX_SIZE)
-
-# Calculate slope: (max - min) / (maxWidth - minWidth)
-SLOPE=$(echo "scale=4; ($MAX_SIZE - $MIN_SIZE) / ($MAX_WIDTH - $MIN_WIDTH)" | bc)
-
-# Calculate preferred size: min - slope * minWidth
-PREFERRED=$(echo "scale=4; $MIN_SIZE - ($SLOPE * $MIN_WIDTH)" | bc)
-
-SLOPE=$(echo "scale=4; $SLOPE * 100" | bc)
-PREFERRED=$(echo "scale=4; $PREFERRED/16" | bc)
-
-echo "clamp(${MIN_SIZE_REM}rem, ${PREFERRED}rem + ${SLOPE}vw, ${MAX_SIZE_REM}rem)"
+main();

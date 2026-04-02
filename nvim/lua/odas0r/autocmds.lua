@@ -70,7 +70,12 @@ Utils.autocmd("FileType", {
   desc = "Map 'q' to close specific filetypes and remove from buffer list",
   callback = function(event)
     vim.bo[event.buf].buflisted = false
-    vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = event.buf, silent = true })
+    vim.keymap.set(
+      "n",
+      "q",
+      "<cmd>close<cr>",
+      { buffer = event.buf, silent = true }
+    )
   end,
 })
 
@@ -113,7 +118,7 @@ Utils.autocmd("BufRead", {
 })
 
 -- Better writing defaults for Markdown and text files
-Utils.autocmd({ "BufEnter" }, {
+Utils.autocmd({ "BufEnter", "BufNew" }, {
   pattern = { "*.md", "*.txt" },
   group = Utils.augroup("write_options"),
   desc = "Set buffer-local options for writing (spellcheck, textwidth, etc.)",
@@ -124,10 +129,11 @@ Utils.autocmd({ "BufEnter" }, {
     opt.relativenumber = false -- Disable relative line numbers
     opt.foldlevel = 99 -- Keep folds open by default in these files
 
-    opt.textwidth = 79 -- Set text width for wrapping
-    -- opt.wrap = true        -- Consider enabling wrap if needed
-    -- opt.linebreak = true   -- Consider enabling linebreak if needed
-    opt.conceallevel = 2 -- Conceal formatting characters (e.g., * in markdown)
+    -- opt.colorcolumn = "100" -- Line length marker
+    opt.columns = 110
+    opt.wrap = true -- Consider enabling wrap if needed
+    opt.linebreak = true -- Consider enabling linebreak if needed
+    opt.conceallevel = 0 -- Conceal formatting characters (e.g., * in markdown)
 
     -- Example custom highlight (ensure color #FFD700 is defined or use a standard name)
     vim.api.nvim_set_hl(0, "markdownBold", { fg = "#FFD700", bold = true })
@@ -151,17 +157,26 @@ Utils.autocmd({ "BufEnter", "FocusGained" }, {
     a.run(function()
       local err, fd = a.uv.fs_open(filename, "w", 438) -- 438 is 0666 in octal
       if err then
-        vim.notify("Error opening " .. filename .. ": " .. err, vim.log.levels.ERROR)
+        vim.notify(
+          "Error opening " .. filename .. ": " .. err,
+          vim.log.levels.ERROR
+        )
         return
       end
       local write_err = a.uv.fs_write(fd, buf_path, -1)
       if write_err then
-        vim.notify("Error writing to " .. filename .. ": " .. write_err, vim.log.levels.ERROR)
+        vim.notify(
+          "Error writing to " .. filename .. ": " .. write_err,
+          vim.log.levels.ERROR
+        )
         -- Still try to close the file descriptor
       end
       local close_err = a.uv.fs_close(fd)
       if close_err then
-        vim.notify("Error closing " .. filename .. ": " .. close_err, vim.log.levels.ERROR)
+        vim.notify(
+          "Error closing " .. filename .. ": " .. close_err,
+          vim.log.levels.ERROR
+        )
       end
     end)
   end,

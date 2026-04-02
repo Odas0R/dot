@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-set -e
-
-cmd="$(command -v "$1")"
-if [ -n "$cmd" ]; then
-  popup nvimr "$cmd"
-fi

@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-ls -l "$MARKPATH" | sed 's/  / /g' | cut -d' ' -f9- | sed 's/ -/\-/g' && echo
