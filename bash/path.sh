@@ -23,6 +23,9 @@ export EMSCRIPTEN_ROOT="$HOME/emsdk/upstream/emscripten"
 # opencode
 export OPEN_CODE="$HOME/.opencode/bin"
 
+# bun
+export BUN_INSTALL="$HOME/.bun"
+
 # Fixing GNU utils in macOS
 #
 # brew install coreutils findutils gnu-sed gawk grep gnu-tar
@@ -42,6 +45,7 @@ PATH+="$LOCAL_BIN:$LOCAL_BIN_SCRIPTS:"
 PATH+="$GOROOT/bin:$GOPATH/bin:"
 PATH+="$PNPM_HOME:"
 PATH+="$NODE_HOME/bin:"
+PATH+="$BUN_INSTALL/bin:"
 PATH+="$EMSDK_ROOT:"
 PATH+="$EMSCRIPTEN_ROOT:"
 PATH+="$OPEN_CODE"

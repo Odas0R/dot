@@ -4,7 +4,7 @@ set -euo pipefail
 
 file="$1"
 
-if [[ -z "$file" ]]; then
+if [[ -z "${file:-}" ]]; then
   echo "Usage: $0 <file>"
   exit 1
 fi
@@ -16,18 +16,30 @@ fi
 
 # check if gist exists with the filename already and if so, update it
 # otherwise, create a new gist
-gist=$(gh gist list | grep "$(basename "$file")")
+# Added '|| true' so the script doesn't crash from 'set -e' if grep finds nothing
+gist=$(gh gist list | grep "$(basename "$file")" || true)
 
 if [[ -n "$gist" ]]; then
   echo "Updating gist: $file"
   gist_id=$(echo "$gist" | awk '{print $1}')
   gh gist edit "$gist_id" --add "$file"
+
+  # Display the link for the updated gist
+  echo "✅ Gist updated! Link: https://gist.github.com/$gist_id"
   exit 0
 else
   echo "Create new gist? (y/n)"
   read -r answer
   if [[ "$answer" == "y" ]]; then
-    gh gist create "$file" --web
+    # Capture the output URL directly from the create command
+    gist_url=$(gh gist create "$file")
+
+    # Display the link for the new gist
+    echo "✅ New gist created! Link: $gist_url"
+
+    # Optional: Open the newly created gist in the browser
+    # (Since we removed the --web flag above to capture the URL)
+    gh gist view "$gist_url" --web
     exit 0
   fi
 fi

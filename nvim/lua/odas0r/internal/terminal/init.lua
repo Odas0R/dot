@@ -47,35 +47,81 @@ M.setup = function(opts)
     -- Escape to exit terminal mode
 
     if M.config.esc_to_exit then
-      set_keymap("t", "<Esc>", "<C-\\><C-n>", vim.tbl_extend("force", opts_desc, { desc = "Exit Terminal Mode" }))
+      set_keymap(
+        "t",
+        "<Esc>",
+        "<C-\\><C-n>",
+        vim.tbl_extend("force", opts_desc, { desc = "Exit Terminal Mode" })
+      )
 
-      set_keymap("t", "<C-v><Esc>", "<Esc>", vim.tbl_extend("force", opts_desc, { desc = "Send Escape to Terminal" }))
+      set_keymap(
+        "t",
+        "<C-v><Esc>",
+        "<Esc>",
+        vim.tbl_extend("force", opts_desc, { desc = "Send Escape to Terminal" })
+      )
     end
 
     -- Resize
 
     if M.config.increase_height_keymap then
-      set_keymap("n", M.config.increase_height_keymap, function()
-        get_terminal().window:change_height(M.config.window_height_change_amount)
-      end, vim.tbl_extend("force", opts_desc, { desc = "Increase Terminal Height" }))
+      set_keymap(
+        "n",
+        M.config.increase_height_keymap,
+        function()
+          get_terminal().window:change_height(
+            M.config.window_height_change_amount
+          )
+        end,
+        vim.tbl_extend(
+          "force",
+          opts_desc,
+          { desc = "Increase Terminal Height" }
+        )
+      )
     end
 
     if M.config.decrease_height_keymap then
-      set_keymap("n", M.config.decrease_height_keymap, function()
-        get_terminal().window:change_height(-M.config.window_height_change_amount)
-      end, vim.tbl_extend("force", opts_desc, { desc = "Decrease Terminal Height" }))
+      set_keymap(
+        "n",
+        M.config.decrease_height_keymap,
+        function()
+          get_terminal().window:change_height(
+            -M.config.window_height_change_amount
+          )
+        end,
+        vim.tbl_extend(
+          "force",
+          opts_desc,
+          { desc = "Decrease Terminal Height" }
+        )
+      )
     end
 
     if M.config.increase_width_keymap then
-      set_keymap("n", M.config.increase_width_keymap, function()
-        get_terminal().window:change_width(M.config.window_width_change_amount)
-      end, vim.tbl_extend("force", opts_desc, { desc = "Increase Terminal Width" }))
+      set_keymap(
+        "n",
+        M.config.increase_width_keymap,
+        function()
+          get_terminal().window:change_width(
+            M.config.window_width_change_amount
+          )
+        end,
+        vim.tbl_extend("force", opts_desc, { desc = "Increase Terminal Width" })
+      )
     end
 
     if M.config.decrease_width_keymap then
-      set_keymap("n", M.config.decrease_width_keymap, function()
-        get_terminal().window:change_width(-M.config.window_width_change_amount)
-      end, vim.tbl_extend("force", opts_desc, { desc = "Decrease Terminal Width" }))
+      set_keymap(
+        "n",
+        M.config.decrease_width_keymap,
+        function()
+          get_terminal().window:change_width(
+            -M.config.window_width_change_amount
+          )
+        end,
+        vim.tbl_extend("force", opts_desc, { desc = "Decrease Terminal Width" })
+      )
     end
   end
 
@@ -98,6 +144,14 @@ M.setup = function(opts)
   end
 
   vim.api.nvim_create_user_command("Term", function(cmd_opts)
+    M.execute(cmd_opts.args)
+  end, {
+    nargs = "*",
+    complete = "file",
+    desc = "Execute command in terminal",
+  })
+
+  vim.api.nvim_create_user_command("T", function(cmd_opts)
     M.execute(cmd_opts.args)
   end, {
     nargs = "*",

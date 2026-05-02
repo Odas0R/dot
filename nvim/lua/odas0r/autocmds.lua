@@ -118,23 +118,17 @@ Utils.autocmd("BufRead", {
 })
 
 -- Better writing defaults for Markdown and text files
-Utils.autocmd({ "BufEnter", "BufNew" }, {
+Utils.autocmd({ "BufEnter" }, {
   pattern = { "*.md", "*.txt" },
   group = Utils.augroup("write_options"),
   desc = "Set buffer-local options for writing (spellcheck, textwidth, etc.)",
   callback = function()
     local opt = vim.opt_local
     opt.spell = true -- Enable spell checking
-    opt.number = false -- Disable line numbers
+    opt.number = true -- Enable line numbers
     opt.relativenumber = false -- Disable relative line numbers
     opt.foldlevel = 99 -- Keep folds open by default in these files
-
-    -- opt.colorcolumn = "100" -- Line length marker
-    opt.columns = 110
     opt.wrap = true -- Consider enabling wrap if needed
-    opt.linebreak = true -- Consider enabling linebreak if needed
-    opt.conceallevel = 0 -- Conceal formatting characters (e.g., * in markdown)
-
     -- Example custom highlight (ensure color #FFD700 is defined or use a standard name)
     vim.api.nvim_set_hl(0, "markdownBold", { fg = "#FFD700", bold = true })
   end,
