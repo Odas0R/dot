@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# check if ffmpeg is installed
-if ! command -v ffmpeg &>/dev/null; then
-  echo "FFmpeg is not installed. Please install FFmpeg and try again."
+# check if cwebp is installed
+if ! command -v cwebp &>/dev/null; then
+  echo "cwebp is not installed. Please install the WebP tools and try again."
+  echo "  macOS/Homebrew: brew install webp"
+  echo "  Debian/Ubuntu:  sudo apt install webp"
   exit 1
 fi
 
@@ -50,9 +52,12 @@ convert_to_webp() {
     rm "$output_file"
   fi
 
-  # Convert image to WebP
-  ffmpeg -i "$input_image" -quality "$quality" -preset picture -loop 0 "$output_file" -hide_banner -loglevel error
-  echo "Converted: $input_image → ${name_without_ext}.webp"
+  # Convert image to WebP using cwebp
+  if cwebp -q "$quality" -preset picture "$input_image" -o "$output_file" -quiet; then
+    echo "Converted: $input_image → ${name_without_ext}.webp"
+  else
+    echo "Error: Failed to convert $input_image"
+  fi
 }
 
 export -f convert_to_webp
@@ -64,14 +69,15 @@ for file in "${files[@]}"; do
     valid_files+=("$file")
   fi
 done
+
 if [ ${#valid_files[@]} -eq 0 ]; then
   echo "No valid files found to convert."
   exit 1
 fi
 
-echo "Converting ${#valid_files[@]} files to WebP with quality $quality..."
+echo "Converting ${#valid_files[@]} files to WebP with quality $quality using cwebp..."
 
 # Use GNU Parallel to process files
 parallel convert_to_webp {} "$quality" ::: "${valid_files[@]}"
 
-echo "Conversion complete. Converted ${#valid_files[@]} files to WebP format."
+echo "Conversion complete. Processed ${#valid_files[@]} files."

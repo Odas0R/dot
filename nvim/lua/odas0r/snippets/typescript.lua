@@ -28,16 +28,9 @@ return {
   --   i(0),
   -- }),
   s("test", {
-    t({
-      'import test from "node:test";',
-      'import assert from "node:assert";',
-      "",
-      "",
-    }),
     t('test("'),
     i(1, "should do something"),
     t({ '", () => {', "\t" }),
-    i(2, "assert.strictEqual(actual, expected);"),
     t({ "", "});" }),
     i(0),
   }),

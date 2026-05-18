@@ -169,8 +169,6 @@ return {
       "html",
       "java",
       "toml",
-      "markdown",
-      "mdx",
       "yaml",
       "xml",
       "svg",
