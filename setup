@@ -14,8 +14,8 @@ ln -sf "$HOME/github.com/odas0r/dot/sqliterc" "$HOME/.sqliterc"
 ln -sf "$HOME/github.com/odas0r/dot/bash" "$HOME/.bash"
 
 # run sub-setup scripts for each tool
-for sub in gh git kitty nvim lazygit skills; do
-  if [ -f "$DOT/$sub/setup" ]; then
+for sub in gh git kitty nvim lazygit pi skills; do
+  if [[ -f "$DOT/$sub/setup" ]]; then
     echo "  → Running $sub/setup..."
     DOT="$DOT" bash "$DOT/$sub/setup"
   fi

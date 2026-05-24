@@ -1,26 +1,39 @@
 #!/usr/bin/env bash
-
-set -e
+set -euo pipefail
 
 DOT="$HOME/github.com/odas0r/dot"
 
-mkdir -p $HOME/github.com
-mkdir -p $HOME/gitlab.com
+mkdir -p "$HOME/github.com"
+mkdir -p "$HOME/gitlab.com"
 
 ln -sf "$DOT/git/gitconfig" "$HOME/.gitconfig"
 ln -sf "$DOT/git/gitconfig-github" "$HOME/.gitconfig-github"
-cp "$DOT/git/gitconfig-github-key" "$HOME/.gitconfig-github-key"
+if [[ ! -f "$HOME/.gitconfig-github-key" ]]; then
+  cp "$DOT/git/gitconfig-github-key" "$HOME/.gitconfig-github-key"
+else
+  echo "  → ~/.gitconfig-github-key already exists, skipping"
+fi
+
 ln -sf "$DOT/git/gitconfig-gitlab" "$HOME/.gitconfig-gitlab"
-cp "$DOT/git/gitconfig-gitlab-key" "$HOME/.gitconfig-gitlab-key"
+
+if [[ ! -f "$HOME/.gitconfig-gitlab-key" ]]; then
+  cp "$DOT/git/gitconfig-gitlab-key" "$HOME/.gitconfig-gitlab-key"
+else
+  echo "  → ~/.gitconfig-gitlab-key already exists, skipping"
+fi
 
 printf "Git setup done! 🌟\n"
 
-cat <<EOF
+# Only show GPG reminder if signing key is still the placeholder
+if grep -q '<YOUR_KEY>' "$HOME/.gitconfig-github-key" 2>/dev/null ||
+   grep -q '<YOUR_KEY>' "$HOME/.gitconfig-gitlab-key" 2>/dev/null; then
+  cat <<EOF
 
 ** DON'T FORGET **
 
-Add GPG key. Please generate one and add it to $SIGNKEY
+Add GPG key. Please generate one and add it to \$SIGNKEY
 
 [user]
 	signingkey = YOUR_KEY
 EOF
+fi

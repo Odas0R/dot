@@ -1,0 +1,6 @@
+{
+  "my-provider": {
+    "type": "api_key",
+    "key": "YOUR_API_KEY_HERE"
+  }
+}

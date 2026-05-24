@@ -31,5 +31,8 @@ TAGS
 # kitty theme cache
 kitty/themes/themes
 
+# pi agent secrets (contains API keys)
+pi/auth.json
+
 # skills self-referencing symlink (artifact)
 skills/skills/skills

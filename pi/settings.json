@@ -1,0 +1,7 @@
+{
+  "theme": "gruvbox",
+  "lastChangelogVersion": "0.75.5",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "deepseek-v4-flash",
+  "defaultThinkingLevel": "high"
+}

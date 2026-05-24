@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PI_SRC="${DOT:-$HOME/github.com/odas0r/dot}/pi"
+
+# Ensure pi agent directories exist
+mkdir -p "$HOME/.pi/agent/themes"
+mkdir -p "$HOME/.pi/agent/sessions"
+
+# Symlink themes
+for theme_file in "$PI_SRC/themes"/*.json; do
+  if [[ -f "$theme_file" ]]; then
+    theme_name="$(basename "$theme_file")"
+    ln -sf "$theme_file" "$HOME/.pi/agent/themes/$theme_name"
+  fi
+done
+
+# Symlink settings (only if not already present to preserve user customizations)
+if [[ ! -e "$HOME/.pi/agent/settings.json" ]]; then
+  ln -s "$PI_SRC/settings.json" "$HOME/.pi/agent/settings.json"
+  echo "  → Created symlink for pi settings"
+else
+  echo "  → ~/.pi/agent/settings.json already exists, skipping"
+fi
+
+# Provision auth.json from sample if it doesn't exist yet
+# (real auth.json contains API keys — never committed, listed in .gitignore)
+if [[ ! -f "$HOME/.pi/agent/auth.json" ]]; then
+  cp "$PI_SRC/auth.sample.json" "$HOME/.pi/agent/auth.json"
+  chmod 600 "$HOME/.pi/agent/auth.json"
+  echo "  → Created ~/.pi/agent/auth.json from sample — please add your API keys"
+fi
+
+echo "Pi setup done! 🌟"
