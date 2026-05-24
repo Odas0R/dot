@@ -1,2 +1,2 @@
-#!/bin/sh
+#!/usr/bin/env bash
 exec date -u +%Y%m%d%H%M%S

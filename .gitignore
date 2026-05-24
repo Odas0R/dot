@@ -1,3 +1,35 @@
 # private scripts
 ./scripts/open
 gitconfig.key
+node_modules
+
+# macOS
+.DS_Store
+
+# neovim compiled spell files
+*.spl
+
+# scratch / temp workspace (used by skills as local issue tracker)
+.scratch/
+
+# log files
+*.log
+
+# ctags / tags
+.tags
+.tags.lock
+TAGS
+
+# compiled binaries
+*.o
+*.so
+*.dylib
+
+# shell history artifacts
+*.history
+
+# kitty theme cache
+kitty/themes/themes
+
+# skills self-referencing symlink (artifact)
+skills/skills/skills

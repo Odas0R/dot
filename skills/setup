@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SKILLS_SRC="${DOT:-$HOME/github.com/odas0r/dot}/skills"
+
+for agent_dir in "$HOME/.pi/agent/skills" "$HOME/.agents/skills"; do
+  mkdir -p "$agent_dir"
+  for skill_dir in "$SKILLS_SRC"/*/; do
+    ln -sfn "$skill_dir" "$agent_dir/$(basename "$skill_dir")"
+  done
+done
+
+echo "Skills setup done! 🌟"

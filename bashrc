@@ -13,5 +13,3 @@ done
 for file in $HOME/.bash/autocomplete/*.sh; do
   . $file
 done
-
-[[ -f .env ]] && source ./.env

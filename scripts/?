@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-query=$(echo "$@" | sed 's/ /+/g')
-
-open "https://duckduckgo.com/?q=${query}&atb=v236-1&ia=web"
