@@ -1,8 +1,7 @@
 {
-  "name": "web-search",
-  "version": "1.0.0",
+  "name": "dot-scripts",
+  "private": true,
   "type": "module",
-  "description": "Headless web search via Brave Search - no browser required",
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
     "jsdom": "^27.0.1",
