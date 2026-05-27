@@ -1,4 +1,5 @@
 {
+  "shellPath": "/opt/homebrew/bin/bash",
   "theme": "gruvbox",
   "lastChangelogVersion": "0.75.5",
   "defaultProvider": "opencode-go",
