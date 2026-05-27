@@ -293,9 +293,6 @@ return {
     })
     vim.lsp.enable("efm")
 
-    -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md#postgres_lsp
-    vim.lsp.enable("postgres_lsp")
-
     -- LSP for lua
     -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#sumneko_lua
     local sumneko_binary_path = vim.fn.exepath("lua-language-server")
