@@ -1,8 +1,8 @@
 {
   "shellPath": "/opt/homebrew/bin/bash",
   "theme": "gruvbox",
-  "lastChangelogVersion": "0.75.5",
+  "lastChangelogVersion": "0.78.0",
   "defaultProvider": "opencode-go",
   "defaultModel": "deepseek-v4-flash",
-  "defaultThinkingLevel": "high"
+  "defaultThinkingLevel": "xhigh"
 }
