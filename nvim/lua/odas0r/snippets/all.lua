@@ -1,33 +1,64 @@
 local ls = require("luasnip")
--- shorthands
 local s = ls.snippet
--- local sn = ls.snippet_node
 local t = ls.text_node
--- local i = ls.insert_node
+local i = ls.insert_node
 local f = ls.function_node
--- local c = ls.choice_node
--- local d = ls.dynamic_node
--- local r = ls.restore_node
--- local l = require("luasnip.extras").lambda
--- local rep = require("luasnip.extras").rep
--- local p = require("luasnip.extras").partial
--- local m = require("luasnip.extras").match
--- local n = require("luasnip.extras").nonempty
--- local dl = require("luasnip.extras").dynamic_lambda
--- local fmt = require("luasnip.extras.fmt").fmt
--- local fmta = require("luasnip.extras.fmt").fmta
--- local types = require("luasnip.util.types")
--- local conds = require("luasnip.extras.conditions")
--- local conds_expand = require("luasnip.extras.conditions.expand")
+local fmt = require("luasnip.extras.fmt").fmt
+
+local function trim_system(cmd)
+  return vim.trim(vim.fn.system(cmd))
+end
+
+local function iso_date()
+  return os.date("%Y-%m-%d")
+end
+
+local function iso_datetime()
+  return os.date("%Y-%m-%dT%H:%M:%S%z")
+end
 
 return {
   s("date", {
-    t(os.date()),
-  }),
-  s("uuid", {
     f(function()
-      local uuid = vim.fn.system("uuidgen")
-      return string.lower(vim.trim(uuid))
+      return iso_date()
     end),
   }),
+
+  s("datetime", {
+    f(function()
+      return iso_datetime()
+    end),
+  }),
+
+  s("uuid", {
+    f(function()
+      local uuid = trim_system("uuidgen")
+      if uuid == "" then
+        return "00000000-0000-0000-0000-000000000000"
+      end
+      return string.lower(uuid)
+    end),
+  }),
+
+  s("path", {
+    f(function()
+      return vim.fn.expand("%:p")
+    end),
+  }),
+
+  s("relpath", {
+    f(function()
+      return vim.fn.expand("%")
+    end),
+  }),
+
+  s("filename", {
+    f(function()
+      return vim.fn.expand("%:t")
+    end),
+  }),
+
+  s("todo", fmt("TODO({}): {}", { i(1, "context"), i(0, "message") })),
+  s("fixme", fmt("FIXME({}): {}", { i(1, "context"), i(0, "message") })),
+  s("note", fmt("NOTE({}): {}", { i(1, "context"), i(0, "message") })),
 }

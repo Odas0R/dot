@@ -1,40 +1,15 @@
 local ls = require("luasnip")
--- shorthands
 local s = ls.snippet
--- local sn = ls.snippet_node
-local t = ls.text_node
 local i = ls.insert_node
 local f = ls.function_node
--- local c = ls.choice_node
--- local d = ls.dynamic_node
--- local r = ls.restore_node
--- local l = require("luasnip.extras").lambda
--- local rep = require("luasnip.extras").rep
--- local p = require("luasnip.extras").partial
--- local m = require("luasnip.extras").match
--- local n = require("luasnip.extras").nonempty
--- local dl = require("luasnip.extras").dynamic_lambda
 local fmt = require("luasnip.extras.fmt").fmt
--- local fmta = require("luasnip.extras.fmt").fmta
--- local types = require("luasnip.util.types")
--- local conds = require("luasnip.extras.conditions")
--- local conds_expand = require("luasnip.extras.conditions.expand")
 
 local function system_uuid()
-  local handle = io.popen("uuidgen")
-  if not handle then
-    return "failed-to-generate-uuid"
+  local uuid = vim.trim(vim.fn.system("uuidgen"))
+  if uuid == "" then
+    return "00000000-0000-0000-0000-000000000000"
   end
-
-  local uuid = handle:read("*a")
-  if not uuid then
-    handle:close()
-    return "failed-to-read-uuid"
-  end
-
-  uuid = uuid:gsub("\n", "")
-  handle:close()
-  return uuid
+  return string.lower(uuid)
 end
 
 return {
@@ -42,6 +17,142 @@ return {
     f(function()
       return system_uuid()
     end),
-    i(0),
   }),
+
+  s(
+    "sel",
+    fmt(
+      [[
+SELECT {}
+FROM {}
+WHERE {};]],
+      { i(1, "*"), i(2, "table_name"), i(0, "condition") }
+    )
+  ),
+
+  s(
+    "ins",
+    fmt(
+      [[
+INSERT INTO {} ({})
+VALUES ({})
+RETURNING *;]],
+      { i(1, "table_name"), i(2, "columns"), i(0, "values") }
+    )
+  ),
+
+  s(
+    "upd",
+    fmt(
+      [[
+UPDATE {}
+SET {} = {}
+WHERE {}
+RETURNING *;]],
+      { i(1, "table_name"), i(2, "column"), i(3, "value"), i(0, "condition") }
+    )
+  ),
+
+  s(
+    "del",
+    fmt(
+      [[
+DELETE FROM {}
+WHERE {}
+RETURNING *;]],
+      { i(1, "table_name"), i(0, "condition") }
+    )
+  ),
+
+  s(
+    "cte",
+    fmt(
+      [[
+WITH {} AS (
+  {}
+)
+SELECT *
+FROM {};]],
+      { i(1, "cte_name"), i(2, "SELECT ..."), i(0, "cte_name") }
+    )
+  ),
+
+  s(
+    "tx",
+    fmt(
+      [[
+BEGIN;
+
+{}
+
+COMMIT;]],
+      { i(0, "-- statements") }
+    )
+  ),
+
+  s(
+    "table",
+    fmt(
+      [[
+CREATE TABLE {} (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  {},
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);]],
+      { i(1, "table_name"), i(0, "name text NOT NULL") }
+    )
+  ),
+
+  s(
+    "idx",
+    fmt(
+      [[
+CREATE INDEX {} ON {} ({});]],
+      { i(1, "idx_table_column"), i(2, "table_name"), i(0, "column") }
+    )
+  ),
+
+  s(
+    "uidx",
+    fmt(
+      [[
+CREATE UNIQUE INDEX {} ON {} ({});]],
+      { i(1, "uidx_table_column"), i(2, "table_name"), i(0, "column") }
+    )
+  ),
+
+  s(
+    "fk",
+    fmt(
+      [[
+ALTER TABLE {}
+ADD CONSTRAINT {}
+FOREIGN KEY ({}) REFERENCES {}({});]],
+      { i(1, "table_name"), i(2, "fk_table_ref"), i(3, "ref_id"), i(4, "ref_table"), i(0, "id") }
+    )
+  ),
+
+  s(
+    "upsert",
+    fmt(
+      [[
+INSERT INTO {} ({})
+VALUES ({})
+ON CONFLICT ({}) DO UPDATE
+SET {} = EXCLUDED.{}
+RETURNING *;]],
+      { i(1, "table_name"), i(2, "columns"), i(3, "values"), i(4, "unique_column"), i(5, "column"), i(6, "column") }
+    )
+  ),
+
+  s(
+    "explain",
+    fmt(
+      [[
+EXPLAIN (ANALYZE, BUFFERS, VERBOSE)
+{}]],
+      { i(0, "SELECT ...;") }
+    )
+  ),
 }
