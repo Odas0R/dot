@@ -1,14 +1,15 @@
--- GitHub-like unified diffs, but tuned down for gruvbox-dark.
--- Only Diffview-specific groups are changed; global DiffAdd/DiffDelete/etc.
--- stay owned by the colorscheme.
+-- Gruvbox-dark diffs with enough contrast to scan quickly without becoming
+-- neon. Line backgrounds are visible; intraline highlights are stronger.
+-- Global DiffAdd/DiffDelete/etc. stay owned by the colorscheme.
 local colors = {
-  add_bg = "#2a3328",
-  add_inline = "#3a4a32",
-  delete_bg = "#3a2828",
-  delete_inline = "#4a3030",
-  change_bg = "#332f26",
-  text_bg = "#4a432e",
-  filler_fg = "#7c6f64",
+  fg = "#ebdbb2",
+  add_bg = "#323d2b",
+  add_inline = "#475936",
+  delete_bg = "#442c2c",
+  delete_inline = "#5a3535",
+  change_bg = "#3f3728",
+  change_inline = "#5a4a2f",
+  filler_fg = "#928374",
   green = "#b8bb26",
   red = "#fb4934",
   yellow = "#fabd2f",
@@ -32,11 +33,11 @@ local function diff_branch_against_head()
   end)
 end
 
-local function apply_github_gruvbox_diff_hl()
+local function apply_soft_gruvbox_diff_hl()
   vim.api.nvim_set_hl(0, "DiffviewDiffAdd", { bg = colors.add_bg })
   vim.api.nvim_set_hl(0, "DiffviewDiffDelete", { bg = colors.delete_bg })
   vim.api.nvim_set_hl(0, "DiffviewDiffChange", { bg = colors.change_bg })
-  vim.api.nvim_set_hl(0, "DiffviewDiffText", { bg = colors.text_bg })
+  vim.api.nvim_set_hl(0, "DiffviewDiffText", { bg = colors.change_inline })
 
   -- Old side of modified hunks when enhanced_diff_hl is enabled.
   vim.api.nvim_set_hl(0, "DiffviewDiffAddAsDelete", { bg = colors.delete_bg })
@@ -48,15 +49,21 @@ local function apply_github_gruvbox_diff_hl()
     bg = "NONE",
   })
 
-  -- Intraline highlights: stronger than line bg, still not neon.
+  -- Intraline highlights: stronger than line bg, still not neon. Diffview
+  -- derives DiffviewDiffTextInline from global DiffText, which gruvbox makes
+  -- bright yellow with dark text; override it to avoid black/yellow patches in
+  -- modified hunks.
   vim.api.nvim_set_hl(0, "DiffviewDiffAddInline", { bg = colors.add_inline })
+  vim.api.nvim_set_hl(0, "DiffviewDiffTextInline", {
+    bg = colors.change_inline,
+  })
   vim.api.nvim_set_hl(0, "DiffviewDiffDeleteInline", {
-    fg = colors.red,
+    fg = colors.fg,
     bg = colors.delete_inline,
     strikethrough = true,
   })
 
-  -- File panel/status colors: GitHub-ish green/red/yellow without background blocks.
+  -- File panel/status colors: muted green/red/yellow without background blocks.
   vim.api.nvim_set_hl(0, "DiffviewStatusAdded", { fg = colors.green })
   vim.api.nvim_set_hl(0, "DiffviewStatusUntracked", { fg = colors.green })
   vim.api.nvim_set_hl(0, "DiffviewStatusModified", { fg = colors.yellow })
@@ -82,12 +89,12 @@ return {
   dependencies = { "nvim-lua/plenary.nvim" },
   keys = {
     {
-      "<leader>do",
+      "<leader>dr",
       "<cmd>DiffviewOpen --imply-local<cr>",
       desc = "Review working tree",
     },
     {
-      "<leader>db",
+      "<leader>dR",
       diff_branch_against_head,
       desc = "Review branch vs chosen base",
     },
@@ -158,6 +165,12 @@ return {
         },
         {
           "n",
+          "<leader>r",
+          "<cmd>DiffviewRefresh<cr>",
+          { desc = "Refresh Diffview" },
+        },
+        {
+          "n",
           "<leader>c",
           "<cmd>PiReviewComment<cr>",
           { desc = "Add Pi review comment" },
@@ -187,19 +200,27 @@ return {
       },
     },
     hooks = {
-      view_opened = apply_github_gruvbox_diff_hl,
-      view_enter = apply_github_gruvbox_diff_hl,
+      view_opened = apply_soft_gruvbox_diff_hl,
+      view_enter = apply_soft_gruvbox_diff_hl,
     },
   },
   config = function(_, opts)
+    -- diffview-plus registers a SessionLoadPost cleanup for session-restored
+    -- diffview:// buffers. When the plugin is lazy-loaded by :DiffviewOpen
+    -- during session-manager autoload, that scheduled cleanup can run in the
+    -- middle of panel creation and wipe the just-created file-panel buffer.
+    -- Disable it until the plugin protects live panel buffers itself.
+    pcall(vim.api.nvim_del_augroup_by_name, "diffview_session")
+
     require("diffview").setup(opts)
+    apply_soft_gruvbox_diff_hl()
 
     vim.api.nvim_create_autocmd("ColorScheme", {
       group = vim.api.nvim_create_augroup(
         "odas0r_diffview_highlights",
         { clear = true }
       ),
-      callback = apply_github_gruvbox_diff_hl,
+      callback = apply_soft_gruvbox_diff_hl,
     })
   end,
 }

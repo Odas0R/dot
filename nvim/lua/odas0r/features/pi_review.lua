@@ -2,6 +2,9 @@ local Input = require("odas0r.ui.input")
 
 local M = {}
 
+local review_comment_input_width = 64
+local review_comment_input_height = 7
+
 local function notify(message, level)
   vim.notify(message, level or vim.log.levels.INFO, { title = "Pi review" })
 end
@@ -143,38 +146,40 @@ function M.add_comment(opts)
     or ("%s:%d-%d"):format(rel, line1, line2)
   local code = selected_lines(line1, line2):gsub("```", "`\226\128\139``")
 
-  Input.input(
-    { prompt = ("Review comment for %s: "):format(location) },
-    function(msg)
-      if not msg or msg == "" then
-        return
-      end
-
-      local review_dir = root .. "/.pi"
-      local review_path = review_dir .. "/review.md"
-      vim.fn.mkdir(review_dir, "p")
-
-      local f = io.open(review_path, "a")
-      if not f then
-        notify("Could not open " .. review_path, vim.log.levels.ERROR)
-        return
-      end
-
-      f:write(("\n- [ ] `%s`\n"):format(location))
-      if code ~= "" then
-        f:write("  Code:\n\n")
-        f:write("  ```" .. vim.bo.filetype .. "\n")
-        for line in (code .. "\n"):gmatch("(.-)\n") do
-          f:write("  " .. line .. "\n")
-        end
-        f:write("  ```\n")
-      end
-      f:write(("  Comment: %s\n"):format(msg))
-      f:close()
-
-      notify("Added comment to " .. review_path)
+  Input.textarea({
+    prompt = ("Review Comment: %s"):format(location),
+    width = review_comment_input_width,
+    height = review_comment_input_height,
+    filetype = "markdown",
+  }, function(msg)
+    if not msg or vim.trim(msg) == "" then
+      return
     end
-  )
+
+    local review_dir = root .. "/.pi"
+    local review_path = review_dir .. "/review.md"
+    vim.fn.mkdir(review_dir, "p")
+
+    local f = io.open(review_path, "a")
+    if not f then
+      notify("Could not open " .. review_path, vim.log.levels.ERROR)
+      return
+    end
+
+    f:write(("\n- [ ] `%s`\n"):format(location))
+    if code ~= "" then
+      f:write("  Code:\n\n")
+      f:write("  ```" .. vim.bo.filetype .. "\n")
+      for line in (code .. "\n"):gmatch("(.-)\n") do
+        f:write("  " .. line .. "\n")
+      end
+      f:write("  ```\n")
+    end
+    f:write(("  Comment: %s\n"):format(msg))
+    f:close()
+
+    notify("Added comment to " .. review_path)
+  end)
 end
 
 function M.setup()

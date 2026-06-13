@@ -12,6 +12,64 @@ local function clamp(value, min, max)
   return value
 end
 
+local function strwidth(value)
+  return vim.fn.strdisplaywidth(value or "")
+end
+
+local function ellipsize(value, max_width)
+  if strwidth(value) <= max_width then
+    return value
+  end
+
+  return vim.fn.strcharpart(value, 0, math.max(max_width - 1, 0)) .. "…"
+end
+
+local function number_opt(value)
+  if value == nil then
+    return nil
+  end
+
+  return tonumber(value)
+end
+
+local function max_line_width(values)
+  local width = 0
+  for _, value in ipairs(values) do
+    width = math.max(width, strwidth(value))
+  end
+  return width
+end
+
+local function split_default(value, multiline)
+  value = tostring(value or "")
+
+  if multiline then
+    local parts = vim.split(value, "\n", { plain = true })
+    return #parts > 0 and parts or { "" }
+  end
+
+  return { value:gsub("\n", " ") }
+end
+
+local function apply_highlights()
+  local ok, gruvbox = pcall(require, "odas0r.features.gruvbox")
+  local colors = ok and gruvbox.colors() or {}
+
+  vim.api.nvim_set_hl(0, "Odas0rInputNormal", {
+    fg = colors.fg1,
+    bg = "NONE",
+  })
+  vim.api.nvim_set_hl(0, "Odas0rInputBorder", {
+    fg = colors.gray or colors.fg4,
+    bg = "NONE",
+  })
+  vim.api.nvim_set_hl(0, "Odas0rInputTitle", {
+    fg = colors.yellow or colors.fg1,
+    bg = "NONE",
+    bold = true,
+  })
+end
+
 local function popup_input(opts, on_confirm)
   opts = opts or {}
   on_confirm = on_confirm or function() end
@@ -33,10 +91,41 @@ local function popup_input(opts, on_confirm)
     prompt = "Input"
   end
 
-  local default = opts.default or ""
-  local width = clamp(math.max(#prompt + 4, #default + 2, 44), 20, columns - 8)
-  local row = math.floor((lines - 3) / 2)
+  local multiline = opts.multiline == true
+  local default_lines = split_default(opts.default, multiline)
+  local configured_width = number_opt(opts.width)
+  local max_available_width = columns - 4
+  local min_width =
+    clamp(math.floor(number_opt(opts.min_width) or 26), 1, max_available_width)
+  local max_width = clamp(
+    math.floor(
+      number_opt(opts.max_width)
+        or (configured_width and max_available_width)
+        or (columns * 0.45)
+    ),
+    min_width,
+    max_available_width
+  )
+  local preferred_width = configured_width
+    or math.max(
+      strwidth(prompt) + 2,
+      max_line_width(default_lines) + 1,
+      min_width
+    )
+  local width = clamp(math.floor(preferred_width), min_width, max_width)
+
+  local max_available_height = math.max(1, lines - 4)
+  local height = 1
+  if multiline then
+    local preferred_height = number_opt(opts.height) or 5
+    height = clamp(math.floor(preferred_height), 2, max_available_height)
+  end
+
+  local row = math.max(1, math.floor((lines - height) * 0.28))
   local col = math.floor((columns - width) / 2)
+  local title = " " .. ellipsize(prompt, width - 2) .. " "
+
+  apply_highlights()
 
   local ok_buf, buf = pcall(vim.api.nvim_create_buf, false, true)
   if not ok_buf then
@@ -44,7 +133,7 @@ local function popup_input(opts, on_confirm)
     return
   end
 
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { default })
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, default_lines)
   vim.bo[buf].buftype = "nofile"
   vim.bo[buf].bufhidden = "wipe"
   vim.bo[buf].swapfile = false
@@ -55,11 +144,11 @@ local function popup_input(opts, on_confirm)
     row = row,
     col = col,
     width = width,
-    height = 1,
+    height = height,
     border = "rounded",
     style = "minimal",
-    title = " " .. prompt .. " ",
-    title_pos = "left",
+    title = title,
+    title_pos = "center",
   })
 
   if not ok_win then
@@ -68,9 +157,20 @@ local function popup_input(opts, on_confirm)
     return
   end
 
-  vim.wo[win].cursorline = true
-  vim.wo[win].winhighlight = "NormalFloat:NormalFloat,FloatBorder:FloatBorder"
-  vim.api.nvim_win_set_cursor(win, { 1, #default })
+  vim.wo[win].cursorline = false
+  vim.wo[win].wrap = multiline
+  vim.wo[win].winhighlight = table.concat({
+    "NormalFloat:Odas0rInputNormal",
+    "FloatBorder:Odas0rInputBorder",
+    "FloatTitle:Odas0rInputTitle",
+    "CursorLine:Odas0rInputNormal",
+  }, ",")
+  if opts.filetype then
+    vim.bo[buf].filetype = opts.filetype
+  end
+
+  local last_line = default_lines[#default_lines] or ""
+  vim.api.nvim_win_set_cursor(win, { #default_lines, #last_line })
 
   local done = false
   local function close(value)
@@ -90,31 +190,61 @@ local function popup_input(opts, on_confirm)
   end
 
   local function confirm()
-    local value = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1] or ""
+    local value
+    if multiline then
+      value = table.concat(vim.api.nvim_buf_get_lines(buf, 0, -1, false), "\n")
+    else
+      value = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1] or ""
+    end
     close(value)
   end
 
-  vim.keymap.set({ "n", "i" }, "<cr>", confirm, {
-    buffer = buf,
-    desc = "Confirm input",
-    nowait = true,
-  })
-
-  vim.keymap.set({ "n", "i" }, "<esc>", function()
+  local function cancel()
     close(nil)
-  end, {
-    buffer = buf,
-    desc = "Cancel input",
-    nowait = true,
-  })
+  end
 
-  vim.keymap.set({ "n", "i" }, "<c-c>", function()
-    close(nil)
-  end, {
-    buffer = buf,
-    desc = "Cancel input",
-    nowait = true,
-  })
+  if multiline then
+    vim.keymap.set("n", "<cr>", confirm, {
+      buffer = buf,
+      desc = "Confirm textarea",
+      nowait = true,
+    })
+    for _, lhs in ipairs({ "<c-s>", "<c-cr>", "<m-cr>" }) do
+      vim.keymap.set({ "n", "i" }, lhs, confirm, {
+        buffer = buf,
+        desc = "Confirm textarea",
+        nowait = true,
+      })
+    end
+    for _, lhs in ipairs({ "<esc>", "q" }) do
+      vim.keymap.set("n", lhs, cancel, {
+        buffer = buf,
+        desc = "Cancel textarea",
+        nowait = true,
+      })
+    end
+    vim.keymap.set({ "n", "i" }, "<c-c>", cancel, {
+      buffer = buf,
+      desc = "Cancel textarea",
+      nowait = true,
+    })
+  else
+    vim.keymap.set({ "n", "i" }, "<cr>", confirm, {
+      buffer = buf,
+      desc = "Confirm input",
+      nowait = true,
+    })
+    vim.keymap.set({ "n", "i" }, "<esc>", cancel, {
+      buffer = buf,
+      desc = "Cancel input",
+      nowait = true,
+    })
+    vim.keymap.set({ "n", "i" }, "<c-c>", cancel, {
+      buffer = buf,
+      desc = "Cancel input",
+      nowait = true,
+    })
+  end
 
   vim.api.nvim_create_autocmd("BufWipeout", {
     buffer = buf,
@@ -131,6 +261,11 @@ local function popup_input(opts, on_confirm)
 end
 
 function M.input(opts, on_confirm)
+  popup_input(opts, on_confirm)
+end
+
+function M.textarea(opts, on_confirm)
+  opts = vim.tbl_extend("force", opts or {}, { multiline = true })
   popup_input(opts, on_confirm)
 end
 
