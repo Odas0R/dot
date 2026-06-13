@@ -34,5 +34,8 @@ kitty/themes/themes
 # pi agent secrets (contains API keys)
 pi/auth.json
 
+# local pi review notes
+.pi/review.md
+
 # skills self-referencing symlink (artifact)
 skills/skills/skills

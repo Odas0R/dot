@@ -6,12 +6,21 @@ PI_SRC="${DOT:-$HOME/github.com/odas0r/dot}/pi"
 # Ensure pi agent directories exist
 mkdir -p "$HOME/.pi/agent/themes"
 mkdir -p "$HOME/.pi/agent/sessions"
+mkdir -p "$HOME/.pi/agent/extensions"
 
 # Symlink themes
 for theme_file in "$PI_SRC/themes"/*.json; do
   if [[ -f "$theme_file" ]]; then
     theme_name="$(basename "$theme_file")"
     ln -sf "$theme_file" "$HOME/.pi/agent/themes/$theme_name"
+  fi
+done
+
+# Symlink extensions
+for extension_file in "$PI_SRC/extensions"/*.ts; do
+  if [[ -f "$extension_file" ]]; then
+    extension_name="$(basename "$extension_file")"
+    ln -sf "$extension_file" "$HOME/.pi/agent/extensions/$extension_name"
   fi
 done
 

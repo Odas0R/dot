@@ -1,0 +1,6 @@
+require("odas0r.config.lazy")
+require("odas0r.config.options")
+require("odas0r.config.autocmds")
+require("odas0r.config.keymaps")
+require("odas0r.config.commands")
+require("odas0r.features")

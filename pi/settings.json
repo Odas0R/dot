@@ -1,8 +1,12 @@
 {
   "shellPath": "/opt/homebrew/bin/bash",
   "theme": "gruvbox",
-  "lastChangelogVersion": "0.78.0",
-  "defaultProvider": "opencode-go",
-  "defaultModel": "deepseek-v4-flash",
-  "defaultThinkingLevel": "xhigh"
+  "lastChangelogVersion": "0.79.3",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "enabledModels": [
+    "openai-codex/gpt-5.5"
+  ],
+  "defaultThinkingLevel": "xhigh",
+  "hideThinkingBlock": false
 }

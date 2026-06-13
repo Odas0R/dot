@@ -1,0 +1,436 @@
+#!/usr/bin/env node
+
+import fs from "node:fs";
+import path from "node:path";
+import { spawn } from "node:child_process";
+
+const USAGE = `Usage:
+  load-env [options] -- <command> [args...]
+
+Load .env files, then run a command with those variables injected.
+
+Default file order, later files win:
+  .env
+  .env.local
+  .env.<mode>
+  .env.<mode>.local
+
+Options:
+  -m, --mode <mode>       Load mode-specific files. If omitted, npm_lifecycle_event is used when available.
+  -f, --file <path>       Load explicit env file. Repeatable. When used, default files are skipped.
+      --all               Load .env plus every .env.* file, sorted. Skips .env.example/sample/template.
+      --cwd <dir>         Directory to read env files from. Default: current directory.
+      --pick <patterns>   Only load matching vars from files. Comma-separated globs, e.g. PUBLIC_*,API_URL.
+      --expose <patterns> Alias for --pick.
+      --omit <patterns>   Skip matching vars from files. Comma-separated globs.
+      --override          File vars override existing shell env. Default: existing shell env wins.
+      --strict            Fail when a selected env file is missing.
+      --require <names>   Require vars after loading. Comma-separated. Repeatable.
+      --list              Print names of vars that would be injected, then exit.
+  -h, --help              Show this help.
+
+Examples:
+  load-env -- astro dev
+  load-env --mode staging -- astro preview
+  load-env --pick PUBLIC_*,ASTRO_* -- astro build
+  load-env --file .env.preview --override -- npm run preview
+`;
+
+function die(message, code = 1) {
+  console.error(`load-env: ${message}`);
+  process.exit(code);
+}
+
+function takeValue(args, index, flag) {
+  const value = args[index + 1];
+  if (!value || value === "--") die(`${flag} requires a value`);
+  return value;
+}
+
+function pushPatterns(target, value) {
+  for (const item of value.split(",")) {
+    const pattern = item.trim();
+    if (pattern) target.push(pattern);
+  }
+}
+
+function parseArgs(argv) {
+  const options = {
+    mode: null,
+    files: [],
+    all: false,
+    cwd: process.cwd(),
+    pick: [],
+    omit: [],
+    override: false,
+    strict: false,
+    require: [],
+    list: false,
+  };
+
+  let i = 0;
+  let command = [];
+
+  while (i < argv.length) {
+    const arg = argv[i];
+
+    if (arg === "--") {
+      command = argv.slice(i + 1);
+      break;
+    }
+
+    if (arg === "-h" || arg === "--help") {
+      console.log(USAGE);
+      process.exit(0);
+    }
+
+    if (arg === "-m" || arg === "--mode") {
+      options.mode = takeValue(argv, i, arg);
+      i += 2;
+      continue;
+    }
+
+    if (arg.startsWith("--mode=")) {
+      options.mode = arg.slice("--mode=".length);
+      i += 1;
+      continue;
+    }
+
+    if (arg === "-f" || arg === "--file") {
+      options.files.push(takeValue(argv, i, arg));
+      i += 2;
+      continue;
+    }
+
+    if (arg.startsWith("--file=")) {
+      options.files.push(arg.slice("--file=".length));
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--all") {
+      options.all = true;
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--cwd") {
+      options.cwd = takeValue(argv, i, arg);
+      i += 2;
+      continue;
+    }
+
+    if (arg.startsWith("--cwd=")) {
+      options.cwd = arg.slice("--cwd=".length);
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--pick" || arg === "--expose") {
+      pushPatterns(options.pick, takeValue(argv, i, arg));
+      i += 2;
+      continue;
+    }
+
+    if (arg.startsWith("--pick=")) {
+      pushPatterns(options.pick, arg.slice("--pick=".length));
+      i += 1;
+      continue;
+    }
+
+    if (arg.startsWith("--expose=")) {
+      pushPatterns(options.pick, arg.slice("--expose=".length));
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--omit") {
+      pushPatterns(options.omit, takeValue(argv, i, arg));
+      i += 2;
+      continue;
+    }
+
+    if (arg.startsWith("--omit=")) {
+      pushPatterns(options.omit, arg.slice("--omit=".length));
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--override") {
+      options.override = true;
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--strict") {
+      options.strict = true;
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--require") {
+      pushPatterns(options.require, takeValue(argv, i, arg));
+      i += 2;
+      continue;
+    }
+
+    if (arg.startsWith("--require=")) {
+      pushPatterns(options.require, arg.slice("--require=".length));
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--list") {
+      options.list = true;
+      i += 1;
+      continue;
+    }
+
+    if (arg.startsWith("-")) {
+      die(`unknown option: ${arg}`);
+    }
+
+    // Allow `load-env command args...`; `--` is recommended when the child has flags.
+    command = argv.slice(i);
+    break;
+  }
+
+  options.cwd = path.resolve(options.cwd);
+  return { options, command };
+}
+
+function inferMode() {
+  const event = process.env.npm_lifecycle_event;
+  if (!event) return null;
+
+  // Ignore npm hook wrappers; their mode is usually the inner script name.
+  return event.replace(/^(pre|post)/, "") || null;
+}
+
+function discoverAllFiles(cwd) {
+  const ignored = new Set([
+    ".env.example",
+    ".env.sample",
+    ".env.template",
+    ".env.defaults",
+  ]);
+
+  return fs
+    .readdirSync(cwd, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name)
+    .filter((name) => name === ".env" || name.startsWith(".env."))
+    .filter((name) => !ignored.has(name))
+    .sort((a, b) => {
+      if (a === ".env") return -1;
+      if (b === ".env") return 1;
+      return a.localeCompare(b);
+    });
+}
+
+function selectedFiles(options) {
+  if (options.files.length > 0) return options.files;
+  if (options.all) return discoverAllFiles(options.cwd);
+
+  const mode = options.mode ?? inferMode();
+  const files = [".env", ".env.local"];
+
+  if (mode) {
+    files.push(`.env.${mode}`, `.env.${mode}.local`);
+  }
+
+  return files;
+}
+
+function parseEnvValue(rawValue, lines, startIndex) {
+  let raw = rawValue.trim();
+
+  if (!raw) return { value: "", nextIndex: startIndex };
+
+  const quote = raw[0];
+  if (quote === '"' || quote === "'" || quote === "`") {
+    let body = raw.slice(1);
+    let lineIndex = startIndex;
+
+    while (true) {
+      const end = findClosingQuote(body, quote);
+      if (end !== -1) {
+        let value = body.slice(0, end);
+        if (quote === '"') value = unescapeDoubleQuoted(value);
+        return { value, nextIndex: lineIndex };
+      }
+
+      lineIndex += 1;
+      if (lineIndex >= lines.length) {
+        let value = body;
+        if (quote === '"') value = unescapeDoubleQuoted(value);
+        return { value, nextIndex: lineIndex - 1 };
+      }
+
+      body += `\n${lines[lineIndex]}`;
+    }
+  }
+
+  raw = stripInlineComment(raw).trim();
+  return { value: raw, nextIndex: startIndex };
+}
+
+function findClosingQuote(value, quote) {
+  for (let i = 0; i < value.length; i += 1) {
+    if (value[i] !== quote) continue;
+    if (quote === '"' && isEscaped(value, i)) continue;
+    return i;
+  }
+
+  return -1;
+}
+
+function isEscaped(value, index) {
+  let backslashes = 0;
+  for (let i = index - 1; i >= 0 && value[i] === "\\"; i -= 1) {
+    backslashes += 1;
+  }
+  return backslashes % 2 === 1;
+}
+
+function unescapeDoubleQuoted(value) {
+  return value.replace(/\\([nrt"\\])/g, (_, char) => {
+    if (char === "n") return "\n";
+    if (char === "r") return "\r";
+    if (char === "t") return "\t";
+    return char;
+  });
+}
+
+function stripInlineComment(value) {
+  for (let i = 0; i < value.length; i += 1) {
+    if (value[i] === "#" && (i === 0 || /\s/.test(value[i - 1]))) {
+      return value.slice(0, i);
+    }
+  }
+
+  return value;
+}
+
+function parseEnvFile(filePath) {
+  const content = fs.readFileSync(filePath, "utf8").replace(/^\uFEFF/, "");
+  const lines = content.split(/\r?\n/);
+  const values = {};
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    const match = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_.-]*)\s*=\s*(.*)$/);
+    if (!match) continue;
+
+    const [, key, rawValue] = match;
+    const parsed = parseEnvValue(rawValue, lines, i);
+    values[key] = parsed.value;
+    i = parsed.nextIndex;
+  }
+
+  return values;
+}
+
+function globToRegExp(pattern) {
+  const escaped = pattern.replace(/[|\\{}()[\]^$+?.]/g, "\\$&");
+  return new RegExp(`^${escaped.replace(/\*/g, ".*")}$`);
+}
+
+function matchesAny(name, patterns) {
+  return patterns.some((pattern) => globToRegExp(pattern).test(name));
+}
+
+function applyFilters(values, options) {
+  const filtered = {};
+
+  for (const [key, value] of Object.entries(values)) {
+    if (options.pick.length > 0 && !matchesAny(key, options.pick)) continue;
+    if (options.omit.length > 0 && matchesAny(key, options.omit)) continue;
+    filtered[key] = value;
+  }
+
+  return filtered;
+}
+
+const { options, command } = parseArgs(process.argv.slice(2));
+
+if (!fs.existsSync(options.cwd) || !fs.statSync(options.cwd).isDirectory()) {
+  die(`cwd does not exist or is not a directory: ${options.cwd}`);
+}
+
+const fileNames = selectedFiles(options);
+const loaded = {};
+const missing = [];
+
+for (const fileName of fileNames) {
+  const filePath = path.isAbsolute(fileName)
+    ? fileName
+    : path.join(options.cwd, fileName);
+
+  if (!fs.existsSync(filePath)) {
+    missing.push(fileName);
+    continue;
+  }
+
+  Object.assign(loaded, parseEnvFile(filePath));
+}
+
+if (options.strict && missing.length > 0) {
+  die(`missing env file(s): ${missing.join(", ")}`);
+}
+
+const filtered = applyFilters(loaded, options);
+const env = { ...process.env };
+const injected = [];
+
+for (const [key, value] of Object.entries(filtered)) {
+  if (!options.override && Object.prototype.hasOwnProperty.call(process.env, key)) {
+    continue;
+  }
+
+  env[key] = value;
+  injected.push(key);
+}
+
+const missingRequired = options.require.filter(
+  (key) => !Object.prototype.hasOwnProperty.call(env, key) || env[key] === "",
+);
+
+if (missingRequired.length > 0) {
+  die(`missing required env var(s): ${missingRequired.join(", ")}`);
+}
+
+if (options.list) {
+  for (const key of injected.sort()) {
+    console.log(key);
+  }
+  process.exit(0);
+}
+
+if (command.length === 0) {
+  console.log(USAGE);
+  process.exit(0);
+}
+
+const child = spawn(command[0], command.slice(1), {
+  stdio: "inherit",
+  env,
+});
+
+child.on("error", (error) => {
+  if (error.code === "ENOENT") die(`command not found: ${command[0]}`, 127);
+  die(error.message);
+});
+
+child.on("exit", (code, signal) => {
+  if (signal) {
+    process.kill(process.pid, signal);
+    return;
+  }
+
+  process.exit(code ?? 0);
+});
