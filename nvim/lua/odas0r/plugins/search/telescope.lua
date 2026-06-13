@@ -16,36 +16,6 @@ return {
         prompt_title = "Query",
       })
     end)
-
-    vim.keymap.set("n", "<leader>d", function()
-      local current_dir = vim.fn.getcwd()
-      return require("telescope.builtin").find_files({
-        prompt_title = "Directories in "
-          .. vim.fn.fnamemodify(current_dir, ":~"),
-        cwd = current_dir,
-        find_command = { "fd", "--type", "d", "--strip-cwd-prefix" },
-      })
-    end)
-
-    Utils.map("n", "<leader>fp", function()
-      return require("telescope.builtin").find_files({
-        prompt_title = "github.com",
-        cwd = os.getenv("HOME") .. "/github.com",
-        follow = true,
-        use_regex = false,
-        hidden = true,
-      })
-    end)
-
-    Utils.map("n", "<leader>fg", function()
-      return require("telescope.builtin").live_grep({
-        prompt_title = "github.com",
-        cwd = os.getenv("HOME") .. "/github.com",
-        follow = true,
-        use_regex = false,
-        hidden = true,
-      })
-    end)
   end,
   config = function()
     local actions = require("telescope.actions")
@@ -119,8 +89,8 @@ return {
           },
         },
         file_ignore_patterns = {
-          ".git",
-          "node_modules",
+          "/%.git/",
+          "/node_modules/",
         },
         prompt_prefix = " > ",
         selection_caret = "  ",

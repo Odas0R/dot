@@ -1,72 +1,36 @@
-local diffview_hl_groups = {
-  "DiffviewDiffAdd",
-  "DiffviewDiffDelete",
-  "DiffviewDiffChange",
-  "DiffviewDiffText",
-  "DiffviewDiffAddAsDelete",
-  "DiffviewDiffDeleteDim",
-  "DiffviewDiffAddInline",
-  "DiffviewDiffDeleteInline",
-  "DiffviewStatusAdded",
-  "DiffviewStatusUntracked",
-  "DiffviewStatusModified",
-  "DiffviewStatusRenamed",
-  "DiffviewStatusDeleted",
+-- GitHub-like unified diffs, but tuned down for gruvbox-dark.
+-- Only Diffview-specific groups are changed; global DiffAdd/DiffDelete/etc.
+-- stay owned by the colorscheme.
+local colors = {
+  add_bg = "#2a3328",
+  add_inline = "#3a4a32",
+  delete_bg = "#3a2828",
+  delete_inline = "#4a3030",
+  change_bg = "#332f26",
+  text_bg = "#4a432e",
+  filler_fg = "#7c6f64",
+  green = "#b8bb26",
+  red = "#fb4934",
+  yellow = "#fabd2f",
 }
 
-local saved_diffview_hl
-local diffview_hl_active = false
-
-local function save_diffview_hl()
-  if saved_diffview_hl then
-    return
-  end
-
-  saved_diffview_hl = {}
-  for _, group in ipairs(diffview_hl_groups) do
-    local ok, hl = pcall(vim.api.nvim_get_hl, 0, { name = group, link = false })
-    saved_diffview_hl[group] = ok and hl or false
-  end
-end
-
-local function restore_diffview_hl()
-  if not saved_diffview_hl then
-    diffview_hl_active = false
-    return
-  end
-
-  for group, hl in pairs(saved_diffview_hl) do
-    if hl == false or vim.tbl_isempty(hl) then
-      vim.api.nvim_set_hl(0, group, {})
-    else
-      vim.api.nvim_set_hl(0, group, hl)
+local function diff_branch_against_head()
+  vim.ui.input({
+    prompt = "Diff against branch: ",
+    default = "origin/main",
+  }, function(branch)
+    branch = branch and vim.trim(branch) or ""
+    if branch == "" then
+      return
     end
-  end
 
-  saved_diffview_hl = nil
-  diffview_hl_active = false
+    vim.cmd(
+      ("DiffviewOpen %s...HEAD --imply-local"):format(vim.fn.fnameescape(branch))
+    )
+  end)
 end
 
 local function apply_github_gruvbox_diff_hl()
-  -- GitHub-like unified diffs, but tuned down for gruvbox-dark.
-  -- These groups are global in Neovim, so save/restore them from Diffview's
-  -- enter/leave hooks to keep the palette local to the Diffview tab.
-  save_diffview_hl()
-  diffview_hl_active = true
-
-  local colors = {
-    add_bg = "#2a3328",
-    add_inline = "#3a4a32",
-    delete_bg = "#3a2828",
-    delete_inline = "#4a3030",
-    change_bg = "#332f26",
-    text_bg = "#4a432e",
-    filler_fg = "#7c6f64",
-    green = "#b8bb26",
-    red = "#fb4934",
-    yellow = "#fabd2f",
-  }
-
   vim.api.nvim_set_hl(0, "DiffviewDiffAdd", { bg = colors.add_bg })
   vim.api.nvim_set_hl(0, "DiffviewDiffDelete", { bg = colors.delete_bg })
   vim.api.nvim_set_hl(0, "DiffviewDiffChange", { bg = colors.change_bg })
@@ -117,14 +81,14 @@ return {
   dependencies = { "nvim-lua/plenary.nvim" },
   keys = {
     {
-      "<leader>dr",
+      "<leader>do",
       "<cmd>DiffviewOpen --imply-local<cr>",
       desc = "Review working tree",
     },
     {
-      "<leader>dR",
-      "<cmd>DiffviewOpen origin/main...HEAD --imply-local<cr>",
-      desc = "Review branch vs origin/main",
+      "<leader>db",
+      diff_branch_against_head,
+      desc = "Review branch vs chosen base",
     },
     { "<leader>dc", "<cmd>DiffviewClose<cr>", desc = "Close Diffview" },
     {
@@ -183,11 +147,35 @@ return {
       },
       one_sided_layout = "raw",
     },
+    keymaps = {
+      view = {
+        {
+          "n",
+          "<leader>q",
+          "<cmd>DiffviewClose<cr>",
+          { desc = "Close Diffview" },
+        },
+      },
+      file_panel = {
+        {
+          "n",
+          "<leader>q",
+          "<cmd>DiffviewClose<cr>",
+          { desc = "Close Diffview" },
+        },
+      },
+      file_history_panel = {
+        {
+          "n",
+          "<leader>q",
+          "<cmd>DiffviewClose<cr>",
+          { desc = "Close Diffview" },
+        },
+      },
+    },
     hooks = {
       view_opened = apply_github_gruvbox_diff_hl,
       view_enter = apply_github_gruvbox_diff_hl,
-      view_leave = restore_diffview_hl,
-      view_closed = restore_diffview_hl,
     },
   },
   config = function(_, opts)
@@ -198,14 +186,7 @@ return {
         "odas0r_diffview_highlights",
         { clear = true }
       ),
-      callback = function()
-        -- Do not leak the Diffview palette into normal editing after a
-        -- colorscheme reload. Only reapply if a Diffview tab is active.
-        if diffview_hl_active then
-          saved_diffview_hl = nil
-          apply_github_gruvbox_diff_hl()
-        end
-      end,
+      callback = apply_github_gruvbox_diff_hl,
     })
   end,
 }
