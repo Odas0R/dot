@@ -1,5 +1,4 @@
 return {
-  -- tag = "0.1.2",
   "nvim-telescope/telescope.nvim",
   lazy = false,
   init = function()

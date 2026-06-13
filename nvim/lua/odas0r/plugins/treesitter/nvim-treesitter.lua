@@ -1,53 +1,86 @@
+local parsers = {
+  "astro",
+  "bash",
+  "css",
+  "diff",
+  "dockerfile",
+  "git_config",
+  "git_rebase",
+  "gitattributes",
+  "gitcommit",
+  "gitignore",
+  "html",
+  "javascript",
+  "jsdoc",
+  "json",
+  "lua",
+  "luadoc",
+  "markdown",
+  "markdown_inline",
+  "query",
+  "regex",
+  "sql",
+  "toml",
+  "tsx",
+  "typescript",
+  "vim",
+  "vimdoc",
+  "yaml",
+}
+
+local disabled_filetypes = {
+  dockerfile = true,
+}
+
+local function should_start(buf, lang)
+  if disabled_filetypes[lang] then
+    return false
+  end
+
+  local name = vim.api.nvim_buf_get_name(buf)
+  local ok, stats = pcall(vim.uv.fs_stat, name)
+  if ok and stats and stats.size > 100 * 1024 then
+    return false
+  end
+
+  return vim.api.nvim_buf_line_count(buf) <= 10000
+end
+
+local function start_treesitter(args)
+  local buf = args.buf
+  local lang = vim.treesitter.language.get_lang(vim.bo[buf].filetype)
+  if not lang or not should_start(buf, lang) then
+    return
+  end
+
+  if pcall(vim.treesitter.start, buf, lang) then
+    vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+  end
+end
+
 return {
   "nvim-treesitter/nvim-treesitter",
-  event = { "BufReadPost", "BufNewFile" },
-  cmd = { "TSUpdateSync" },
+  branch = "main",
+  lazy = false,
+  build = function()
+    require("nvim-treesitter").install(parsers):wait(300000)
+  end,
   config = function()
-    require("nvim-treesitter.configs").setup({
-      -- Core configurations
-      highlight = {
-        enable = true,
-        disable = function(lang, buf)
-          local max_filesize = 100 * 1024 -- 100 KB
-          local ok, stats =
-            pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-          if ok and stats and stats.size > max_filesize then
-            return true
-          end
+    local ok, treesitter = pcall(require, "nvim-treesitter")
+    if not ok then
+      return
+    end
 
-          -- Disable for specific file types that are problematic
-          local disabled_filetypes = { "dockerfile" }
-          if vim.tbl_contains(disabled_filetypes, lang) then
-            return true
-          end
+    treesitter.setup({
+      install_dir = vim.fn.stdpath("data") .. "/site",
+    })
 
-          -- Limit parsing for very large files
-          local max_lines = 10000
-          if vim.api.nvim_buf_line_count(buf) > max_lines then
-            return true
-          end
-        end,
-        additional_vim_regex_highlighting = false, -- Improves performance
-      },
-
-      indent = {
-        enable = true, -- Keep this disabled if you don't use treesitter for indentation
-      },
-
-      -- incremental_selection = {
-      --   enable = true,
-      --   keymaps = {
-      --     init_selection = "gnn", -- set to `false` to disable one of the mappings
-      --     node_incremental = "grn",
-      --     scope_incremental = "grc",
-      --     node_decremental = "grm",
-      --   },
-      -- },
-
-      -- Efficiently install parsers - only install what's needed
-      auto_install = true, -- Automatically install missing parsers when entering buffer
-      sync_install = false, -- Install parsers synchronously (only applied to `ensure_installed`)
-      ignore_install = {}, -- List of parsers to ignore installing
+    vim.api.nvim_create_autocmd("FileType", {
+      group = vim.api.nvim_create_augroup(
+        "odas0r_treesitter",
+        { clear = true }
+      ),
+      callback = start_treesitter,
     })
   end,
 }

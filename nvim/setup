@@ -9,6 +9,7 @@ mkdir -p "$NVIM"
 
 # setups
 ln -sf "$DOT/nvim/init.lua" "$NVIM/init.lua"
+ln -sf "$DOT/lazy-lock.json" "$NVIM/lazy-lock.json"
 ln -sf "$DOT/nvim/spell" "$NVIM/spell"
 
 # setup lua and plugins

@@ -25,7 +25,9 @@ local function diff_branch_against_head()
     end
 
     vim.cmd(
-      ("DiffviewOpen %s...HEAD --imply-local"):format(vim.fn.fnameescape(branch))
+      ("DiffviewOpen %s...HEAD --imply-local"):format(
+        vim.fn.fnameescape(branch)
+      )
     )
   end)
 end
@@ -64,7 +66,6 @@ end
 
 return {
   "dlyongemallo/diffview-plus.nvim",
-  version = "*",
   cmd = {
     "DiffviewOpen",
     "DiffviewToggle",
@@ -154,6 +155,18 @@ return {
           "<leader>q",
           "<cmd>DiffviewClose<cr>",
           { desc = "Close Diffview" },
+        },
+        {
+          "n",
+          "<leader>c",
+          "<cmd>PiReviewComment<cr>",
+          { desc = "Add Pi review comment" },
+        },
+        {
+          "x",
+          "<leader>c",
+          ":<C-U>'<,'>PiReviewComment<cr>",
+          { desc = "Add Pi review comment" },
         },
       },
       file_panel = {

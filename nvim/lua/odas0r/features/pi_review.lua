@@ -1,3 +1,5 @@
+local Input = require("odas0r.ui.input")
+
 local M = {}
 
 local function notify(message, level)
@@ -100,14 +102,31 @@ local function selected_lines(line1, line2)
   return table.concat(lines, "\n")
 end
 
-function M.add_comment(opts)
-  opts = opts or {}
+local function review_root()
   local file = current_file()
   local root_start = file
       and not is_uri(file)
       and vim.fn.fnamemodify(file, ":p:h")
     or vim.fn.getcwd()
-  local root = git_root(root_start)
+  return git_root(root_start)
+end
+
+function M.open_review()
+  local root = review_root()
+  if not root then
+    notify("Not inside a Git repository", vim.log.levels.ERROR)
+    return
+  end
+
+  local review_dir = root .. "/.pi"
+  vim.fn.mkdir(review_dir, "p")
+  vim.cmd.edit(vim.fn.fnameescape(review_dir .. "/review.md"))
+end
+
+function M.add_comment(opts)
+  opts = opts or {}
+  local file = current_file()
+  local root = review_root()
   if not root then
     notify("Not inside a Git repository", vim.log.levels.ERROR)
     return
@@ -124,7 +143,7 @@ function M.add_comment(opts)
     or ("%s:%d-%d"):format(rel, line1, line2)
   local code = selected_lines(line1, line2):gsub("```", "`\226\128\139``")
 
-  vim.ui.input(
+  Input.input(
     { prompt = ("Review comment for %s: "):format(location) },
     function(msg)
       if not msg or msg == "" then
@@ -159,6 +178,12 @@ function M.add_comment(opts)
 end
 
 function M.setup()
+  vim.api.nvim_create_user_command("PiReviewOpen", function()
+    M.open_review()
+  end, {
+    desc = "Open .pi/review.md",
+  })
+
   vim.api.nvim_create_user_command("PiReviewComment", function(opts)
     M.add_comment(opts)
   end, {
@@ -166,12 +191,8 @@ function M.setup()
     range = true,
   })
 
-  vim.keymap.set("n", "<leader>pc", "<cmd>PiReviewComment<cr>", {
-    desc = "Add Pi review comment",
-  })
-
-  vim.keymap.set("x", "<leader>pc", ":<C-U>'<,'>PiReviewComment<cr>", {
-    desc = "Add Pi review comment",
+  vim.keymap.set("n", "<leader>po", "<cmd>PiReviewOpen<cr>", {
+    desc = "Open Pi review file",
   })
 end
 

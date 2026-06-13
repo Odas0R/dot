@@ -17,7 +17,7 @@ for theme_file in "$PI_SRC/themes"/*.json; do
 done
 
 # Symlink extensions
-for extension_file in "$PI_SRC/extensions"/*.ts; do
+for extension_file in "$PI_SRC/extensions"/*.{js}; do
   if [[ -f "$extension_file" ]]; then
     extension_name="$(basename "$extension_file")"
     ln -sf "$extension_file" "$HOME/.pi/agent/extensions/$extension_name"

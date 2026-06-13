@@ -15,7 +15,7 @@ Utils.autocmd("TextYankPost", {
   group = Utils.augroup("highlight_yank"),
   desc = "Highlight selection on yank",
   callback = function()
-    vim.highlight.on_yank()
+    vim.hl.hl_op()
   end,
 })
 

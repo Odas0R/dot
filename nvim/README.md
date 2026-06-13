@@ -45,8 +45,9 @@ nvim/
 
 - `<leader>dr` opens `diffview-plus.nvim` for working-tree review.
 - `<leader>dR` reviews `origin/main...HEAD`.
-- `<leader>pc` appends a normal or visual-range review comment to `.pi/review.md`.
-- From Pi, `/diffview` opens Diffview in the parent Neovim instance and `/review-apply` sends unchecked review comments back to Pi.
+- `<leader>pr` / `:PiReviewOpen` opens `.pi/review.md`.
+- In Diffview, `<leader>c` / `:PiReviewComment` appends a normal or visual-range review comment to `.pi/review.md`.
+- From Pi, `/review-diff` opens Diffview in a kitty overlay pane, `/review-apply` sends unchecked review comments back to Pi, and `/review-clean` clears the review file.
 
 ## References
 
