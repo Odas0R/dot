@@ -133,11 +133,16 @@ local function popup_input(opts, on_confirm)
     return
   end
 
+  vim.api.nvim_buf_set_name(buf, "odas0r-input://" .. buf)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, default_lines)
-  vim.bo[buf].buftype = "nofile"
+  vim.bo[buf].buftype = "acwrite"
   vim.bo[buf].bufhidden = "wipe"
   vim.bo[buf].swapfile = false
   vim.bo[buf].modifiable = true
+  vim.bo[buf].modified = false
+
+  local origin_win = vim.api.nvim_get_current_win()
+  local origin_view = vim.fn.winsaveview()
 
   local ok_win, win = pcall(vim.api.nvim_open_win, buf, true, {
     relative = "editor",
@@ -173,11 +178,23 @@ local function popup_input(opts, on_confirm)
   vim.api.nvim_win_set_cursor(win, { #default_lines, #last_line })
 
   local done = false
+  local function restore_origin()
+    if vim.api.nvim_win_is_valid(origin_win) then
+      pcall(vim.api.nvim_set_current_win, origin_win)
+      pcall(vim.fn.winrestview, origin_view)
+    end
+  end
+
   local function close(value)
     if done then
       return
     end
     done = true
+
+    -- Insert-mode mappings can leave Neovim in insert mode after the floating
+    -- window closes. Stop insert first so focus returns to the underlying
+    -- window in normal mode.
+    pcall(vim.cmd, "stopinsert")
 
     if vim.api.nvim_win_is_valid(win) then
       pcall(vim.api.nvim_win_close, win, true)
@@ -186,6 +203,7 @@ local function popup_input(opts, on_confirm)
       pcall(vim.api.nvim_buf_delete, buf, { force = true })
     end
 
+    restore_origin()
     on_confirm(value)
   end
 
@@ -203,12 +221,22 @@ local function popup_input(opts, on_confirm)
     close(nil)
   end
 
+  vim.api.nvim_create_autocmd("BufWriteCmd", {
+    buffer = buf,
+    callback = confirm,
+  })
+
   if multiline then
-    vim.keymap.set("n", "<cr>", confirm, {
-      buffer = buf,
-      desc = "Confirm textarea",
-      nowait = true,
-    })
+    vim.keymap.set(
+      opts.submit_on_enter and { "n", "i" } or "n",
+      "<cr>",
+      confirm,
+      {
+        buffer = buf,
+        desc = "Confirm textarea",
+        nowait = true,
+      }
+    )
     for _, lhs in ipairs({ "<c-s>", "<c-cr>", "<m-cr>" }) do
       vim.keymap.set({ "n", "i" }, lhs, confirm, {
         buffer = buf,
@@ -252,6 +280,7 @@ local function popup_input(opts, on_confirm)
     callback = function()
       if not done then
         done = true
+        restore_origin()
         on_confirm(nil)
       end
     end,

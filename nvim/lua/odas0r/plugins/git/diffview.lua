@@ -33,6 +33,27 @@ local function diff_branch_against_head()
   end)
 end
 
+local function is_diffview_buffer(buf)
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return false
+  end
+
+  local filetype = vim.bo[buf].filetype
+  return filetype == "DiffviewFiles"
+    or filetype == "DiffviewFileHistory"
+    or vim.b[buf].diffview_loaded
+    or vim.api.nvim_buf_get_name(buf):match("^diffview://") ~= nil
+end
+
+local function disable_diffview_relative_number()
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    if is_diffview_buffer(buf) then
+      vim.wo[win].relativenumber = false
+    end
+  end
+end
+
 local function apply_soft_gruvbox_diff_hl()
   vim.api.nvim_set_hl(0, "DiffviewDiffAdd", { bg = colors.add_bg })
   vim.api.nvim_set_hl(0, "DiffviewDiffDelete", { bg = colors.delete_bg })
@@ -69,6 +90,11 @@ local function apply_soft_gruvbox_diff_hl()
   vim.api.nvim_set_hl(0, "DiffviewStatusModified", { fg = colors.yellow })
   vim.api.nvim_set_hl(0, "DiffviewStatusRenamed", { fg = colors.yellow })
   vim.api.nvim_set_hl(0, "DiffviewStatusDeleted", { fg = colors.red })
+end
+
+local function apply_diffview_ui()
+  apply_soft_gruvbox_diff_hl()
+  disable_diffview_relative_number()
 end
 
 return {
@@ -169,18 +195,6 @@ return {
           "<cmd>DiffviewRefresh<cr>",
           { desc = "Refresh Diffview" },
         },
-        {
-          "n",
-          "<leader>c",
-          "<cmd>PiReviewComment<cr>",
-          { desc = "Add Pi review comment" },
-        },
-        {
-          "x",
-          "<leader>c",
-          ":<C-U>'<,'>PiReviewComment<cr>",
-          { desc = "Add Pi review comment" },
-        },
       },
       file_panel = {
         {
@@ -200,8 +214,8 @@ return {
       },
     },
     hooks = {
-      view_opened = apply_soft_gruvbox_diff_hl,
-      view_enter = apply_soft_gruvbox_diff_hl,
+      view_opened = apply_diffview_ui,
+      view_enter = apply_diffview_ui,
     },
   },
   config = function(_, opts)
@@ -213,14 +227,31 @@ return {
     pcall(vim.api.nvim_del_augroup_by_name, "diffview_session")
 
     require("diffview").setup(opts)
-    apply_soft_gruvbox_diff_hl()
+
+    apply_diffview_ui()
+
+    vim.api.nvim_create_autocmd("User", {
+      group = vim.api.nvim_create_augroup(
+        "odas0r_diffview_window_options",
+        { clear = true }
+      ),
+      pattern = {
+        "DiffviewViewOpened",
+        "DiffviewViewEnter",
+        "DiffviewViewPostLayout",
+        "DiffviewDiffBufWinEnter",
+      },
+      callback = function()
+        vim.schedule(disable_diffview_relative_number)
+      end,
+    })
 
     vim.api.nvim_create_autocmd("ColorScheme", {
       group = vim.api.nvim_create_augroup(
         "odas0r_diffview_highlights",
         { clear = true }
       ),
-      callback = apply_soft_gruvbox_diff_hl,
+      callback = apply_diffview_ui,
     })
   end,
 }
