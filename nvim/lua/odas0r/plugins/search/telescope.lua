@@ -2,15 +2,15 @@ return {
   "nvim-telescope/telescope.nvim",
   lazy = false,
   init = function()
-    local Utils = require("odas0r.lib.util")
+    local map = require("odas0r.lib.keymap")
 
-    Utils.map("n", "<C-p>", function()
+    map("n", "<C-p>", function()
       return require("telescope.builtin").find_files({
         prompt_title = "Query",
       })
     end)
 
-    Utils.map("n", "<C-g>", function()
+    map("n", "<C-g>", function()
       return require("telescope.builtin").live_grep({
         prompt_title = "Query",
       })

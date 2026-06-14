@@ -1,10 +1,10 @@
-local util = require("odas0r.lib.util")
+local map = require("odas0r.lib.keymap")
 
 return {
   "mhartington/formatter.nvim",
   cmd = "FormatWrite",
   init = function()
-    util.map("n", "gp", function()
+    map("n", "gp", function()
       vim.cmd("FormatWrite")
     end, { silent = false })
   end,

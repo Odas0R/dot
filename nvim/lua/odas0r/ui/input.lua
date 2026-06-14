@@ -1,4 +1,5 @@
 local Window = require("odas0r.lib.window")
+local theme = require("odas0r.ui.theme")
 
 local M = {}
 
@@ -54,8 +55,7 @@ local function split_default(value, multiline)
 end
 
 local function apply_highlights()
-  local ok, gruvbox = pcall(require, "odas0r.features.gruvbox")
-  local colors = ok and gruvbox.colors() or {}
+  local colors = theme.gruvbox_colors()
 
   vim.api.nvim_set_hl(0, "Odas0rInputNormal", {
     fg = colors.fg1,

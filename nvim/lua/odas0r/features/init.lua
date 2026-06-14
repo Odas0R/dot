@@ -1,5 +1,2 @@
-require("odas0r.features.replace")
-require("odas0r.features.refactor")
-require("odas0r.features.checkbox")
-require("odas0r.features.exec")
-require("odas0r.features.pi_review").setup()
+-- Custom features are loaded through lazy.nvim specs in odas0r.plugins.custom.
+return {}

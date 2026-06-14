@@ -1,4 +1,7 @@
-local Utils = require("odas0r.lib.util")
+local map = require("odas0r.lib.keymap")
+
+local M = {}
+
 local checked_character = "x"
 
 local states = {
@@ -6,7 +9,7 @@ local states = {
   checked = "%[" .. checked_character .. "]",
 }
 
-local line_contains_an_unchecked_checkbox = function(line)
+local function line_contains_an_unchecked_checkbox(line)
   return line:find(states.unchecked)
 end
 
@@ -19,7 +22,7 @@ local checkbox = {
   end,
 }
 
-local toggle = function()
+function M.toggle()
   local bufnr = vim.api.nvim_buf_get_number(0)
   local cursor = vim.api.nvim_win_get_cursor(0)
   local start_line = cursor[1] - 1
@@ -47,7 +50,7 @@ local toggle = function()
   vim.api.nvim_win_set_cursor(0, cursor)
 end
 
-local toggle_many = function()
+function M.toggle_many()
   local bufnr = vim.api.nvim_buf_get_number(0)
   local cursor = vim.api.nvim_win_get_cursor(0)
 
@@ -58,10 +61,7 @@ local toggle_many = function()
   local end_line = pos_cursor[2]
 
   if end_line < start_line then
-    local t_end_line = start_line
-    local t_start_line = end_line
-    start_line = t_start_line
-    end_line = t_end_line
+    start_line, end_line = end_line, start_line
   end
 
   local lines =
@@ -70,11 +70,9 @@ local toggle_many = function()
 
   for _, line in ipairs(lines) do
     if line_contains_an_unchecked_checkbox(line) then
-      local new_line = checkbox.check(line)
-      table.insert(new_lines, new_line)
+      table.insert(new_lines, checkbox.check(line))
     else
-      local new_line = checkbox.uncheck(line)
-      table.insert(new_lines, new_line)
+      table.insert(new_lines, checkbox.uncheck(line))
     end
   end
 
@@ -82,11 +80,15 @@ local toggle_many = function()
   vim.api.nvim_win_set_cursor(0, cursor)
 end
 
--- Checkbox
-Utils.map("n", "<leader>x", function()
-  toggle()
-end, { silent = true })
+function M.setup(opts)
+  opts = opts or {}
+  local keymap = opts.keymap or "<leader>x"
 
-Utils.map("v", "<leader>x", function()
-  toggle_many()
-end, { silent = false })
+  map("n", keymap, M.toggle, { silent = true, desc = "Toggle checkbox" })
+  map("v", keymap, M.toggle_many, {
+    silent = false,
+    desc = "Toggle selected checkboxes",
+  })
+end
+
+return M

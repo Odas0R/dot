@@ -1,6 +1,6 @@
-local Utils = require("odas0r.lib.util")
+local command = require("odas0r.lib.command")
 
-Utils.cmd("BufClose", function()
+command.create("BufClose", function()
   local current_buffer = vim.fn.bufnr("%")
   local last_buffer = vim.fn.bufnr("$")
   local window_count = vim.fn.winnr("$")
@@ -34,7 +34,7 @@ end, {
   nargs = 0,
 })
 
-Utils.cmd("ZetGrep", function(opts)
+command.create("ZetGrep", function(opts)
   if terminal ~= nil then
     terminal:close()
   end

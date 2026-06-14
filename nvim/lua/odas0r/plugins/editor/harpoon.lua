@@ -1,4 +1,5 @@
-local Utils = require("odas0r.lib.util")
+local autocmd = require("odas0r.lib.autocmd")
+local map = require("odas0r.lib.keymap")
 
 local closeTerminal = function()
   if terminal == nil then
@@ -15,29 +16,29 @@ return {
     -----------------------------------
     -- Keymaps
     -----------------------------------
-    Utils.map("n", "<leader>a", function()
+    map("n", "<leader>a", function()
       require("harpoon.mark").add_file()
     end)
-    Utils.map("n", "<C-e>", function()
+    map("n", "<C-e>", function()
       require("harpoon.ui").toggle_quick_menu()
     end)
 
-    Utils.map({ "n", "t" }, "<leader>1", function()
+    map({ "n", "t" }, "<leader>1", function()
       closeTerminal()
       require("harpoon.ui").nav_file(1)
     end)
 
-    Utils.map({ "n", "t" }, "<leader>2", function()
+    map({ "n", "t" }, "<leader>2", function()
       closeTerminal()
       require("harpoon.ui").nav_file(2)
     end)
 
-    Utils.map({ "n", "t" }, "<leader>3", function()
+    map({ "n", "t" }, "<leader>3", function()
       closeTerminal()
       require("harpoon.ui").nav_file(3)
     end)
 
-    Utils.map({ "n", "t" }, "<leader>4", function()
+    map({ "n", "t" }, "<leader>4", function()
       closeTerminal()
       require("harpoon.ui").nav_file(4)
     end)
@@ -45,9 +46,9 @@ return {
     -----------------------------------
     -- Augroups
     -----------------------------------
-    Utils.autocmd("FileType", {
+    autocmd.create("FileType", {
       pattern = "harpoon",
-      group = Utils.augroup("harpoon"),
+      group = autocmd.group("harpoon"),
       callback = function()
         vim.opt_local.cursorline = true
       end,

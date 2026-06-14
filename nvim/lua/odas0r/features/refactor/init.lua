@@ -1,6 +1,8 @@
-local Utils = require("odas0r.lib.util")
+local map = require("odas0r.lib.keymap")
 
-local selected_to_new_file = function()
+local M = {}
+
+function M.selected_to_new_file()
   local buf = vim.api.nvim_get_current_buf()
 
   local pos_cursor = vim.fn.getpos(".")
@@ -10,11 +12,7 @@ local selected_to_new_file = function()
   local end_line = pos_cursor[2]
 
   if end_line < start_line then
-    local t_end_line = start_line
-    local t_start_line = end_line
-
-    start_line = t_start_line
-    end_line = t_end_line
+    start_line, end_line = end_line, start_line
   end
 
   -- get the selected text from the start_line to end_line
@@ -29,15 +27,16 @@ local selected_to_new_file = function()
       and "." .. vim.fn.expand("%:e")
     or ""
 
-  local file_type = vim.api.nvim_buf_get_option(buf, "filetype")
+  local file_type = vim.api.nvim_get_option_value("filetype", { buf = buf })
 
-  vim.cmd("cd " .. buf_path)
+  vim.cmd("cd " .. vim.fn.fnameescape(buf_path))
 
-  Utils.input(
+  vim.ui.input(
     { prompt = "New file name: ", completion = "file" },
     function(input)
       -- input is nil when user aborts
       if input == nil then
+        vim.cmd("cd " .. vim.fn.fnameescape(original_cwd))
         return
       end
 
@@ -45,7 +44,7 @@ local selected_to_new_file = function()
       local file_name = empty_input and "Untitled" .. file_extension or input
       local file_path = buf_path .. "/" .. file_name
 
-      vim.cmd("cd " .. original_cwd)
+      vim.cmd("cd " .. vim.fn.fnameescape(original_cwd))
 
       -- delete the selected lines
       vim.api.nvim_buf_set_lines(buf, start_line - 1, end_line, true, {})
@@ -59,11 +58,20 @@ local selected_to_new_file = function()
       -- set the filename
       vim.api.nvim_buf_set_name(new_buf, file_path)
       vim.api.nvim_buf_set_lines(new_buf, 0, -1, true, lines)
-      vim.api.nvim_buf_set_option(new_buf, "filetype", file_type)
+      vim.api.nvim_set_option_value("filetype", file_type, { buf = new_buf })
     end
   )
 end
 
-Utils.map("v", "<C-n>", function()
-  selected_to_new_file()
-end, { noremap = true, silent = true })
+function M.setup(opts)
+  opts = opts or {}
+  local keymap = opts.keymap or "<C-n>"
+
+  map("v", keymap, M.selected_to_new_file, {
+    noremap = true,
+    silent = true,
+    desc = "Extract selection to new file",
+  })
+end
+
+return M

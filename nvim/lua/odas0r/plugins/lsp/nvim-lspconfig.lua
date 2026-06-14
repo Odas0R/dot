@@ -1,4 +1,4 @@
-local Utils = require("odas0r.lib.util")
+local map = require("odas0r.lib.keymap")
 
 return {
   "neovim/nvim-lspconfig",
@@ -6,52 +6,52 @@ return {
   config = function()
     local on_attach = function(_, bufnr)
       -- Enable completion triggered by <c-x><c-o>
-      Utils.set_option("omnifunc", "v:lua.vim.lsp.omnifunc", { buf = bufnr })
+      vim.api.nvim_set_option_value("omnifunc", "v:lua.vim.lsp.omnifunc", { buf = bufnr })
 
       -- Common mappings for all language servers
-      Utils.map(
+      map(
         "n",
         "gd",
         vim.lsp.buf.definition,
         { buffer = bufnr, desc = "Go to definition" }
       )
-      Utils.map(
+      map(
         "n",
         "gD",
         vim.lsp.buf.declaration,
         { buffer = bufnr, desc = "Go to declaration" }
       )
-      Utils.map(
+      map(
         "n",
         "gi",
         vim.lsp.buf.implementation,
         { buffer = bufnr, desc = "Go to implementation" }
       )
-      Utils.map(
+      map(
         "n",
         "gh",
         vim.lsp.buf.hover,
         { buffer = bufnr, desc = "Show hover information" }
       )
-      Utils.map(
+      map(
         "n",
         "gk",
         vim.lsp.buf.references,
         { buffer = bufnr, desc = "Show references" }
       )
-      Utils.map("n", "K", function()
+      map("n", "K", function()
         vim.diagnostic.jump({ count = -1, float = true })
       end, { buffer = bufnr, desc = "Previous diagnostic" })
-      Utils.map("n", "J", function()
+      map("n", "J", function()
         vim.diagnostic.jump({ count = 1, float = true })
       end, { buffer = bufnr, desc = "Next diagnostic" })
-      Utils.map(
+      map(
         "n",
         "gr",
         vim.lsp.buf.rename,
         { buffer = bufnr, desc = "Rename symbol" }
       )
-      Utils.map(
+      map(
         "n",
         "ga",
         vim.lsp.buf.code_action,
@@ -94,19 +94,19 @@ return {
         end
 
         -- Mappings.
-        Utils.map(
+        map(
           "n",
           "gD",
           "<cmd>lua vim.lsp.buf.type_definition()<CR>",
           { buf = bufnr }
         )
-        Utils.map(
+        map(
           "n",
           "go",
           "<cmd>lua vim.lsp.buf.document_symbol()<CR>",
           { buf = bufnr }
         )
-        Utils.map("n", "go", organize_imports, { buf = bufnr })
+        map("n", "go", organize_imports, { buf = bufnr })
       end,
     })
     vim.lsp.enable("ts_ls")
@@ -117,19 +117,19 @@ return {
         on_attach(client, bufnr)
 
         -- Mappings.
-        Utils.map(
+        map(
           "n",
           "gD",
           "<cmd>lua vim.lsp.buf.type_definition()<CR>",
           { buf = bufnr }
         )
-        Utils.map(
+        map(
           "n",
           "gi",
           "<cmd>lua vim.lsp.buf.implementation()<CR>",
           { buf = bufnr }
         )
-        Utils.map(
+        map(
           "n",
           "go",
           "<cmd>lua vim.lsp.buf.document_symbol()<CR>",
@@ -223,7 +223,7 @@ return {
       },
       on_attach = function(_, bufnr)
         on_attach(_, bufnr)
-        Utils.map("n", "gi", ":silent! !goimports -w %<CR>", { buf = bufnr })
+        map("n", "gi", ":silent! !goimports -w %<CR>", { buf = bufnr })
       end,
     })
     vim.lsp.enable("gopls")
@@ -238,7 +238,7 @@ return {
       capabilities = capabilities,
       on_attach = function(_, bufnr)
         on_attach(_, bufnr)
-        Utils.map("n", "gi", ":silent! !goimports -w %<CR>", { buf = bufnr })
+        map("n", "gi", ":silent! !goimports -w %<CR>", { buf = bufnr })
       end,
     })
     vim.lsp.enable("templ")

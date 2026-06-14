@@ -1,4 +1,5 @@
-local Utils = require("odas0r.lib.util")
+local command = require("odas0r.lib.command")
+local map = require("odas0r.lib.keymap")
 
 return {
   "L3MON4D3/LuaSnip",
@@ -6,17 +7,17 @@ return {
   build = "make install_jsregexp",
   init = function()
     local ls = require("luasnip")
-    Utils.map({ "i", "s" }, "<C-w>", function()
+    map({ "i", "s" }, "<C-w>", function()
       ls.jump(-1)
     end)
-    Utils.map({ "i", "s" }, "<C-e>", function()
+    map({ "i", "s" }, "<C-e>", function()
       if ls.expand_or_jumpable() then
         ls.expand_or_jump()
       end
     end)
 
     -- Add command to edit snippets
-    Utils.cmd("LuaSnipEdit", function()
+    command.create("LuaSnipEdit", function()
       local ft = vim.bo.filetype
       local filepath = string.format(
         "%s/.config/nvim/lua/odas0r/snippets/%s.lua",

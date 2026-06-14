@@ -1,10 +1,11 @@
-local Bridge = require("odas0r.features.pi_review.bridge")
 local Git = require("odas0r.lib.git")
 local Input = require("odas0r.ui.input")
 local Loclist = require("odas0r.lib.loclist")
 local Path = require("odas0r.lib.path")
-local Store = require("odas0r.features.pi_review.store")
 local Text = require("odas0r.lib.text")
+
+local Store = require("odas0r.features.pi_review.store")
+local Bridge = require("odas0r.features.pi_review.bridge")
 
 local M = {}
 

@@ -1,6 +1,7 @@
 local M = {}
 local Job = require("plenary.job")
-local utils = require("odas0r.lib.util")
+local command = require("odas0r.lib.command")
+local spinner = require("odas0r.lib.spinner")
 
 local function parse_patterns(args)
   local pattern, replacement
@@ -48,7 +49,7 @@ local function get_unique_words()
   return unique_words
 end
 
-local function autocomplete(arg_lead, cmd_line, cursor_pos)
+local function autocomplete(arg_lead)
   local words = get_unique_words()
   local matches = {}
 
@@ -62,7 +63,7 @@ local function autocomplete(arg_lead, cmd_line, cursor_pos)
 end
 
 function M.replace(args)
-  local pattern, replacement = parse_patterns(args)
+  local pattern, replacement = parse_patterns(args or "")
 
   if not pattern or not replacement then
     vim.notify("Usage: Replace pattern replacement", vim.log.levels.ERROR)
@@ -73,13 +74,13 @@ function M.replace(args)
   vim.cmd("silent! wall")
 
   local command = build_command(pattern, replacement)
-  local animation = utils.loading_animation("Replacing across project...")
+  local animation = spinner.start("Replacing across project...")
 
   -- execute the command
   Job:new({
     command = "bash",
     args = { "-c", command },
-    on_exit = function(j, code)
+    on_exit = function(_, code)
       animation:stop()
 
       if code ~= 0 then
@@ -108,13 +109,16 @@ function M.replace(args)
   }):start()
 end
 
--- Create the Replace command
-utils.cmd("Replace", function(opts)
-  M.replace(opts.fargs[1])
-end, {
-  nargs = 1,
-  complete = autocomplete,
-  desc = "Replace pattern with replacement across project files",
-})
+function M.setup()
+  pcall(vim.api.nvim_del_user_command, "Replace")
+
+  command.create("Replace", function(opts)
+    M.replace(opts.args)
+  end, {
+    nargs = 1,
+    complete = autocomplete,
+    desc = "Replace pattern with replacement across project files",
+  })
+end
 
 return M

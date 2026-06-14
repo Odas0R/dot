@@ -1,14 +1,24 @@
 local M = {}
 
-M.Gruvbox = require("gruvbox")
+local function get_gruvbox()
+  local ok, gruvbox = pcall(require, "gruvbox")
+  if not ok then
+    return nil
+  end
 
-M.colors = function()
-  local Gruvbox = M.Gruvbox
+  return gruvbox
+end
 
-  local p = Gruvbox.palette
-  local config = Gruvbox.config
+function M.gruvbox_colors()
+  local gruvbox = get_gruvbox()
+  if not gruvbox then
+    return {}
+  end
 
-  for color, hex in pairs(config.palette_overrides) do
+  local p = gruvbox.palette
+  local config = gruvbox.config
+
+  for color, hex in pairs(config.palette_overrides or {}) do
     p[color] = hex
   end
 
@@ -83,17 +93,17 @@ M.colors = function()
     color_groups[bg].dark_aqua = p[bg .. "_aqua_" .. contrast]
   end
 
-  return color_groups[bg]
+  return color_groups[bg] or {}
 end
 
-M.config = function()
-  local Gruvbox = M.Gruvbox
-  return Gruvbox.config
+function M.gruvbox_config()
+  local gruvbox = get_gruvbox()
+  return gruvbox and gruvbox.config or {}
 end
 
-M.palette = function()
-  local Gruvbox = M.Gruvbox
-  return Gruvbox.palette
+function M.gruvbox_palette()
+  local gruvbox = get_gruvbox()
+  return gruvbox and gruvbox.palette or {}
 end
 
 return M

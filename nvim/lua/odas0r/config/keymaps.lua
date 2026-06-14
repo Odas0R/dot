@@ -1,4 +1,4 @@
-local map = require("odas0r.lib.util").map
+local map = require("odas0r.lib.keymap")
 
 -- better up/down
 map({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { expr = true })

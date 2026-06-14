@@ -1,18 +1,18 @@
-local Utils = require("odas0r.lib.util")
+local autocmd = require("odas0r.lib.autocmd")
 local a = require("plenary.async")
 
 -- @Source: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/autocmds.lua
 
 -- Check if we need to reload the file when it changed
-Utils.autocmd({ "FocusGained", "TermClose", "TermLeave" }, {
-  group = Utils.augroup("checktime"),
+autocmd.create({ "FocusGained", "TermClose", "TermLeave" }, {
+  group = autocmd.group("checktime"),
   command = "checktime",
   desc = "Reload file on external changes",
 })
 
 -- Highlight on yank
-Utils.autocmd("TextYankPost", {
-  group = Utils.augroup("highlight_yank"),
+autocmd.create("TextYankPost", {
+  group = autocmd.group("highlight_yank"),
   desc = "Highlight selection on yank",
   callback = function()
     vim.hl.hl_op()
@@ -20,8 +20,8 @@ Utils.autocmd("TextYankPost", {
 })
 
 -- resize splits if window got resized
-Utils.autocmd({ "VimResized" }, {
-  group = Utils.augroup("resize_splits"),
+autocmd.create({ "VimResized" }, {
+  group = autocmd.group("resize_splits"),
   desc = "Resize splits equally on window resize",
   callback = function()
     vim.cmd("tabdo wincmd =")
@@ -31,8 +31,8 @@ Utils.autocmd({ "VimResized" }, {
 -- Note: sessions make this unnecessary
 --
 -- go to last loc when opening a buffer
--- Utils.autocmd("BufReadPost", {
---   group = Utils.augroup("last_loc"),
+-- autocmd.create("BufReadPost", {
+--   group = autocmd.group("last_loc"),
 --   desc = "Jump to last known cursor position on opening a buffer",
 --   callback = function()
 --     local exclude = { "gitcommit" }
@@ -50,8 +50,8 @@ Utils.autocmd({ "VimResized" }, {
 -- })
 
 -- close some filetypes with <q>
-Utils.autocmd("FileType", {
-  group = Utils.augroup("close_with_q"),
+autocmd.create("FileType", {
+  group = autocmd.group("close_with_q"),
   pattern = {
     "PlenaryTestPopup",
     "help",
@@ -80,8 +80,8 @@ Utils.autocmd("FileType", {
 })
 
 -- Auto create dir when saving a file, in case some intermediate directory does not exist
-Utils.autocmd({ "BufWritePre" }, {
-  group = Utils.augroup("auto_create_dir"),
+autocmd.create({ "BufWritePre" }, {
+  group = autocmd.group("auto_create_dir"),
   desc = "Automatically create parent directories if they don't exist on save",
   callback = function(event)
     -- Skip remote files (e.g., scp://)
@@ -98,9 +98,9 @@ Utils.autocmd({ "BufWritePre" }, {
 })
 
 -- HotReload for Flutter
-Utils.autocmd("BufWritePost", {
+autocmd.create("BufWritePost", {
   pattern = "*.dart",
-  group = Utils.augroup("flutter_hot_reload"),
+  group = autocmd.group("flutter_hot_reload"),
   desc = "Trigger Flutter hot reload on saving a Dart file",
   callback = function()
     vim.cmd("silent !flutter-hot-reload")
@@ -108,9 +108,9 @@ Utils.autocmd("BufWritePost", {
 })
 
 -- Set .env as config files (shell script syntax)
-Utils.autocmd("BufRead", {
+autocmd.create("BufRead", {
   pattern = { "*.env*", "*.vars" },
-  group = Utils.augroup("env_filetype"),
+  group = autocmd.group("env_filetype"),
   desc = "Set filetype to 'sh' for .env and .vars files",
   callback = function()
     vim.opt_local.filetype = "sh"
@@ -118,9 +118,9 @@ Utils.autocmd("BufRead", {
 })
 
 -- Better writing defaults for Markdown and text files
-Utils.autocmd({ "BufEnter" }, {
+autocmd.create({ "BufEnter" }, {
   pattern = { "*.md", "*.txt" },
-  group = Utils.augroup("write_options"),
+  group = autocmd.group("write_options"),
   desc = "Set buffer-local options for writing (spellcheck, textwidth, etc.)",
   callback = function()
     local opt = vim.opt_local
@@ -136,9 +136,9 @@ Utils.autocmd({ "BufEnter" }, {
 
 -- Write the current buffer file path to ~/.nvim-buf -- Useful for commands
 -- that require buffer info.
-Utils.autocmd({ "BufEnter", "FocusGained" }, {
+autocmd.create({ "BufEnter", "FocusGained" }, {
   pattern = { "*" },
-  group = Utils.augroup("write_current_path"),
+  group = autocmd.group("write_current_path"),
   desc = "Write current buffer path to ~/.nvim-buf",
   callback = function()
     local buf_path = vim.fn.expand("%:p")
@@ -177,8 +177,8 @@ Utils.autocmd({ "BufEnter", "FocusGained" }, {
 })
 
 -- on vim close delete the content of ~/.nvim-buf
--- Utils.autocmd({ "VimLeave" }, {
---   group = Utils.augroup("delete_current_path"),
+-- autocmd.create({ "VimLeave" }, {
+--   group = autocmd.group("delete_current_path"),
 --   callback = function()
 --     local filename = os.getenv("HOME") .. "/.nvim-buf" -- replace this with your file's path
 --     a.run(function()
@@ -191,9 +191,9 @@ Utils.autocmd({ "BufEnter", "FocusGained" }, {
 -- })
 --
 -- when tsconfig.json use json filetype instead of jsonc (jsonc is not supported by lsp)
--- Utils.autocmd("BufRead", {
+-- autocmd.create("BufRead", {
 --   pattern = { "tsconfig.json" },
---   group = Utils.augroup("tsconfig_jsonc"),
+--   group = autocmd.group("tsconfig_jsonc"),
 --   callback = function()
 --     vim.opt_local.filetype = "json"
 --   end,
