@@ -1,3 +1,5 @@
+local Window = require("odas0r.lib.window")
+
 local M = {}
 
 local fallback_input = vim.ui.input
@@ -141,8 +143,7 @@ local function popup_input(opts, on_confirm)
   vim.bo[buf].modifiable = true
   vim.bo[buf].modified = false
 
-  local origin_win = vim.api.nvim_get_current_win()
-  local origin_view = vim.fn.winsaveview()
+  local origin = Window.save()
 
   local ok_win, win = pcall(vim.api.nvim_open_win, buf, true, {
     relative = "editor",
@@ -178,13 +179,6 @@ local function popup_input(opts, on_confirm)
   vim.api.nvim_win_set_cursor(win, { #default_lines, #last_line })
 
   local done = false
-  local function restore_origin()
-    if vim.api.nvim_win_is_valid(origin_win) then
-      pcall(vim.api.nvim_set_current_win, origin_win)
-      pcall(vim.fn.winrestview, origin_view)
-    end
-  end
-
   local function close(value)
     if done then
       return
@@ -203,7 +197,7 @@ local function popup_input(opts, on_confirm)
       pcall(vim.api.nvim_buf_delete, buf, { force = true })
     end
 
-    restore_origin()
+    Window.restore(origin)
     on_confirm(value)
   end
 
@@ -280,7 +274,7 @@ local function popup_input(opts, on_confirm)
     callback = function()
       if not done then
         done = true
-        restore_origin()
+        Window.restore(origin)
         on_confirm(nil)
       end
     end,

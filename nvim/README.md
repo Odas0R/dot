@@ -35,8 +35,13 @@ nvim/
 │   │   ├── refactor.lua
 │   │   ├── replace.lua
 │   │   └── terminal/
-│   ├── lib/                         # reusable helpers
-│   │   └── util.lua
+│   ├── lib/                         # reusable helpers by domain
+│   │   ├── git.lua
+│   │   ├── loclist.lua
+│   │   ├── path.lua
+│   │   ├── text.lua
+│   │   ├── util.lua
+│   │   └── window.lua
 │   └── snippets/
 └── after/queries/
 ```
