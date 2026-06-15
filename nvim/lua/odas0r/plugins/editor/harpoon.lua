@@ -10,55 +10,82 @@ local closeTerminal = function()
   ]])
 end
 
+local function applyHarpoonHighlights()
+  local floatBorder = vim.api.nvim_get_hl(0, { name = "FloatBorder", link = false })
+
+  vim.api.nvim_set_hl(0, "HarpoonNormal", { bg = "NONE" })
+  vim.api.nvim_set_hl(0, "HarpoonBorder", { fg = floatBorder.fg, bg = "NONE" })
+  vim.api.nvim_set_hl(0, "HarpoonCursorLine", { bg = "NONE", underline = true })
+end
+
+local function toggleQuickMenu()
+  local harpoon = require("harpoon")
+  harpoon.ui:toggle_quick_menu(harpoon:list(), {
+    ui_width_ratio = 0.45,
+    ui_max_width = 70,
+    height_in_lines = 8,
+  })
+end
+
 return {
   "ThePrimeagen/harpoon",
+  branch = "harpoon2",
+  dependencies = { "nvim-lua/plenary.nvim" },
   init = function()
     -----------------------------------
     -- Keymaps
     -----------------------------------
     map("n", "<leader>a", function()
-      require("harpoon.mark").add_file()
+      require("harpoon"):list():add()
     end)
-    map("n", "<C-e>", function()
-      require("harpoon.ui").toggle_quick_menu()
-    end)
+    map("n", "<C-e>", toggleQuickMenu)
 
     map({ "n", "t" }, "<leader>1", function()
       closeTerminal()
-      require("harpoon.ui").nav_file(1)
+      require("harpoon"):list():select(1)
     end)
 
     map({ "n", "t" }, "<leader>2", function()
       closeTerminal()
-      require("harpoon.ui").nav_file(2)
+      require("harpoon"):list():select(2)
     end)
 
     map({ "n", "t" }, "<leader>3", function()
       closeTerminal()
-      require("harpoon.ui").nav_file(3)
+      require("harpoon"):list():select(3)
     end)
 
     map({ "n", "t" }, "<leader>4", function()
       closeTerminal()
-      require("harpoon.ui").nav_file(4)
+      require("harpoon"):list():select(4)
     end)
 
     -----------------------------------
     -- Augroups
     -----------------------------------
+    local harpoonGroup = autocmd.group("harpoon")
+
+    autocmd.create("ColorScheme", {
+      group = harpoonGroup,
+      callback = applyHarpoonHighlights,
+    })
+
     autocmd.create("FileType", {
       pattern = "harpoon",
-      group = autocmd.group("harpoon"),
+      group = harpoonGroup,
       callback = function()
         vim.opt_local.cursorline = true
+        vim.wo.winhighlight = table.concat({
+          "Normal:HarpoonNormal",
+          "NormalFloat:HarpoonNormal",
+          "FloatBorder:HarpoonBorder",
+          "CursorLine:HarpoonCursorLine",
+        }, ",")
       end,
     })
   end,
   config = function()
-    require("harpoon").setup({
-      global_settings = {
-        enter_on_sendcmd = true,
-      },
-    })
+    applyHarpoonHighlights()
+    require("harpoon"):setup()
   end,
 }
