@@ -27,6 +27,11 @@ nvim/
 │   │   ├── git/
 │   │   ├── search/
 │   │   └── ui/
+│   ├── lsp/                         # shared LSP wiring
+│   │   ├── attach.lua               # LspAttach keymaps and per-client hooks
+│   │   ├── capabilities.lua         # shared client capabilities
+│   │   ├── patches.lua              # small LSP compatibility patches
+│   │   └── servers.lua              # enabled LSP server list
 │   ├── features/                    # custom/local Neovim features
 │   │   ├── init.lua
 │   │   ├── pi_review.lua
@@ -43,8 +48,49 @@ nvim/
 │   │   ├── util.lua
 │   │   └── window.lua
 │   └── snippets/
-└── after/queries/
+├── after/
+│   ├── lsp/                         # per-server native LSP overrides
+│   └── queries/
 ```
+
+## LSP configs
+
+This config uses the modern Neovim LSP API:
+
+- Shared setup lives in `lua/odas0r/lsp/`.
+- Enabled servers are listed in `lua/odas0r/lsp/servers.lua`.
+- Server-specific overrides live in `after/lsp/<server>.lua`.
+- `neovim/nvim-lspconfig` supplies default server definitions; our files only override what we need.
+
+To add a new LSP server:
+
+1. Install the language server executable and make sure it is on `$PATH`.
+2. Add the server name to `lua/odas0r/lsp/servers.lua`:
+
+   ```lua
+   return {
+     "lua_ls",
+     "gopls",
+     "new_server_name",
+   }
+   ```
+
+3. If the default `nvim-lspconfig` config is enough, stop there.
+4. If you need custom settings, create `after/lsp/new_server_name.lua`:
+
+   ```lua
+   return {
+     settings = {
+       newServerName = {
+         -- server-specific settings
+       },
+     },
+   }
+   ```
+
+5. Restart Neovim and run `:checkhealth vim.lsp` or `:LspInfo` to verify it attaches.
+
+Use `:help lspconfig-all` to find the exact server name, install command, default filetypes, root markers, and supported settings.
 
 ## Review workflow
 

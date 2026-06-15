@@ -1,0 +1,16 @@
+return {
+  "astro",
+  "bashls",
+  "clangd",
+  "cssls",
+  "dartls",
+  "gopls",
+  "html",
+  "jsonls",
+  "lua_ls",
+  "marksman",
+  "pylsp",
+  "templ",
+  "ts_ls",
+  "yamlls",
+}
