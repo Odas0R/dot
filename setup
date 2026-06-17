@@ -6,9 +6,9 @@ DOT="$HOME/github.com/odas0r/dot"
 # install custom scripts
 mkdir -p "$HOME/.local/bin"
 ln -sf "$HOME/github.com/odas0r/dot/scripts" "$HOME/.local/bin/scripts"
-
 ln -sf "$HOME/github.com/odas0r/dot/bashrc" "$HOME/.bashrc"
 ln -sf "$HOME/github.com/odas0r/dot/inputrc" "$HOME/.inputrc"
+ln -sf "$HOME/github.com/odas0r/dot/npmrc" "$HOME/.npmrc"
 ln -sf "$HOME/github.com/odas0r/dot/psqlrc" "$HOME/.psqlrc"
 ln -sf "$HOME/github.com/odas0r/dot/sqliterc" "$HOME/.sqliterc"
 ln -sf "$HOME/github.com/odas0r/dot/bash" "$HOME/.bash"
