@@ -1,0 +1,330 @@
+#!/usr/bin/env node
+
+import { readFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import process from "node:process";
+
+const DEP_TYPES = [
+  "dependencies",
+  "devDependencies",
+  "optionalDependencies",
+  "peerDependencies",
+];
+
+const TYPE_LABEL = {
+  dependencies: "dep",
+  devDependencies: "dev",
+  optionalDependencies: "opt",
+  peerDependencies: "peer",
+};
+
+const colorEnabled = process.stdout.isTTY && !process.env.NO_COLOR;
+const c = {
+  bold: (s) => (colorEnabled ? `\x1b[1m${s}\x1b[0m` : s),
+  dim: (s) => (colorEnabled ? `\x1b[2m${s}\x1b[0m` : s),
+  green: (s) => (colorEnabled ? `\x1b[32m${s}\x1b[0m` : s),
+  yellow: (s) => (colorEnabled ? `\x1b[33m${s}\x1b[0m` : s),
+  red: (s) => (colorEnabled ? `\x1b[31m${s}\x1b[0m` : s),
+  cyan: (s) => (colorEnabled ? `\x1b[36m${s}\x1b[0m` : s),
+};
+
+function usage() {
+  console.log(`Usage: npm-check-updates [options] [package-filter...]
+
+Minimal, dependency-free npm update checker. It extends \`npm outdated\` by showing
+highest available patch, minor, and major targets.
+
+Options:
+  --json                 Print JSON
+  --concurrency <n>      npm registry requests in parallel (default: 6)
+  -h, --help             Show help
+
+Examples:
+  npm-check-updates
+  npm-check-updates react @types
+  npm-check-updates --json`);
+}
+
+function parseArgs(argv) {
+  const args = { json: false, concurrency: 6, filters: [] };
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+
+    if (arg === "-h" || arg === "--help") {
+      usage();
+      process.exit(0);
+    }
+
+    if (arg === "--json") {
+      args.json = true;
+      continue;
+    }
+
+    if (arg === "--concurrency") {
+      const value = Number(argv[++i]);
+      if (!Number.isInteger(value) || value < 1) {
+        throw new Error("--concurrency must be a positive integer");
+      }
+      args.concurrency = value;
+      continue;
+    }
+
+    args.filters.push(arg);
+  }
+
+  return args;
+}
+
+function runNpm(npmArgs) {
+  return new Promise((resolve, reject) => {
+    const child = spawn("npm", npmArgs, {
+      cwd: process.cwd(),
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", (chunk) => (stdout += chunk));
+    child.stderr.on("data", (chunk) => (stderr += chunk));
+    child.on("error", reject);
+    child.on("close", (code) => {
+      const result = { code, stdout, stderr };
+      if (code === 0) resolve(result);
+      else {
+        const error = new Error(stderr.trim() || `npm ${npmArgs.join(" ")} failed`);
+        Object.assign(error, result);
+        reject(error);
+      }
+    });
+  });
+}
+
+async function readPackageJson() {
+  try {
+    return JSON.parse(await readFile("package.json", "utf8"));
+  } catch (error) {
+    throw new Error(`Could not read package.json in ${process.cwd()}: ${error.message}`);
+  }
+}
+
+async function npmOutdated() {
+  try {
+    const { stdout } = await runNpm(["outdated", "--json", "--long"]);
+    return stdout.trim() ? JSON.parse(stdout) : {};
+  } catch (error) {
+    // npm exits with 1 when outdated dependencies exist. The JSON is still useful.
+    if (error.stdout?.trim()) return JSON.parse(error.stdout);
+    throw error;
+  }
+}
+
+async function npmVersions(name) {
+  const { stdout } = await runNpm(["view", name, "versions", "--json"]);
+  const parsed = JSON.parse(stdout || "[]");
+  return Array.isArray(parsed) ? parsed : [parsed];
+}
+
+function parseVersion(version) {
+  if (typeof version !== "string") return null;
+  const match = version.trim().match(/^v?(\d+)\.(\d+)\.(\d+)(?:\+[-0-9A-Za-z.]+)?$/);
+  if (!match) return null;
+  return {
+    raw: version.replace(/^v/, ""),
+    major: Number(match[1]),
+    minor: Number(match[2]),
+    patch: Number(match[3]),
+  };
+}
+
+function compareVersions(a, b) {
+  return a.major - b.major || a.minor - b.minor || a.patch - b.patch;
+}
+
+function isGreater(a, b) {
+  return compareVersions(a, b) > 0;
+}
+
+function extractVersion(spec) {
+  if (typeof spec !== "string") return null;
+  const match = spec.match(/\d+\.\d+\.\d+/);
+  return match ? parseVersion(match[0]) : null;
+}
+
+function pickHighest(versions, predicate) {
+  return versions.filter(predicate).sort(compareVersions).at(-1)?.raw ?? null;
+}
+
+function classifyTargets(availableVersions, currentVersion) {
+  const current = parseVersion(currentVersion);
+  if (!current) {
+    return { patch: null, minor: null, major: null };
+  }
+
+  const versions = availableVersions
+    .map(parseVersion)
+    .filter(Boolean)
+    .filter((version) => isGreater(version, current));
+
+  return {
+    patch: pickHighest(
+      versions,
+      (version) => version.major === current.major && version.minor === current.minor,
+    ),
+    minor: pickHighest(
+      versions,
+      (version) => version.major === current.major && version.minor > current.minor,
+    ),
+    major: pickHighest(versions, (version) => version.major > current.major),
+  };
+}
+
+function dependencyMap(pkg) {
+  const result = new Map();
+
+  for (const type of DEP_TYPES) {
+    for (const [name, spec] of Object.entries(pkg[type] ?? {})) {
+      result.set(name, { name, spec, type });
+    }
+  }
+
+  return result;
+}
+
+async function mapLimit(items, limit, mapper) {
+  const results = new Array(items.length);
+  let index = 0;
+
+  async function worker() {
+    while (index < items.length) {
+      const currentIndex = index++;
+      results[currentIndex] = await mapper(items[currentIndex], currentIndex);
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, () => worker()),
+  );
+
+  return results;
+}
+
+function visibleLength(value) {
+  return String(value).replace(/\x1b\[[0-9;]*m/g, "").length;
+}
+
+function pad(value, width) {
+  const text = String(value);
+  return text + " ".repeat(Math.max(0, width - visibleLength(text)));
+}
+
+function targetText(value, color) {
+  if (!value) return c.dim("-");
+  return color(value);
+}
+
+function printTable(rows) {
+  if (rows.length === 0) {
+    console.log(c.green("All dependencies are current."));
+    return;
+  }
+
+  const table = rows.map((row) => ({
+    package: row.name,
+    type: TYPE_LABEL[row.type] ?? row.type,
+    range: row.spec,
+    current: row.current ?? "-",
+    wanted: row.wanted ?? "-",
+    patch: row.targets.patch ?? "-",
+    minor: row.targets.minor ?? "-",
+    major: row.targets.major ?? "-",
+  }));
+
+  const headers = {
+    package: "Package",
+    type: "Type",
+    range: "Range",
+    current: "Current",
+    wanted: "Wanted",
+    patch: "Patch",
+    minor: "Minor",
+    major: "Major",
+  };
+
+  const columns = Object.keys(headers);
+  const widths = Object.fromEntries(
+    columns.map((column) => [
+      column,
+      Math.max(
+        visibleLength(headers[column]),
+        ...table.map((row) => visibleLength(row[column])),
+      ),
+    ]),
+  );
+
+  console.log(columns.map((column) => c.bold(pad(headers[column], widths[column]))).join("  "));
+  console.log(columns.map((column) => c.dim("-".repeat(widths[column]))).join("  "));
+
+  for (const row of rows) {
+    const rendered = {
+      package: row.name,
+      type: c.dim(TYPE_LABEL[row.type] ?? row.type),
+      range: c.dim(row.spec),
+      current: row.current ?? c.dim("-"),
+      wanted: row.wanted && row.wanted !== row.current ? c.cyan(row.wanted) : c.dim(row.wanted ?? "-"),
+      patch: targetText(row.targets.patch, c.green),
+      minor: targetText(row.targets.minor, c.yellow),
+      major: targetText(row.targets.major, c.red),
+    };
+
+    console.log(columns.map((column) => pad(rendered[column], widths[column])).join("  "));
+  }
+
+  const count = rows.length === 1 ? "1 dependency" : `${rows.length} dependencies`;
+  console.log(c.dim(`\n${count} with newer versions. Patch/minor/major are highest stable targets by installed current version.`));
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const pkg = await readPackageJson();
+  const deps = dependencyMap(pkg);
+  const outdated = await npmOutdated();
+
+  const names = Object.keys(outdated)
+    .filter((name) => deps.has(name))
+    .filter((name) => args.filters.length === 0 || args.filters.some((filter) => name.includes(filter)))
+    .sort((a, b) => a.localeCompare(b));
+
+  const rows = await mapLimit(names, args.concurrency, async (name) => {
+    const dep = deps.get(name);
+    const info = outdated[name];
+    const current = parseVersion(info.current)?.raw ?? extractVersion(dep.spec)?.raw ?? info.current;
+    const versions = await npmVersions(name);
+    const targets = classifyTargets(versions, current);
+
+    return {
+      name,
+      type: info.type ?? dep.type,
+      spec: dep.spec,
+      current,
+      wanted: info.wanted,
+      latest: info.latest,
+      targets,
+    };
+  });
+
+  if (args.json) {
+    console.log(JSON.stringify(rows, null, 2));
+    return;
+  }
+
+  printTable(rows);
+}
+
+main().catch((error) => {
+  console.error(`npm-check-updates: ${error.message}`);
+  process.exit(1);
+});
