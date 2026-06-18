@@ -18,6 +18,8 @@ const TYPE_LABEL = {
   peerDependencies: "peer",
 };
 
+const LINK_TARGETS = new Set(["latest", "wanted", "patch", "minor", "major"]);
+
 const colorEnabled = process.stdout.isTTY && !process.env.NO_COLOR;
 const c = {
   bold: (s) => (colorEnabled ? `\x1b[1m${s}\x1b[0m` : s),
@@ -25,6 +27,7 @@ const c = {
   green: (s) => (colorEnabled ? `\x1b[32m${s}\x1b[0m` : s),
   yellow: (s) => (colorEnabled ? `\x1b[33m${s}\x1b[0m` : s),
   red: (s) => (colorEnabled ? `\x1b[31m${s}\x1b[0m` : s),
+  magenta: (s) => (colorEnabled ? `\x1b[35m${s}\x1b[0m` : s),
   cyan: (s) => (colorEnabled ? `\x1b[36m${s}\x1b[0m` : s),
 };
 
@@ -32,21 +35,34 @@ function usage() {
   console.log(`Usage: npm-check-updates [options] [package-filter...]
 
 Minimal, dependency-free npm update checker. It extends \`npm outdated\` by showing
-highest available patch, minor, and major targets.
+npm's latest dist-tag plus the highest stable patch, minor, and major targets.
 
 Options:
   --json                 Print JSON
+  --links[=target]       Print npm/GitHub changelog/release links
+                         target: latest, wanted, patch, minor, major (default: latest)
+  --target <target>      Link target when using --links
+  --verbose              Include npm range/wanted/type columns
   --concurrency <n>      npm registry requests in parallel (default: 6)
   -h, --help             Show help
 
 Examples:
   npm-check-updates
   npm-check-updates react @types
+  npm-check-updates --links
+  npm-check-updates --links=major hono
   npm-check-updates --json`);
 }
 
 function parseArgs(argv) {
-  const args = { json: false, concurrency: 6, filters: [] };
+  const args = {
+    json: false,
+    concurrency: 6,
+    filters: [],
+    links: false,
+    linkTarget: "latest",
+    verbose: false,
+  };
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -58,6 +74,27 @@ function parseArgs(argv) {
 
     if (arg === "--json") {
       args.json = true;
+      continue;
+    }
+
+    if (arg === "--links") {
+      args.links = true;
+      continue;
+    }
+
+    if (arg === "--verbose" || arg === "-v") {
+      args.verbose = true;
+      continue;
+    }
+
+    if (arg.startsWith("--links=")) {
+      args.links = true;
+      args.linkTarget = validateLinkTarget(arg.slice("--links=".length));
+      continue;
+    }
+
+    if (arg === "--target" || arg === "--link-target") {
+      args.linkTarget = validateLinkTarget(argv[++i]);
       continue;
     }
 
@@ -74,6 +111,13 @@ function parseArgs(argv) {
   }
 
   return args;
+}
+
+function validateLinkTarget(target) {
+  if (!LINK_TARGETS.has(target)) {
+    throw new Error(`link target must be one of: ${Array.from(LINK_TARGETS).join(", ")}`);
+  }
+  return target;
 }
 
 function runNpm(npmArgs) {
@@ -126,6 +170,20 @@ async function npmVersions(name) {
   const { stdout } = await runNpm(["view", name, "versions", "--json"]);
   const parsed = JSON.parse(stdout || "[]");
   return Array.isArray(parsed) ? parsed : [parsed];
+}
+
+async function npmPackageMeta(name, version) {
+  const spec = version ? `${name}@${version}` : name;
+  const { stdout } = await runNpm([
+    "view",
+    spec,
+    "repository",
+    "homepage",
+    "bugs",
+    "gitHead",
+    "--json",
+  ]);
+  return JSON.parse(stdout || "{}");
 }
 
 function parseVersion(version) {
@@ -226,7 +284,7 @@ function targetText(value, color) {
   return color(value);
 }
 
-function printTable(rows) {
+function printTable(rows, { verbose = false } = {}) {
   if (rows.length === 0) {
     console.log(c.green("All dependencies are current."));
     return;
@@ -234,25 +292,36 @@ function printTable(rows) {
 
   const table = rows.map((row) => ({
     package: row.name,
-    type: TYPE_LABEL[row.type] ?? row.type,
-    range: row.spec,
+    type: TYPE_LABEL[row.type] ?? row.type ?? "-",
+    range: row.spec ?? "-",
     current: row.current ?? "-",
     wanted: row.wanted ?? "-",
+    latest: row.latest ?? "-",
     patch: row.targets.patch ?? "-",
     minor: row.targets.minor ?? "-",
     major: row.targets.major ?? "-",
   }));
 
-  const headers = {
-    package: "Package",
-    type: "Type",
-    range: "Range",
-    current: "Current",
-    wanted: "Wanted",
-    patch: "Patch",
-    minor: "Minor",
-    major: "Major",
-  };
+  const headers = verbose
+    ? {
+        package: "Package",
+        type: "Type",
+        range: "Range",
+        current: "Current",
+        wanted: "Wanted",
+        patch: "Patch",
+        minor: "Minor",
+        major: "Major",
+        latest: "Latest",
+      }
+    : {
+        package: "Package",
+        current: "Current",
+        patch: "Patch",
+        minor: "Minor",
+        major: "Major",
+        latest: "Latest",
+      };
 
   const columns = Object.keys(headers);
   const widths = Object.fromEntries(
@@ -269,12 +338,14 @@ function printTable(rows) {
   console.log(columns.map((column) => c.dim("-".repeat(widths[column]))).join("  "));
 
   for (const row of rows) {
+    const latestIsPrerelease = row.latest && !parseVersion(row.latest);
     const rendered = {
       package: row.name,
-      type: c.dim(TYPE_LABEL[row.type] ?? row.type),
-      range: c.dim(row.spec),
+      type: c.dim(TYPE_LABEL[row.type] ?? row.type ?? "-"),
+      range: c.dim(row.spec ?? "-"),
       current: row.current ?? c.dim("-"),
       wanted: row.wanted && row.wanted !== row.current ? c.cyan(row.wanted) : c.dim(row.wanted ?? "-"),
+      latest: targetText(row.latest, latestIsPrerelease ? c.magenta : c.red),
       patch: targetText(row.targets.patch, c.green),
       minor: targetText(row.targets.minor, c.yellow),
       major: targetText(row.targets.major, c.red),
@@ -284,7 +355,171 @@ function printTable(rows) {
   }
 
   const count = rows.length === 1 ? "1 dependency" : `${rows.length} dependencies`;
-  console.log(c.dim(`\n${count} with newer versions. Patch/minor/major are highest stable targets by installed current version.`));
+  console.log(c.dim(`\n${count} with newer versions.`));
+}
+
+function cleanUrl(url) {
+  return typeof url === "string" && url.trim() ? url.trim() : null;
+}
+
+function repositoryUrl(repository) {
+  if (!repository) return null;
+  return cleanUrl(typeof repository === "string" ? repository : repository.url);
+}
+
+function bugUrl(bugs) {
+  if (!bugs) return null;
+  return cleanUrl(typeof bugs === "string" ? bugs : bugs.url);
+}
+
+function githubRepoUrl(url) {
+  if (!url) return null;
+
+  const normalized = url
+    .replace(/^git\+/, "")
+    .replace(/^git:\/\//, "https://")
+    .replace(/^ssh:\/\/git@github\.com\//, "https://github.com/")
+    .replace(/^git@github\.com:/, "https://github.com/");
+
+  const match = normalized.match(/github\.com[/:]([^/\s]+)\/([^/#?\s]+?)(?:\.git)?(?:[/#?]|$)/i);
+  if (!match) return null;
+
+  return `https://github.com/${match[1]}/${match[2].replace(/\.git$/, "")}`;
+}
+
+function npmPackageUrl(name, version) {
+  return `https://www.npmjs.com/package/${name}${version ? `/v/${version}` : ""}`;
+}
+
+function unique(values) {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+function unscopedName(name) {
+  return name.split("/").at(-1);
+}
+
+function releaseTagCandidates(name, version) {
+  const shortName = unscopedName(name);
+  return unique([
+    `v${version}`,
+    version,
+    `${shortName}@${version}`,
+    `${name}@${version}`,
+  ]);
+}
+
+function githubTagUrl(repo, tag) {
+  return `${repo}/releases/tag/${encodeURIComponent(tag)}`;
+}
+
+function githubCompareUrl(repo, from, to) {
+  return `${repo}/compare/${encodeURIComponent(from)}...${encodeURIComponent(to)}`;
+}
+
+function linkVersion(row, target) {
+  if (target === "wanted") return row.wanted;
+  if (target === "latest") return row.latest;
+  return row.targets[target];
+}
+
+function buildLinks(row, meta, target, version) {
+  const repoUrl = repositoryUrl(meta.repository);
+  const github = githubRepoUrl(repoUrl ?? meta.homepage ?? bugUrl(meta.bugs));
+  const links = {
+    target,
+    version,
+    npm: npmPackageUrl(row.name, version),
+    homepage: cleanUrl(meta.homepage),
+    repository: github ?? repoUrl,
+    bugs: bugUrl(meta.bugs),
+    commit: null,
+    releases: [],
+    compares: [],
+    changelogs: [],
+  };
+
+  if (!github) return links;
+
+  const targetTags = releaseTagCandidates(row.name, version);
+  links.releases = targetTags.map((tag) => githubTagUrl(github, tag));
+
+  if (row.current) {
+    const currentTags = releaseTagCandidates(row.name, row.current);
+    links.compares = unique(
+      targetTags.map((targetTag, index) => {
+        const currentTag = currentTags[index];
+        return currentTag ? githubCompareUrl(github, currentTag, targetTag) : null;
+      }),
+    );
+  }
+
+  const directory =
+    typeof meta.repository === "object" ? cleanUrl(meta.repository.directory)?.replace(/^\/+|\/+$/g, "") : null;
+
+  links.changelogs = unique([
+    `${github}/releases`,
+    directory ? `${github}/blob/HEAD/${directory}/CHANGELOG.md` : null,
+    directory ? `${github}/blob/HEAD/${directory}/CHANGELOG` : null,
+    `${github}/blob/HEAD/CHANGELOG.md`,
+    `${github}/blob/HEAD/CHANGELOG`,
+    `${github}/blob/HEAD/Changes.md`,
+  ]);
+
+  if (meta.gitHead) {
+    links.commit = `${github}/commit/${meta.gitHead}`;
+  }
+
+  return links;
+}
+
+async function attachLinks(row, target) {
+  const version = linkVersion(row, target);
+  if (!version || version === row.current) return row;
+
+  try {
+    const meta = await npmPackageMeta(row.name, version);
+    return { ...row, links: buildLinks(row, meta, target, version) };
+  } catch (error) {
+    return {
+      ...row,
+      links: {
+        target,
+        version,
+        npm: npmPackageUrl(row.name, version),
+        error: error.message,
+      },
+    };
+  }
+}
+
+function printLinkList(label, values, limit = 4) {
+  const list = unique(values ?? []).slice(0, limit);
+  if (list.length === 0) return;
+
+  console.log(`  ${c.dim(`${label}:`)} ${list[0]}`);
+  for (const value of list.slice(1)) {
+    console.log(`  ${" ".repeat(label.length + 1)} ${value}`);
+  }
+}
+
+function printLinks(rows, target) {
+  const linked = rows.filter((row) => row.links);
+  if (linked.length === 0) return;
+
+  console.log(`\n${c.bold(`Links (${target})`)}`);
+  for (const row of linked) {
+    const links = row.links;
+    console.log(`${c.bold(`${row.name}@${links.version}`)} ${c.dim(`from ${row.current}`)}`);
+    printLinkList("npm", [links.npm]);
+    printLinkList("release", links.releases, 4);
+    printLinkList("compare", links.compares, 4);
+    printLinkList("changelog", links.changelogs, 4);
+    printLinkList("commit", [links.commit]);
+    printLinkList("homepage", [links.homepage]);
+    printLinkList("repo", [links.repository]);
+    if (links.error) console.log(`  ${c.dim("error:")} ${links.error}`);
+  }
 }
 
 async function main() {
@@ -294,34 +529,41 @@ async function main() {
   const outdated = await npmOutdated();
 
   const names = Object.keys(outdated)
-    .filter((name) => deps.has(name))
     .filter((name) => args.filters.length === 0 || args.filters.some((filter) => name.includes(filter)))
     .sort((a, b) => a.localeCompare(b));
 
-  const rows = await mapLimit(names, args.concurrency, async (name) => {
+  let rows = await mapLimit(names, args.concurrency, async (name) => {
     const dep = deps.get(name);
     const info = outdated[name];
-    const current = parseVersion(info.current)?.raw ?? extractVersion(dep.spec)?.raw ?? info.current;
+    const current = parseVersion(info.current)?.raw ?? extractVersion(dep?.spec)?.raw ?? info.current;
     const versions = await npmVersions(name);
     const targets = classifyTargets(versions, current);
 
     return {
       name,
-      type: info.type ?? dep.type,
-      spec: dep.spec,
+      type: info.type ?? dep?.type,
+      spec: dep?.spec,
       current,
       wanted: info.wanted,
       latest: info.latest,
+      dependent: info.dependent,
+      dependedBy: info.dependedByLocation,
+      location: info.location,
       targets,
     };
   });
+
+  if (args.links) {
+    rows = await mapLimit(rows, args.concurrency, (row) => attachLinks(row, args.linkTarget));
+  }
 
   if (args.json) {
     console.log(JSON.stringify(rows, null, 2));
     return;
   }
 
-  printTable(rows);
+  printTable(rows, { verbose: args.verbose });
+  if (args.links) printLinks(rows, args.linkTarget);
 }
 
 main().catch((error) => {
