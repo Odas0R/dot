@@ -2,6 +2,19 @@ local map = require("odas0r.lib.keymap")
 
 local M = {}
 
+local function jump_diagnostic(count)
+  vim.diagnostic.jump({
+    count = count,
+    on_jump = function(_, bufnr)
+      vim.diagnostic.open_float({
+        bufnr = bufnr,
+        scope = "cursor",
+        focus = false,
+      })
+    end,
+  })
+end
+
 local function organize_typescript_imports(client, bufnr)
   if not client:supports_method("workspace/executeCommand") then
     return
@@ -108,11 +121,11 @@ function M.setup()
       )
 
       map("n", "K", function()
-        vim.diagnostic.jump({ count = -1, float = true })
+        jump_diagnostic(-1)
       end, { buffer = bufnr, desc = "Previous diagnostic" })
 
       map("n", "J", function()
-        vim.diagnostic.jump({ count = 1, float = true })
+        jump_diagnostic(1)
       end, { buffer = bufnr, desc = "Next diagnostic" })
 
       if client.name == "ts_ls" then
