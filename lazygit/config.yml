@@ -1,5 +1,0 @@
-os:
-  edit: "nvim {{filename}}" # see 'Configuring File Editing' section
-  open: "open {{filename}}"
-git:
-  overrideGpg: true
