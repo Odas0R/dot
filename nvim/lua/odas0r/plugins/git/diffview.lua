@@ -115,12 +115,12 @@ return {
   dependencies = { "nvim-lua/plenary.nvim" },
   keys = {
     {
-      "<leader>dr",
+      "<leader>do",
       "<cmd>DiffviewOpen --imply-local<cr>",
       desc = "Review working tree",
     },
     {
-      "<leader>dR",
+      "<leader>dO",
       diff_branch_against_head,
       desc = "Review branch vs chosen base",
     },
@@ -151,8 +151,7 @@ return {
     diffopt = { algorithm = "histogram", linematch = 60 },
     view = {
       default = {
-        -- GitHub-like review: one unified diff pane instead of side-by-side.
-        layout = "diff2_horizontal",
+        layout = "diff1_inline",
         winbar_info = true,
       },
       file_history = {
@@ -180,38 +179,6 @@ return {
         deletion_treesitter = true,
       },
       one_sided_layout = "raw",
-    },
-    keymaps = {
-      view = {
-        {
-          "n",
-          "<leader>q",
-          "<cmd>DiffviewClose<cr>",
-          { desc = "Close Diffview" },
-        },
-        {
-          "n",
-          "<leader>r",
-          "<cmd>DiffviewRefresh<cr>",
-          { desc = "Refresh Diffview" },
-        },
-      },
-      file_panel = {
-        {
-          "n",
-          "<leader>q",
-          "<cmd>DiffviewClose<cr>",
-          { desc = "Close Diffview" },
-        },
-      },
-      file_history_panel = {
-        {
-          "n",
-          "<leader>q",
-          "<cmd>DiffviewClose<cr>",
-          { desc = "Close Diffview" },
-        },
-      },
     },
     hooks = {
       view_opened = apply_diffview_ui,
