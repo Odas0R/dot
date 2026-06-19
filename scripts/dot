@@ -19,6 +19,6 @@ if [[ -f $file ]]; then
     open "${file}"
     exit 0
   else
-    nvr "${file}"
+    nvim "${file}"
   fi
 fi

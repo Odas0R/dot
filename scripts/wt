@@ -1,0 +1,540 @@
+#!/usr/bin/env node
+
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import process from "node:process";
+import { spawnSync } from "node:child_process";
+
+const HELP = `
+wt - small git worktree helper
+
+Usage:
+  wt list
+  wt new <branch> [base] [--path <path>] [--no-env]
+  wt add <branch> [--path <path>] [--no-env]
+  wt path [branch]
+  wt cd [branch]
+  wt rm [branch] [--force]
+  wt finish [branch] [target]
+  wt prune [git-prune-options]
+
+Examples:
+  wt new feature/login
+  wt new feature/login main
+  wt add existing-branch
+  wt cd feature/login
+  wt finish feature/login main
+  wt rm feature/login
+
+Default worktree location:
+  ../<repo>.worktrees/<branch-slug>
+`;
+
+function die(message, code = 1) {
+  console.error(`wt: ${message}`);
+  process.exit(code);
+}
+
+function expandHome(value) {
+  if (!value) return value;
+  if (value === "~") return os.homedir();
+  if (value.startsWith("~/")) return path.join(os.homedir(), value.slice(2));
+  return value;
+}
+
+function git(args, options = {}) {
+  const result = spawnSync("git", args, {
+    cwd: options.cwd ?? process.cwd(),
+    encoding: options.encoding ?? "utf8",
+    stdio: options.stdio ?? ["ignore", "pipe", "pipe"],
+  });
+
+  if (result.error) {
+    die(`could not run git: ${result.error.message}`);
+  }
+
+  if (result.status !== 0 && !options.allowFailure) {
+    const stderr = typeof result.stderr === "string" ? result.stderr.trim() : "";
+    const stdout = typeof result.stdout === "string" ? result.stdout.trim() : "";
+    die(stderr || stdout || `git ${args.join(" ")} failed`);
+  }
+
+  return result;
+}
+
+function gitOutput(args, options = {}) {
+  return git(args, options).stdout.trimEnd();
+}
+
+function gitVisible(args, options = {}) {
+  const result = spawnSync("git", args, {
+    cwd: options.cwd ?? process.cwd(),
+    encoding: "utf8",
+    stdio: ["inherit", "pipe", "pipe"],
+  });
+
+  if (result.error) {
+    die(`could not run git: ${result.error.message}`);
+  }
+
+  if (result.stdout) process.stderr.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+
+  if (result.status !== 0 && !options.allowFailure) {
+    die(`git ${args.join(" ")} failed`);
+  }
+
+  return result;
+}
+
+function ensureInsideGitWorktree() {
+  const result = git(["rev-parse", "--is-inside-work-tree"], {
+    allowFailure: true,
+  });
+
+  if (result.status !== 0 || result.stdout.trim() !== "true") {
+    die("not inside a git worktree");
+  }
+}
+
+function parseWorktreeList(output) {
+  const worktrees = [];
+  let current = null;
+
+  for (const line of output.split(/\r?\n/)) {
+    if (line === "") {
+      if (current) worktrees.push(current);
+      current = null;
+      continue;
+    }
+
+    const firstSpace = line.indexOf(" ");
+    const key = firstSpace === -1 ? line : line.slice(0, firstSpace);
+    const value = firstSpace === -1 ? "" : line.slice(firstSpace + 1);
+
+    if (key === "worktree") {
+      if (current) worktrees.push(current);
+      current = { path: value };
+      continue;
+    }
+
+    if (!current) continue;
+
+    if (key === "HEAD") current.head = value;
+    if (key === "branch") current.branchRef = value;
+    if (key === "detached") current.detached = true;
+    if (key === "bare") current.bare = true;
+    if (key === "prunable") current.prunable = value || true;
+  }
+
+  if (current) worktrees.push(current);
+
+  return worktrees.map((worktree) => ({
+    ...worktree,
+    branch: friendlyBranch(worktree.branchRef),
+  }));
+}
+
+function worktrees() {
+  ensureInsideGitWorktree();
+  return parseWorktreeList(gitOutput(["worktree", "list", "--porcelain"]));
+}
+
+function friendlyBranch(ref) {
+  if (!ref) return null;
+  return ref.replace(/^refs\/heads\//, "").replace(/^refs\/remotes\//, "");
+}
+
+function shortHead(head) {
+  return head ? head.slice(0, 7) : "unknown";
+}
+
+function labelFor(worktree) {
+  if (worktree.branch) return worktree.branch;
+  if (worktree.detached) return `(detached ${shortHead(worktree.head)})`;
+  if (worktree.bare) return "(bare)";
+  return "(unknown)";
+}
+
+function branchSlug(branch) {
+  const slug = friendlyBranch(branch)
+    .trim()
+    .replace(/^[./]+|[./]+$/g, "")
+    .replace(/[^A-Za-z0-9._-]+/g, "-")
+    .replace(/-+/g, "-");
+
+  if (!slug) die(`could not create a path slug for branch '${branch}'`);
+  return slug;
+}
+
+function repoInfo() {
+  const entries = worktrees();
+  if (entries.length === 0) die("git returned no worktrees");
+
+  const mainPath = entries[0].path;
+  const repoName = path.basename(mainPath);
+  const configuredHome = process.env.WT_HOME;
+  const baseDir = configuredHome
+    ? path.join(path.resolve(expandHome(configuredHome)), repoName)
+    : path.join(path.dirname(mainPath), `${repoName}.worktrees`);
+
+  return { entries, mainPath, repoName, baseDir };
+}
+
+function defaultWorktreePath(branch) {
+  return path.join(repoInfo().baseDir, branchSlug(branch));
+}
+
+function parseOptions(args, definitions = {}) {
+  const options = {};
+  const rest = [];
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === "--") {
+      rest.push(...args.slice(index + 1));
+      break;
+    }
+
+    if (arg === "-h" || arg === "--help") {
+      console.log(HELP.trim());
+      process.exit(0);
+    }
+
+    if ((arg === "-p" || arg === "--path") && definitions.path) {
+      const value = args[index + 1];
+      if (!value) die(`${arg} needs a path`);
+      options.path = path.resolve(expandHome(value));
+      index += 1;
+      continue;
+    }
+
+    if ((arg === "-f" || arg === "--force") && definitions.force) {
+      options.force = true;
+      continue;
+    }
+
+    if (arg === "--no-env" && definitions.env) {
+      options.copyEnv = false;
+      continue;
+    }
+
+    if (arg.startsWith("-")) die(`unknown option '${arg}'`);
+    rest.push(arg);
+  }
+
+  return { options, rest };
+}
+
+function commandExists(command) {
+  const result = spawnSync("bash", ["-lc", `command -v ${command}`], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+  });
+
+  return result.status === 0;
+}
+
+function selectWorktree(entries) {
+  if (entries.length === 0) die("no worktrees to select");
+
+  if (!commandExists("fzf")) {
+    if (entries.length === 1) return entries[0];
+    die("pass a branch name or install fzf for interactive selection");
+  }
+
+  const input = entries
+    .map((entry) => `${labelFor(entry)}\t${entry.path}`)
+    .join("\n");
+
+  const result = spawnSync(
+    "fzf",
+    ["--prompt=worktree> ", "--delimiter=\t", "--with-nth=1,2"],
+    {
+      input,
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "inherit"],
+    },
+  );
+
+  if (result.error) die(`could not run fzf: ${result.error.message}`);
+  if (result.status !== 0) process.exit(result.status ?? 1);
+
+  const selected = result.stdout.trimEnd();
+  const selectedPath = selected.split("\t").at(-1);
+  const entry = entries.find((candidate) => candidate.path === selectedPath);
+
+  if (!entry) die("could not read selected worktree");
+  return entry;
+}
+
+function findWorktree(query, entries) {
+  const expandedQuery = expandHome(query);
+  const resolvedQuery = path.resolve(expandedQuery);
+  const normalizedBranch = friendlyBranch(query);
+
+  const exactMatches = entries.filter((entry) => {
+    const entryPath = path.resolve(entry.path);
+    const branch = entry.branch ?? "";
+
+    return (
+      entry.path === expandedQuery ||
+      entryPath === resolvedQuery ||
+      branch === normalizedBranch ||
+      branchSlug(branch || labelFor(entry)) === normalizedBranch ||
+      path.basename(entry.path) === normalizedBranch
+    );
+  });
+
+  if (exactMatches.length === 1) return exactMatches[0];
+  if (exactMatches.length > 1) {
+    die(
+      `ambiguous worktree '${query}':\n` +
+        exactMatches.map((entry) => `  ${labelFor(entry)} -> ${entry.path}`).join("\n"),
+    );
+  }
+
+  const suffixMatches = entries.filter((entry) =>
+    entry.branch?.endsWith(`/${normalizedBranch}`),
+  );
+
+  if (suffixMatches.length === 1) return suffixMatches[0];
+  if (suffixMatches.length > 1) {
+    die(
+      `ambiguous worktree '${query}':\n` +
+        suffixMatches.map((entry) => `  ${labelFor(entry)} -> ${entry.path}`).join("\n"),
+    );
+  }
+
+  die(`no worktree found for '${query}'`);
+}
+
+function currentWorktree(entries) {
+  const currentRoot = gitOutput(["rev-parse", "--show-toplevel"]);
+  return entries.find((entry) => path.resolve(entry.path) === path.resolve(currentRoot));
+}
+
+function branchExists(branch) {
+  return (
+    git(["rev-parse", "--verify", "--quiet", `refs/heads/${branch}`], {
+      allowFailure: true,
+    }).status === 0
+  );
+}
+
+function defaultTargetBranch(sourceBranch, entries) {
+  const remoteHead = gitOutput(
+    ["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"],
+    { allowFailure: true },
+  );
+
+  if (remoteHead) {
+    const branch = remoteHead.replace(/^[^/]+\//, "");
+    if (branch && branch !== sourceBranch) return branch;
+  }
+
+  for (const branch of ["main", "master", "trunk", "develop"]) {
+    if (branch !== sourceBranch && branchExists(branch)) return branch;
+  }
+
+  const mainWorktreeBranch = entries[0]?.branch;
+  if (mainWorktreeBranch && mainWorktreeBranch !== sourceBranch) {
+    return mainWorktreeBranch;
+  }
+
+  die("could not determine target branch; pass one explicitly");
+}
+
+function ensureClean(entry, description) {
+  const status = gitOutput(["status", "--porcelain"], { cwd: entry.path });
+  if (status) {
+    die(`${description} worktree has uncommitted changes: ${entry.path}`);
+  }
+}
+
+function copyEnvFiles(sourceRoot, targetRoot) {
+  if (path.resolve(sourceRoot) === path.resolve(targetRoot)) return;
+  if (!fs.existsSync(sourceRoot) || !fs.existsSync(targetRoot)) return;
+
+  const copied = [];
+  for (const name of fs.readdirSync(sourceRoot)) {
+    if (name !== ".env" && !name.startsWith(".env.")) continue;
+
+    const source = path.join(sourceRoot, name);
+    const target = path.join(targetRoot, name);
+    if (fs.existsSync(target)) continue;
+
+    fs.cpSync(source, target, {
+      recursive: true,
+      preserveTimestamps: true,
+    });
+    copied.push(name);
+  }
+
+  if (copied.length > 0) {
+    console.error(`wt: copied ${copied.join(", ")}`);
+  }
+}
+
+function commandList(args) {
+  if (args.length > 0) die("usage: wt list");
+
+  const entries = worktrees();
+  const currentRoot = gitOutput(["rev-parse", "--show-toplevel"], {
+    allowFailure: true,
+  });
+  const labelWidth = Math.max(...entries.map((entry) => labelFor(entry).length));
+
+  for (const entry of entries) {
+    const marker = path.resolve(entry.path) === path.resolve(currentRoot) ? "*" : " ";
+    const label = labelFor(entry).padEnd(labelWidth);
+    const suffix = entry.prunable ? "  (prunable)" : "";
+    console.log(`${marker} ${label}  ${entry.path}${suffix}`);
+  }
+}
+
+function commandPath(args) {
+  if (args.length > 1) die("usage: wt path [branch]");
+
+  const entries = worktrees().filter((entry) => !entry.bare);
+  const entry = args.length === 0 ? selectWorktree(entries) : findWorktree(args[0], entries);
+  console.log(entry.path);
+}
+
+function commandNew(args) {
+  const { options, rest } = parseOptions(args, { path: true, env: true });
+  if (rest.length < 1 || rest.length > 2) {
+    die("usage: wt new <branch> [base] [--path <path>] [--no-env]");
+  }
+
+  const [branch, base] = rest;
+  const sourceRoot = gitOutput(["rev-parse", "--show-toplevel"]);
+  const worktreePath = options.path ?? defaultWorktreePath(branch);
+  fs.mkdirSync(path.dirname(worktreePath), { recursive: true });
+
+  const gitArgs = ["worktree", "add", "-b", branch, worktreePath];
+  if (base) gitArgs.push(base);
+
+  gitVisible(gitArgs);
+  if (options.copyEnv !== false) copyEnvFiles(sourceRoot, worktreePath);
+  console.error(`wt: created ${worktreePath}`);
+  console.log(worktreePath);
+}
+
+function commandAdd(args) {
+  const { options, rest } = parseOptions(args, { path: true, env: true });
+  if (rest.length !== 1) die("usage: wt add <branch> [--path <path>] [--no-env]");
+
+  const [branch] = rest;
+  const sourceRoot = gitOutput(["rev-parse", "--show-toplevel"]);
+  const worktreePath = options.path ?? defaultWorktreePath(branch);
+  fs.mkdirSync(path.dirname(worktreePath), { recursive: true });
+
+  gitVisible(["worktree", "add", worktreePath, branch]);
+  if (options.copyEnv !== false) copyEnvFiles(sourceRoot, worktreePath);
+  console.error(`wt: added ${worktreePath}`);
+  console.log(worktreePath);
+}
+
+function commandRemove(args) {
+  const { options, rest } = parseOptions(args, { force: true });
+  if (rest.length > 1) die("usage: wt rm [branch] [--force]");
+
+  const info = repoInfo();
+  const removable = info.entries.filter(
+    (entry) => path.resolve(entry.path) !== path.resolve(info.mainPath) && !entry.bare,
+  );
+  const entry = rest.length === 0 ? selectWorktree(removable) : findWorktree(rest[0], info.entries);
+
+  if (path.resolve(entry.path) === path.resolve(info.mainPath)) {
+    die("refusing to remove the main worktree");
+  }
+
+  const gitArgs = ["worktree", "remove"];
+  if (options.force) gitArgs.push("--force");
+  gitArgs.push(entry.path);
+
+  git(gitArgs, { stdio: "inherit" });
+  console.error(`wt: removed ${entry.path}`);
+}
+
+function commandFinish(args) {
+  const { rest } = parseOptions(args);
+  if (rest.length > 2) die("usage: wt finish [branch] [target]");
+
+  const info = repoInfo();
+  const entries = info.entries.filter((entry) => !entry.bare);
+  const source = rest[0]
+    ? findWorktree(rest[0], entries)
+    : currentWorktree(entries);
+
+  if (!source) die("could not determine current worktree");
+  if (!source.branch) die("can only finish a branch worktree");
+
+  const targetBranch = rest[1] ?? defaultTargetBranch(source.branch, info.entries);
+  const target = findWorktree(targetBranch, entries);
+
+  if (!target.branch) die(`target '${targetBranch}' is not a branch worktree`);
+  if (path.resolve(source.path) === path.resolve(target.path)) {
+    die("source and target worktree are the same");
+  }
+  if (source.branch === target.branch) {
+    die("source and target branch are the same");
+  }
+
+  ensureClean(source, "source");
+  ensureClean(target, "target");
+
+  console.error(`wt: merging ${source.branch} into ${target.branch}`);
+  gitVisible(["merge", "--no-edit", source.branch], { cwd: target.path });
+
+  console.error(`wt: removing ${source.path}`);
+  gitVisible(["worktree", "remove", source.path], { cwd: target.path });
+
+  console.error(`wt: deleting branch ${source.branch}`);
+  gitVisible(["branch", "-d", source.branch], { cwd: target.path });
+
+  console.log(target.path);
+}
+
+function commandPrune(args) {
+  git(["worktree", "prune", ...args], { stdio: "inherit" });
+}
+
+const [command = "help", ...args] = process.argv.slice(2);
+
+switch (command) {
+  case "help":
+  case "--help":
+  case "-h":
+    console.log(HELP.trim());
+    break;
+  case "ls":
+  case "list":
+    commandList(args);
+    break;
+  case "new":
+    commandNew(args);
+    break;
+  case "add":
+    commandAdd(args);
+    break;
+  case "path":
+  case "cd":
+    commandPath(args);
+    break;
+  case "rm":
+  case "remove":
+    commandRemove(args);
+    break;
+  case "finish":
+    commandFinish(args);
+    break;
+  case "prune":
+    commandPrune(args);
+    break;
+  default:
+    die(`unknown command '${command}'\n\n${HELP.trim()}`);
+}

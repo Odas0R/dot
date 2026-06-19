@@ -10,6 +10,33 @@ alias android-studio="$HOME/tools/android-studio/bin/studio.sh"
 
 alias yarn="yarnpkg"
 
+wt() {
+  case "${1:-}" in
+    cd)
+      shift
+      local worktree_path
+      worktree_path="$(command wt path "$@")" || return
+      [[ -n "$worktree_path" ]] && cd "$worktree_path"
+      ;;
+    new | add)
+      local subcommand target_path
+      subcommand="$1"
+      shift
+      target_path="$(command wt "$subcommand" "$@")" || return
+      [[ -n "$target_path" ]] && cd "$target_path"
+      ;;
+    finish)
+      shift
+      local target_path
+      target_path="$(command wt finish "$@")" || return
+      [[ -n "$target_path" ]] && cd "$target_path"
+      ;;
+    *)
+      command wt "$@"
+      ;;
+  esac
+}
+
 repos() {
   local paths=(
     "$HOME/github.com"
