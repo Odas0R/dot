@@ -13,16 +13,43 @@ return {
     local fmtUtil = require("formatter.util")
     local formatter = require("formatter")
 
+    local findBiome = function()
+      local filePath = fmtUtil.get_current_buffer_file_path()
+      local searchPath = filePath ~= "" and vim.fs.dirname(filePath)
+        or fmtUtil.get_cwd()
+      local biomeBin = vim.fn.has("win32") == 1 and "biome.cmd" or "biome"
+
+      for dir in vim.fs.parents(vim.fs.normalize(searchPath) .. "/") do
+        local localBiome = dir .. "/node_modules/.bin/" .. biomeBin
+        if vim.fn.executable(localBiome) == 1 then
+          return localBiome
+        end
+      end
+
+      local globalBiome = vim.fn.exepath("biome")
+      if globalBiome ~= "" then
+        return globalBiome
+      end
+    end
+
     local biomeConfig = function()
+      local biome = findBiome()
+      if not biome then
+        vim.notify(
+          "biome not found in any parent node_modules/.bin or PATH. Install @biomejs/biome.",
+          vim.log.levels.WARN
+        )
+        return nil
+      end
+
       return {
-        exe = "biome",
+        exe = fmtUtil.escape_path(biome),
         args = {
           "format",
           "--stdin-file-path",
           fmtUtil.escape_path(fmtUtil.get_current_buffer_file_path()),
         },
         stdin = true,
-        try_node_modules = true,
       }
     end
 

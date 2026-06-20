@@ -2,3 +2,91 @@
     path = ~/.gitconfig-github
 [includeIf "gitdir:~/gitlab.com/"]
     path = ~/.gitconfig-gitlab
+
+[color]
+    ui = auto
+[color "branch"]
+    current = yellow reverse
+    local = yellow
+    remote = green
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold
+    old = red bold
+    new = green bold
+[color "status"]
+    added = green bold
+    changed = yellow bold
+    untracked = red bold
+
+[column]
+    ui = auto
+
+[core]
+    pager = less --tabs=4 -FRX
+    quotePath = false
+
+[mailmap]
+    file = ~/.mailmap
+
+[diff]
+    algorithm = histogram
+    colorMoved = zebra
+    mnemonicPrefix = true
+    renames = copies
+    statGraphWidth = 20
+
+[log]
+    abbrevCommit = true
+    date = relative
+    decorate = auto
+    mailmap = true
+
+[status]
+    branch = true
+    showStash = true
+    showUntrackedFiles = all
+
+[branch]
+    sort = -committerdate
+
+[tag]
+    sort = version:refname
+
+[pretty]
+    concise = tformat:%C(auto)%h %C(auto)%d%Creset %s %C(green)(%ar)%Creset %C(bold cyan)<%aN>%Creset
+    detail = format:%C(auto)%h %C(blue)%aI%Creset %C(auto)%d%Creset%n%C(bold)%s%Creset%n%C(green)Author: %aN <%aE>%Creset%n
+
+[format]
+    pretty = concise
+
+[alias]
+    # Status
+    s = status --short --branch
+    st = status --short --branch
+    ss = status --short
+
+    # Logs
+    l = log --graph --pretty=concise
+    ll = log --pretty=concise
+    lg = log --graph --all --pretty=concise
+    last = log -1 HEAD --stat --decorate
+    incoming = !git fetch --quiet && git log --graph --pretty=concise HEAD..@{u}
+    outgoing = !git fetch --quiet && git log --graph --pretty=concise @{u}..HEAD
+
+    # Diffs
+    d = diff
+    ds = diff --stat
+    dc = diff --cached
+    dcs = diff --cached --stat
+    staged = diff --cached
+    changed = diff --name-status
+
+    # Branches / refs
+    br = !git branch --sort=-committerdate --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) %(color:green)(%(committerdate:relative))%(color:reset) %(color:blue)%(upstream:short) %(upstream:trackshort)%(color:reset) %(contents:subject)'
+    bra = !git for-each-ref --sort=-committerdate --format='%(color:yellow)%(refname:short)%(color:reset) %(color:green)(%(committerdate:relative))%(color:reset) %(color:blue)%(upstream:short) %(upstream:trackshort)%(color:reset) %(contents:subject)' refs/heads refs/remotes
+
+    # Useful summaries
+    aliases = !git config --get-regexp '^alias\\.' | sed 's/^alias\\.//' | sort
+    contributors = shortlog --summary --numbered --email HEAD
+    filelog = log --follow --stat --

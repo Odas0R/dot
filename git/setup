@@ -7,7 +7,9 @@ mkdir -p "$HOME/github.com"
 mkdir -p "$HOME/gitlab.com"
 
 ln -sf "$DOT/git/gitconfig" "$HOME/.gitconfig"
+ln -sf "$DOT/git/mailmap" "$HOME/.mailmap"
 ln -sf "$DOT/git/gitconfig-github" "$HOME/.gitconfig-github"
+
 if [[ ! -f "$HOME/.gitconfig-github-key" ]]; then
   cp "$DOT/git/gitconfig-github-key" "$HOME/.gitconfig-github-key"
 else
