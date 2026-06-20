@@ -13,4 +13,5 @@ return {
   "templ",
   "ts_ls",
   "yamlls",
+  "biome",
 }

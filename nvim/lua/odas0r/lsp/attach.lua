@@ -26,26 +26,6 @@ local function organize_typescript_imports(client, bufnr)
   }, nil, bufnr)
 end
 
-local function run_goimports(bufnr)
-  local file = vim.api.nvim_buf_get_name(bufnr)
-
-  if file == "" then
-    return
-  end
-
-  vim.cmd.write()
-  vim.system({ "goimports", "-w", file }, {}, function(result)
-    vim.schedule(function()
-      if result.code ~= 0 then
-        vim.notify(result.stderr, vim.log.levels.ERROR, { title = "goimports" })
-        return
-      end
-
-      vim.cmd.checktime()
-    end)
-  end)
-end
-
 function M.setup()
   local group = vim.api.nvim_create_augroup("Odas0rLspAttach", { clear = true })
 
@@ -131,12 +111,6 @@ function M.setup()
       if client.name == "ts_ls" then
         map("n", "<leader>co", function()
           organize_typescript_imports(client, bufnr)
-        end, { buffer = bufnr, desc = "Organize imports" })
-      end
-
-      if client.name == "gopls" or client.name == "templ" then
-        map("n", "<leader>co", function()
-          run_goimports(bufnr)
         end, { buffer = bufnr, desc = "Organize imports" })
       end
     end,

@@ -8,31 +8,22 @@ return {
       vim.cmd("FormatWrite")
     end, { silent = false })
   end,
+
   config = function()
     local fmtUtil = require("formatter.util")
     local formatter = require("formatter")
 
-    local prettierConfig = function()
-      -- if is_extension({ "json", "jsonc", "md" }) then
-      --   return nil
-      -- end
-
-      -- set env variable
+    local biomeConfig = function()
       return {
-        exe = "prettier",
+        exe = "biome",
         args = {
-          "--stdin-filepath",
+          "format",
+          "--stdin-file-path",
           fmtUtil.escape_path(fmtUtil.get_current_buffer_file_path()),
         },
         stdin = true,
         try_node_modules = true,
       }
-
-      -- return {
-      --   exe = "prettierd",
-      --   args = { vim.api.nvim_buf_get_name(0) },
-      --   stdin = true,
-      -- }
     end
 
     local formatterConfig = {
@@ -78,26 +69,6 @@ return {
             stdin = true,
           }
         end,
-      },
-      json = {
-        function()
-          return {
-            exe = "fixjson",
-            args = { "-w" },
-            stdin = true,
-          }
-        end,
-        prettierConfig,
-      },
-      jsonc = {
-        function()
-          return {
-            exe = "fixjson",
-            args = { "-w" },
-            stdin = true,
-          }
-        end,
-        prettierConfig,
       },
       dart = {
         -- function()
@@ -163,24 +134,19 @@ return {
       },
     }
 
-    local commonFT = {
-      "css",
-      "scss",
-      "html",
-      "java",
-      "toml",
-      "yaml",
-      "xml",
-      "svg",
+    local biomeFT = {
       "astro",
+      "css",
       "graphql",
       "javascript",
       "javascriptreact",
+      "json",
+      "jsonc",
       "typescript",
       "typescriptreact",
     }
-    for _, ft in ipairs(commonFT) do
-      formatterConfig[ft] = { prettierConfig }
+    for _, ft in ipairs(biomeFT) do
+      formatterConfig[ft] = { biomeConfig }
     end
     -- Setup functions
     formatter.setup({
