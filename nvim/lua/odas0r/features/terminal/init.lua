@@ -130,10 +130,19 @@ M.setup = function(opts)
   if M.config.close_on_nav then
     local grp = vim.api.nvim_create_augroup("TerminalNav", { clear = true })
 
-    local function close_term()
-      if M._terminal and M._terminal.window:is_valid() then
-        M.close()
+    local function close_term(args)
+      if not (M._terminal and M._terminal.window:is_valid()) then
+        return
       end
+
+      -- Do not close as a side effect of opening/focusing the terminal itself.
+      -- BufWinEnter fires for the terminal split too, which can otherwise make
+      -- `:Term`/`:T` look like it closed immediately.
+      if args and args.buf == M._terminal.buf then
+        return
+      end
+
+      M.close()
     end
 
     vim.api.nvim_create_autocmd({ "BufReadPre", "BufWinEnter" }, {

@@ -6,10 +6,10 @@ return {
     { "<leader>t", mode = { "n", "t" }, desc = "Toggle Terminal" },
   },
   opts = {
-    -- Override defaults if needed
-    -- toggle_keymap = "<leader>t",
-    -- esc_to_exit = true,
-    -- close_on_nav = true,
+    -- Keep terminal windows open until explicitly toggled/closed.
+    -- This prevents scripts/commands that trigger buffer/window events or return
+    -- non-zero statuses from making the terminal disappear unexpectedly.
+    close_on_nav = false,
   },
   config = function(_, opts)
     require("odas0r.features.terminal").setup(opts)
