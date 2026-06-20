@@ -354,24 +354,59 @@ function ensureClean(entry, description) {
   }
 }
 
+function isEnvFileName(name) {
+  return name === ".env" || name.startsWith(".env.");
+}
+
+function isInsidePath(candidate, parent) {
+  const relative = path.relative(parent, candidate);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
+function shouldSkipEnvSearchDirectory(name) {
+  return name === ".git" || name === "node_modules";
+}
+
 function copyEnvFiles(sourceRoot, targetRoot) {
-  if (path.resolve(sourceRoot) === path.resolve(targetRoot)) return;
-  if (!fs.existsSync(sourceRoot) || !fs.existsSync(targetRoot)) return;
+  const resolvedSourceRoot = path.resolve(sourceRoot);
+  const resolvedTargetRoot = path.resolve(targetRoot);
+
+  if (resolvedSourceRoot === resolvedTargetRoot) return;
+  if (!fs.existsSync(resolvedSourceRoot) || !fs.existsSync(resolvedTargetRoot)) return;
 
   const copied = [];
-  for (const name of fs.readdirSync(sourceRoot)) {
-    if (name !== ".env" && !name.startsWith(".env.")) continue;
 
-    const source = path.join(sourceRoot, name);
-    const target = path.join(targetRoot, name);
-    if (fs.existsSync(target)) continue;
+  function visit(directory, relativeDirectory = "") {
+    if (isInsidePath(path.resolve(directory), resolvedTargetRoot)) return;
 
-    fs.cpSync(source, target, {
-      recursive: true,
-      preserveTimestamps: true,
-    });
-    copied.push(name);
+    const entries = fs
+      .readdirSync(directory, { withFileTypes: true })
+      .sort((left, right) => left.name.localeCompare(right.name));
+
+    for (const entry of entries) {
+      const relativePath = path.join(relativeDirectory, entry.name);
+      const source = path.join(resolvedSourceRoot, relativePath);
+
+      if (isEnvFileName(entry.name)) {
+        const target = path.join(resolvedTargetRoot, relativePath);
+        if (fs.existsSync(target)) continue;
+
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        fs.cpSync(source, target, {
+          recursive: true,
+          preserveTimestamps: true,
+        });
+        copied.push(relativePath);
+        continue;
+      }
+
+      if (entry.isDirectory() && !shouldSkipEnvSearchDirectory(entry.name)) {
+        visit(source, relativePath);
+      }
+    }
   }
+
+  visit(resolvedSourceRoot);
 
   if (copied.length > 0) {
     console.error(`wt: copied ${copied.join(", ")}`);
