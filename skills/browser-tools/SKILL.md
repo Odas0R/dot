@@ -13,7 +13,7 @@ Run once before first use:
 
 ```bash
 cd {baseDir}/browser-tools
-pnpm install
+npm install
 ```
 
 ## Start Chrome
