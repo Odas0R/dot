@@ -2,6 +2,7 @@
 
 import { readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
+import { join } from "node:path";
 import process from "node:process";
 
 const DEP_TYPES = [
@@ -35,7 +36,7 @@ function usage() {
   console.log(`Usage: npm-check-updates [options] [package-filter...]
 
 Minimal, dependency-free npm update checker. It extends \`npm outdated\` by showing
-npm's latest dist-tag plus the highest stable patch, minor, and major targets.
+the highest stable patch, minor, and major targets.
 
 Options:
   --json                 Print JSON
@@ -244,12 +245,66 @@ function dependencyMap(pkg) {
   const result = new Map();
 
   for (const type of DEP_TYPES) {
-    for (const [name, spec] of Object.entries(pkg[type] ?? {})) {
+    for (const [name, spec] of Object.entries(pkg?.[type] ?? {})) {
       result.set(name, { name, spec, type });
     }
   }
 
   return result;
+}
+
+function normalizeOutdated(outdated, filters) {
+  return Object.entries(outdated)
+    .filter(([name]) => filters.length === 0 || filters.some((filter) => name.includes(filter)))
+    .flatMap(([name, value]) => {
+      const infos = Array.isArray(value) ? value : [value];
+      return infos.map((info, index) => ({ name, info: info ?? {}, index }));
+    })
+    .sort((a, b) => {
+      const aLocation = manifestLocation(a.info);
+      const bLocation = manifestLocation(b.info);
+      const byLocation = aLocation.localeCompare(bLocation);
+      if (byLocation) return byLocation;
+
+      const byName = a.name.localeCompare(b.name);
+      return byName || a.index - b.index;
+    });
+}
+
+function manifestLocation(info) {
+  return typeof info.dependedByLocation === "string" ? info.dependedByLocation : "";
+}
+
+async function dependencyForInfo(name, info, rootPkg, manifestCache) {
+  const location = manifestLocation(info);
+  const pkg = await readManifest(location, rootPkg, manifestCache);
+  return dependencyMap(pkg).get(name);
+}
+
+async function readManifest(location, rootPkg, manifestCache) {
+  if (!location) return rootPkg;
+
+  if (!manifestCache.has(location)) {
+    manifestCache.set(
+      location,
+      readFile(join(location, "package.json"), "utf8")
+        .then(JSON.parse)
+        .catch(() => null),
+    );
+  }
+
+  return manifestCache.get(location);
+}
+
+function packageCounts(rows) {
+  const result = new Map();
+  for (const row of rows) result.set(row.name, (result.get(row.name) ?? 0) + 1);
+  return result;
+}
+
+function workspaceText(row) {
+  if (typeof row.dependedBy === "string") return row.dependedBy || ".";
+  return row.dependent ?? "-";
 }
 
 async function mapLimit(items, limit, mapper) {
@@ -290,21 +345,33 @@ function printTable(rows, { verbose = false } = {}) {
     return;
   }
 
+  const counts = packageCounts(rows);
+  const workspaces = new Set(
+    rows
+      .map((row) => (typeof row.dependedBy === "string" ? row.dependedBy : null))
+      .filter((workspace) => workspace !== null),
+  );
+  const showWorkspace =
+    workspaces.size > 1 ||
+    Array.from(workspaces).some(Boolean) ||
+    rows.some((row) => counts.get(row.name) > 1);
   const table = rows.map((row) => ({
     package: row.name,
+    workspace: workspaceText(row),
     type: TYPE_LABEL[row.type] ?? row.type ?? "-",
     range: row.spec ?? "-",
     current: row.current ?? "-",
     wanted: row.wanted ?? "-",
-    latest: row.latest ?? "-",
     patch: row.targets.patch ?? "-",
     minor: row.targets.minor ?? "-",
     major: row.targets.major ?? "-",
   }));
 
+  const workspaceHeader = showWorkspace ? { workspace: "Workspace" } : {};
   const headers = verbose
     ? {
         package: "Package",
+        ...workspaceHeader,
         type: "Type",
         range: "Range",
         current: "Current",
@@ -312,15 +379,14 @@ function printTable(rows, { verbose = false } = {}) {
         patch: "Patch",
         minor: "Minor",
         major: "Major",
-        latest: "Latest",
       }
     : {
         package: "Package",
+        ...workspaceHeader,
         current: "Current",
         patch: "Patch",
         minor: "Minor",
         major: "Major",
-        latest: "Latest",
       };
 
   const columns = Object.keys(headers);
@@ -338,14 +404,13 @@ function printTable(rows, { verbose = false } = {}) {
   console.log(columns.map((column) => c.dim("-".repeat(widths[column]))).join("  "));
 
   for (const row of rows) {
-    const latestIsPrerelease = row.latest && !parseVersion(row.latest);
     const rendered = {
       package: row.name,
+      workspace: c.dim(workspaceText(row)),
       type: c.dim(TYPE_LABEL[row.type] ?? row.type ?? "-"),
       range: c.dim(row.spec ?? "-"),
       current: row.current ?? c.dim("-"),
       wanted: row.wanted && row.wanted !== row.current ? c.cyan(row.wanted) : c.dim(row.wanted ?? "-"),
-      latest: targetText(row.latest, latestIsPrerelease ? c.magenta : c.red),
       patch: targetText(row.targets.patch, c.green),
       minor: targetText(row.targets.minor, c.yellow),
       major: targetText(row.targets.major, c.red),
@@ -354,7 +419,10 @@ function printTable(rows, { verbose = false } = {}) {
     console.log(columns.map((column) => pad(rendered[column], widths[column])).join("  "));
   }
 
-  const count = rows.length === 1 ? "1 dependency" : `${rows.length} dependencies`;
+  const count =
+    rows.length === 1
+      ? `1 ${showWorkspace ? "dependency entry" : "dependency"}`
+      : `${rows.length} ${showWorkspace ? "dependency entries" : "dependencies"}`;
   console.log(c.dim(`\n${count} with newer versions.`));
 }
 
@@ -525,18 +593,17 @@ function printLinks(rows, target) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const pkg = await readPackageJson();
-  const deps = dependencyMap(pkg);
   const outdated = await npmOutdated();
+  const manifestCache = new Map();
+  const versionCache = new Map();
+  const outdatedEntries = normalizeOutdated(outdated, args.filters);
 
-  const names = Object.keys(outdated)
-    .filter((name) => args.filters.length === 0 || args.filters.some((filter) => name.includes(filter)))
-    .sort((a, b) => a.localeCompare(b));
+  let rows = await mapLimit(outdatedEntries, args.concurrency, async ({ name, info }) => {
+    const dep = await dependencyForInfo(name, info, pkg, manifestCache);
+    const current = parseVersion(info.current)?.raw ?? info.current ?? extractVersion(dep?.spec)?.raw;
 
-  let rows = await mapLimit(names, args.concurrency, async (name) => {
-    const dep = deps.get(name);
-    const info = outdated[name];
-    const current = parseVersion(info.current)?.raw ?? extractVersion(dep?.spec)?.raw ?? info.current;
-    const versions = await npmVersions(name);
+    if (!versionCache.has(name)) versionCache.set(name, npmVersions(name));
+    const versions = await versionCache.get(name);
     const targets = classifyTargets(versions, current);
 
     return {

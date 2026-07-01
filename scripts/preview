@@ -5,8 +5,48 @@ import fs from "fs";
 import path from "path";
 
 // Configuration
-let currentPort = parseInt(process.argv[2]) || 3000;
-const WATCH_DIR = process.cwd();
+const args = process.argv.slice(2);
+let currentPort = 3000;
+let WATCH_DIR = process.cwd();
+
+const parsePort = (value) => {
+  const port = Number(value);
+
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    console.error(`Invalid port: ${value}`);
+    process.exit(1);
+  }
+
+  return port;
+};
+
+const isExistingDirectory = (value) => {
+  try {
+    return fs.statSync(path.resolve(value)).isDirectory();
+  } catch (e) {
+    return false;
+  }
+};
+
+const resolveWatchDir = (value) => {
+  if (isExistingDirectory(value)) return path.resolve(value);
+
+  console.error(`Not a directory: ${value}`);
+  process.exit(1);
+};
+
+if (args[0]) {
+  if (isExistingDirectory(args[0])) {
+    WATCH_DIR = resolveWatchDir(args[0]);
+    if (args[1]) currentPort = parsePort(args[1]);
+  } else if (/^\d+$/.test(args[0])) {
+    currentPort = parsePort(args[0]);
+    if (args[1]) WATCH_DIR = resolveWatchDir(args[1]);
+  } else {
+    WATCH_DIR = resolveWatchDir(args[0]);
+    if (args[1]) currentPort = parsePort(args[1]);
+  }
+}
 
 // MIME Types Dictionary
 const MIMES = {
@@ -63,13 +103,8 @@ const handler = (req, res) => {
     return;
   }
 
-  // Default to index.html
-  if (pathname === "/") {
-    pathname = "/index.html";
-  }
-
   // Normalize path and join with current working directory
-  const filePath = path.join(WATCH_DIR, pathname);
+  let filePath = path.join(WATCH_DIR, pathname);
 
   // Directory traversal attack check
   const relativePath = path.relative(WATCH_DIR, filePath);
@@ -82,27 +117,54 @@ const handler = (req, res) => {
     return;
   }
 
-  const ext = path.extname(filePath);
-  const contentType = MIMES[ext] || "application/octet-stream";
-
-  // 3. Serve File
-  fs.readFile(filePath, (err, content) => {
-    if (err) {
-      if (err.code === "ENOENT") {
+  // 3. Resolve Directories
+  fs.stat(filePath, (statErr, stats) => {
+    if (statErr) {
+      if (statErr.code === "ENOENT" || statErr.code === "ENOTDIR") {
         res.writeHead(404);
         res.end(`404: File Not Found\nPath: ${pathname}`);
       } else {
         res.writeHead(500);
-        res.end(`500: Internal Server Error\n${err.code}`);
+        res.end(`500: Internal Server Error\n${statErr.code}`);
       }
       return;
     }
 
-    res.writeHead(200, { "Content-Type": contentType });
+    if (stats.isDirectory()) {
+      // Keep browser-relative asset URLs rooted in the directory.
+      if (!parsedUrl.pathname.endsWith("/")) {
+        res.writeHead(301, {
+          Location: `${parsedUrl.pathname}/${parsedUrl.search}`,
+        });
+        res.end();
+        return;
+      }
 
-    // 4. Inject Live Reload Script (HTML only)
-    if (contentType === "text/html") {
-      const reloadScript = `
+      filePath = path.join(filePath, "index.html");
+      pathname = path.posix.join(pathname, "index.html");
+    }
+
+    const ext = path.extname(filePath);
+    const contentType = MIMES[ext] || "application/octet-stream";
+
+    // 4. Serve File
+    fs.readFile(filePath, (err, content) => {
+      if (err) {
+        if (err.code === "ENOENT") {
+          res.writeHead(404);
+          res.end(`404: File Not Found\nPath: ${pathname}`);
+        } else {
+          res.writeHead(500);
+          res.end(`500: Internal Server Error\n${err.code}`);
+        }
+        return;
+      }
+
+      res.writeHead(200, { "Content-Type": contentType });
+
+      // 5. Inject Live Reload Script (HTML only)
+      if (contentType === "text/html") {
+        const reloadScript = `
                 <script>
                     (function() {
                         const evtSource = new EventSource('/_reload');
@@ -113,10 +175,11 @@ const handler = (req, res) => {
                 </script>
                 </body>
             `;
-      res.end(content.toString().replace("</body>", reloadScript));
-    } else {
-      res.end(content);
-    }
+        res.end(content.toString().replace("</body>", reloadScript));
+      } else {
+        res.end(content);
+      }
+    });
   });
 };
 
@@ -124,6 +187,11 @@ const handler = (req, res) => {
  * Start Server with Port Hunting
  */
 const startServer = (port) => {
+  if (port > 65535) {
+    console.error("\x1b[31m No available ports found.\x1b[0m");
+    process.exit(1);
+  }
+
   const server = http.createServer(handler);
 
   server.on("error", (e) => {

@@ -1,7 +1,7 @@
 {
   "shellPath": "/opt/homebrew/bin/bash",
   "theme": "gruvbox",
-  "lastChangelogVersion": "0.79.7",
+  "lastChangelogVersion": "0.80.3",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",
   "enabledModels": [

@@ -11,8 +11,11 @@ wt - small git worktree helper
 
 Usage:
   wt list
-  wt new <branch> [base] [--path <path>] [--no-env]
-  wt add <branch> [--path <path>] [--no-env]
+  wt new <branch> [base] [--path <path>] [--env]
+  wt add <branch> [--path <path>] [--env]
+  wt tmp [--env]
+  wt promote <branch>
+  wt pr [base]
   wt path [branch]
   wt cd [branch]
   wt rm [branch] [--force]
@@ -23,12 +26,26 @@ Examples:
   wt new feature/login
   wt new feature/login main
   wt add existing-branch
+  wt tmp --env
+  wt promote agent/login
+  wt pr
   wt cd feature/login
   wt finish feature/login main
   wt rm feature/login
 
-Default worktree location:
+Default persistent worktree location:
   ../<repo>.worktrees/<branch-slug>
+
+Default temporary worktree location:
+  $TMPDIR/wt/<repo>-<branch-or-head>-XXXXXX
+
+Environment files:
+  Pass --env to copy .env files from the current worktree.
+
+Temporary workflow:
+  wt tmp remembers the source branch. After committing in the temp worktree,
+  use wt promote <branch> to attach it to a branch, then wt pr to push it and
+  open a pull request against the source branch.
 `;
 
 function die(message, code = 1) {
@@ -88,6 +105,24 @@ function gitVisible(args, options = {}) {
   return result;
 }
 
+function commandVisible(command, args, options = {}) {
+  const result = spawnSync(command, args, {
+    cwd: options.cwd ?? process.cwd(),
+    encoding: "utf8",
+    stdio: "inherit",
+  });
+
+  if (result.error) {
+    die(`could not run ${command}: ${result.error.message}`);
+  }
+
+  if (result.status !== 0 && !options.allowFailure) {
+    die(`${command} ${args.join(" ")} failed`);
+  }
+
+  return result;
+}
+
 function ensureInsideGitWorktree() {
   const result = git(["rev-parse", "--is-inside-work-tree"], {
     allowFailure: true,
@@ -141,6 +176,13 @@ function worktrees() {
   return parseWorktreeList(gitOutput(["worktree", "list", "--porcelain"]));
 }
 
+function currentBranch(cwd = process.cwd()) {
+  return gitOutput(["branch", "--show-current"], {
+    cwd,
+    allowFailure: true,
+  });
+}
+
 function friendlyBranch(ref) {
   if (!ref) return null;
   return ref.replace(/^refs\/heads\//, "").replace(/^refs\/remotes\//, "");
@@ -186,6 +228,44 @@ function defaultWorktreePath(branch) {
   return path.join(repoInfo().baseDir, branchSlug(branch));
 }
 
+function defaultTemporaryWorktreePath() {
+  const parent = path.join(os.tmpdir(), "wt");
+  fs.mkdirSync(parent, { recursive: true });
+
+  const branch = currentBranch();
+  const head = gitOutput(["rev-parse", "--short", "HEAD"]);
+  const label = branch || head;
+
+  return fs.mkdtempSync(
+    path.join(parent, `${branchSlug(repoInfo().repoName)}-${branchSlug(label)}-`),
+  );
+}
+
+function worktreeGitDir(cwd = process.cwd()) {
+  const gitDir = gitOutput(["rev-parse", "--git-dir"], { cwd });
+  return path.isAbsolute(gitDir) ? gitDir : path.resolve(cwd, gitDir);
+}
+
+function worktreeMetadataPath(cwd = process.cwd()) {
+  return path.join(worktreeGitDir(cwd), "wt-meta.json");
+}
+
+function readWorktreeMetadata(cwd = process.cwd()) {
+  const file = worktreeMetadataPath(cwd);
+  if (!fs.existsSync(file)) return null;
+
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch (error) {
+    die(`could not read worktree metadata ${file}: ${error.message}`);
+  }
+}
+
+function writeWorktreeMetadata(cwd, metadata) {
+  const file = worktreeMetadataPath(cwd);
+  fs.writeFileSync(file, `${JSON.stringify(metadata, null, 2)}\n`);
+}
+
 function parseOptions(args, definitions = {}) {
   const options = {};
   const rest = [];
@@ -213,6 +293,11 @@ function parseOptions(args, definitions = {}) {
 
     if ((arg === "-f" || arg === "--force") && definitions.force) {
       options.force = true;
+      continue;
+    }
+
+    if (arg === "--env" && definitions.env) {
+      options.copyEnv = true;
       continue;
     }
 
@@ -324,7 +409,12 @@ function branchExists(branch) {
   );
 }
 
-function defaultTargetBranch(sourceBranch, entries) {
+function defaultTargetBranch(sourceBranch, entries, metadata = null) {
+  const sourceMetadataBranch = metadata?.sourceBranch;
+  if (sourceMetadataBranch && sourceMetadataBranch !== sourceBranch) {
+    return sourceMetadataBranch;
+  }
+
   const remoteHead = gitOutput(
     ["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"],
     { allowFailure: true },
@@ -441,7 +531,7 @@ function commandPath(args) {
 function commandNew(args) {
   const { options, rest } = parseOptions(args, { path: true, env: true });
   if (rest.length < 1 || rest.length > 2) {
-    die("usage: wt new <branch> [base] [--path <path>] [--no-env]");
+    die("usage: wt new <branch> [base] [--path <path>] [--env]");
   }
 
   const [branch, base] = rest;
@@ -453,14 +543,14 @@ function commandNew(args) {
   if (base) gitArgs.push(base);
 
   gitVisible(gitArgs);
-  if (options.copyEnv !== false) copyEnvFiles(sourceRoot, worktreePath);
+  if (options.copyEnv === true) copyEnvFiles(sourceRoot, worktreePath);
   console.error(`wt: created ${worktreePath}`);
   console.log(worktreePath);
 }
 
 function commandAdd(args) {
   const { options, rest } = parseOptions(args, { path: true, env: true });
-  if (rest.length !== 1) die("usage: wt add <branch> [--path <path>] [--no-env]");
+  if (rest.length !== 1) die("usage: wt add <branch> [--path <path>] [--env]");
 
   const [branch] = rest;
   const sourceRoot = gitOutput(["rev-parse", "--show-toplevel"]);
@@ -468,9 +558,91 @@ function commandAdd(args) {
   fs.mkdirSync(path.dirname(worktreePath), { recursive: true });
 
   gitVisible(["worktree", "add", worktreePath, branch]);
-  if (options.copyEnv !== false) copyEnvFiles(sourceRoot, worktreePath);
+  if (options.copyEnv === true) copyEnvFiles(sourceRoot, worktreePath);
   console.error(`wt: added ${worktreePath}`);
   console.log(worktreePath);
+}
+
+function commandTmp(args) {
+  const { options, rest } = parseOptions(args, { env: true });
+  if (rest.length > 0) die("usage: wt tmp [--env]");
+
+  const currentRoot = gitOutput(["rev-parse", "--show-toplevel"]);
+  const currentSourceBranch = currentBranch() || null;
+  const currentHead = gitOutput(["rev-parse", "HEAD"]);
+  const parentMetadata = readWorktreeMetadata(currentRoot);
+  const shouldInheritSource = !currentSourceBranch && parentMetadata;
+  const sourcePath = shouldInheritSource
+    ? (parentMetadata.sourcePath ?? currentRoot)
+    : currentRoot;
+  const sourceBranch = shouldInheritSource
+    ? (parentMetadata.sourceBranch ?? null)
+    : currentSourceBranch;
+  const sourceHead = shouldInheritSource
+    ? (parentMetadata.sourceHead ?? currentHead)
+    : currentHead;
+  const worktreePath = defaultTemporaryWorktreePath();
+
+  gitVisible(["worktree", "add", "--detach", worktreePath, "HEAD"]);
+  writeWorktreeMetadata(worktreePath, {
+    temporary: true,
+    sourcePath,
+    sourceBranch,
+    sourceHead,
+    parentPath: currentRoot,
+    parentBranch: currentSourceBranch,
+    parentHead: currentHead,
+    createdAt: new Date().toISOString(),
+  });
+  if (options.copyEnv === true) copyEnvFiles(currentRoot, worktreePath);
+  console.error(`wt: created temporary ${worktreePath}`);
+  console.log(worktreePath);
+}
+
+function commandPromote(args) {
+  const { rest } = parseOptions(args);
+  if (rest.length !== 1) die("usage: wt promote <branch>");
+
+  const [branch] = rest;
+  const existingBranch = currentBranch();
+  if (existingBranch) die(`already on branch '${existingBranch}'`);
+  if (branchExists(branch)) die(`branch '${branch}' already exists`);
+
+  gitVisible(["switch", "-c", branch]);
+
+  const metadata = readWorktreeMetadata();
+  if (metadata) {
+    writeWorktreeMetadata(process.cwd(), {
+      ...metadata,
+      promotedBranch: branch,
+      promotedAt: new Date().toISOString(),
+    });
+  }
+
+  console.error(`wt: promoted to ${branch}`);
+}
+
+function commandPr(args) {
+  const { rest } = parseOptions(args);
+  if (rest.length > 1) die("usage: wt pr [base]");
+  if (!commandExists("gh")) die("gh is required for wt pr");
+
+  const [requestedBase] = rest;
+  const branch = currentBranch();
+  if (!branch) die("current worktree is detached; run wt promote <branch> first");
+
+  const currentRoot = gitOutput(["rev-parse", "--show-toplevel"]);
+  ensureClean({ path: currentRoot }, "current");
+
+  const metadata = readWorktreeMetadata();
+  const base = requestedBase ?? defaultTargetBranch(branch, worktrees(), metadata);
+  if (base === branch) die("pull request base and head branch are the same");
+
+  console.error(`wt: pushing ${branch}`);
+  gitVisible(["push", "-u", "origin", branch]);
+
+  console.error(`wt: opening PR ${branch} -> ${base}`);
+  commandVisible("gh", ["pr", "create", "--base", base, "--head", branch, "--fill"]);
 }
 
 function commandRemove(args) {
@@ -508,7 +680,8 @@ function commandFinish(args) {
   if (!source) die("could not determine current worktree");
   if (!source.branch) die("can only finish a branch worktree");
 
-  const targetBranch = rest[1] ?? defaultTargetBranch(source.branch, info.entries);
+  const metadata = readWorktreeMetadata(source.path);
+  const targetBranch = rest[1] ?? defaultTargetBranch(source.branch, info.entries, metadata);
   const target = findWorktree(targetBranch, entries);
 
   if (!target.branch) die(`target '${targetBranch}' is not a branch worktree`);
@@ -555,6 +728,16 @@ switch (command) {
     break;
   case "add":
     commandAdd(args);
+    break;
+  case "tmp":
+  case "temp":
+    commandTmp(args);
+    break;
+  case "promote":
+    commandPromote(args);
+    break;
+  case "pr":
+    commandPr(args);
     break;
   case "path":
   case "cd":

@@ -1,6 +1,6 @@
-import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:net";
+import { launchKitty } from "./lib/kitty.js";
 
 function ensureSafeExArgs(args) {
 	const trimmed = args.trim();
@@ -8,37 +8,6 @@ function ensureSafeExArgs(args) {
 		throw new Error("Arguments cannot contain newlines or |.");
 	}
 	return trimmed;
-}
-
-function exec(command, args, options = {}) {
-	return new Promise((resolve, reject) => {
-		const child = spawn(command, args, {
-			...(options.env ? { env: options.env } : {}),
-			stdio: ["ignore", "pipe", "pipe"],
-		});
-
-		let stdout = "";
-		let stderr = "";
-		child.stdout.on("data", (chunk) => {
-			stdout += String(chunk);
-		});
-		child.stderr.on("data", (chunk) => {
-			stderr += String(chunk);
-		});
-		child.on("error", reject);
-		child.on("close", (code) => {
-			if (code === 0) {
-				resolve();
-				return;
-			}
-
-			reject(
-				new Error(
-					(stderr || stdout || `${command} exited with ${code}`).trim(),
-				),
-			);
-		});
-	});
 }
 
 function listen(server) {
@@ -98,6 +67,22 @@ function optionalString(value) {
 	return typeof value === "string" ? value : "";
 }
 
+function looksLikeReviewQuestion(comment) {
+	const text = String(comment || "").trim();
+	if (text === "") {
+		return false;
+	}
+
+	if (/[?？](?:\s|$)/u.test(text)) {
+		return true;
+	}
+
+	const firstLine = text.split(/\r?\n/, 1)[0].trim();
+	return /^(?:why|what|when|where|who|which|how|is|are|was|were|do|does|did|has|have)\b/i.test(
+		firstLine,
+	);
+}
+
 function normalizeReviewComment(payload, index) {
 	if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
 		throw new Error(`Review comment ${index + 1} must be a JSON object`);
@@ -110,11 +95,24 @@ function normalizeReviewComment(payload, index) {
 	const location = optionalString(payload.location).trim() || file;
 	const filetype = optionalString(payload.filetype).trim();
 	const code = optionalString(payload.code);
+	const isQuestion =
+		payload.isQuestion === true || looksLikeReviewQuestion(comment);
 	const id = Number.isInteger(payload.id) ? payload.id : undefined;
 	const line1 = Number.isInteger(payload.line1) ? payload.line1 : undefined;
 	const line2 = Number.isInteger(payload.line2) ? payload.line2 : undefined;
 
-	return { id, scope, file, comment, location, filetype, code, line1, line2 };
+	return {
+		id,
+		scope,
+		file,
+		comment,
+		location,
+		filetype,
+		code,
+		isQuestion,
+		line1,
+		line2,
+	};
 }
 
 function normalizeReviewPayload(payload, token) {
@@ -142,14 +140,17 @@ function normalizeReviewPayload(payload, token) {
 }
 
 function pushReviewCommentPrompt(lines, comment, index) {
-	const title = comment.id ? `Comment #${comment.id}` : `Comment ${index + 1}`;
+	const itemName = comment.isQuestion ? "Question" : "Comment";
+	const title = comment.id
+		? `${itemName} #${comment.id}`
+		: `${itemName} ${index + 1}`;
 	const locationLabel = comment.scope === "file" ? "File" : "Location";
 	lines.push(
 		`## ${title}`,
 		"",
 		`${locationLabel}: \`${comment.location}\`${comment.scope === "file" ? " (entire file)" : ""}`,
 		"",
-		"Reviewer comment:",
+		`Reviewer ${comment.isQuestion ? "question" : "comment"}:`,
 		comment.comment,
 	);
 
@@ -162,14 +163,42 @@ function pushReviewCommentPrompt(lines, comment, index) {
 	}
 }
 
+function batchReviewIntro(commentCount, questionCount) {
+	if (commentCount === 0) {
+		return "Answer these code review questions.";
+	}
+	if (questionCount === 0) {
+		return "Apply these code review comments.";
+	}
+	return "Address these code review comments and questions.";
+}
+
+function batchReviewCountLine(commentCount, questionCount) {
+	const parts = [];
+	if (commentCount > 0) {
+		parts.push(`${commentCount} review ${plural(commentCount, "comment")}`);
+	}
+	if (questionCount > 0) {
+		parts.push(`${questionCount} review ${plural(questionCount, "question")}`);
+	}
+
+	const count = commentCount + questionCount;
+	return `There ${count === 1 ? "is" : "are"} ${parts.join(" and ")}.`;
+}
+
 function buildBatchReviewPrompt(payload) {
+	const questionCount = payload.comments.filter(
+		(comment) => comment.isQuestion,
+	).length;
+	const commentCount = payload.comments.length - questionCount;
+	const action = commentCount === 0 ? "Answer" : "Address";
 	const lines = [
-		"Apply these code review comments.",
+		batchReviewIntro(commentCount, questionCount),
 		"",
-		`There ${payload.comments.length === 1 ? "is" : "are"} ${payload.comments.length} review ${plural(payload.comments.length, "comment")}.`,
+		batchReviewCountLine(commentCount, questionCount),
 		payload.comments.length === 1
-			? "Address it in one pass."
-			: "Address all of them in one pass.",
+			? `${action} it in one pass.`
+			: `${action} all of them in one pass.`,
 		"",
 	];
 
@@ -183,11 +212,12 @@ function buildBatchReviewPrompt(payload) {
 	lines.push(
 		"",
 		"Instructions:",
-		"- Inspect each file and surrounding context as needed before editing.",
-		"- Make the minimal code changes needed to satisfy every review comment.",
-		"- If a comment is already satisfied, verify it and mention that in your final response.",
-		"- Update tests or docs only if a review comment requires it.",
-		"- In your final response, summarize the outcome for each comment number.",
+		"- Inspect each file and surrounding context as needed before responding.",
+		"- For comments that request a change, make the minimal code changes needed.",
+		"- For questions, answer clearly in your final response; do not edit code unless the question reveals a concrete issue or clearly asks for a change.",
+		"- If a requested change is already satisfied, verify it and mention that in your final response.",
+		"- Update tests or docs only if a review item requires it.",
+		"- In your final response, summarize the outcome for each item number, including answers for questions.",
 	);
 
 	return lines.join("\n");
@@ -198,17 +228,34 @@ function buildReviewPrompt(payload) {
 		return buildBatchReviewPrompt(payload);
 	}
 
-	const intro =
-		payload.scope === "file"
+	const intro = payload.isQuestion
+		? payload.scope === "file"
+			? "Answer this file-level code review question."
+			: "Answer this inline code review question."
+		: payload.scope === "file"
 			? "Apply this file-level code review comment."
 			: "Apply this inline code review comment.";
 	const lines = [intro, ""];
 	pushReviewCommentPrompt(lines, payload, 0);
+
+	if (payload.isQuestion) {
+		lines.push(
+			"",
+			"Instructions:",
+			"- Inspect the file and surrounding context as needed before answering.",
+			"- Answer the reviewer's question clearly in your final response.",
+			"- Do not edit code unless the question reveals a concrete issue or clearly asks for a change.",
+			"- If you do edit code, keep the change minimal and summarize both the answer and what changed.",
+		);
+		return lines.join("\n");
+	}
+
 	lines.push(
 		"",
 		"Instructions:",
 		"- Inspect the file and surrounding context as needed before editing.",
 		"- Make the minimal code change needed to satisfy the review comment.",
+		"- If the comment is actually asking a question rather than requesting a change, answer it in your final response instead of editing.",
 		"- Update tests or docs only if the review comment requires it.",
 		"- In your final response, summarize what changed.",
 	);
@@ -222,9 +269,9 @@ function plural(count, singular, pluralWord = `${singular}s`) {
 
 function payloadDescription(payload) {
 	if (payload.scope === "batch") {
-		return `${payload.comments.length} review ${plural(payload.comments.length, "comment")}`;
+		return `${payload.comments.length} review ${plural(payload.comments.length, "item")}`;
 	}
-	return `review comment for ${payload.location}`;
+	return `review ${payload.isQuestion ? "question" : "comment"} for ${payload.location}`;
 }
 
 function writeReviewPayloadToEditor(ctx, payload) {
@@ -240,101 +287,23 @@ function writeReviewPayloadToEditor(ctx, payload) {
 	ctx.ui.notify(`Wrote ${description} to Pi input`, "info");
 }
 
-function humanKittyError(message) {
-	if (message.includes("Remote control is disabled")) {
-		return "Kitty remote control is disabled. Add `allow_remote_control yes` to kitty.conf, then fully restart kitty. If Pi is not running in a kitty-controlled TTY, set PI_KITTY_LISTEN_ON to a socket started with kitty --listen-on.";
-	}
-	if (message.includes("i/o timeout")) {
-		return "Kitty remote control timed out while opening Diffview. Pi tried to contact Kitty but no Kitty instance answered. If you are inside Kitty, this is usually a stale KITTY_LISTEN_ON/PI_KITTY_LISTEN_ON from tmux or an old shell; unset it or set PI_KITTY_LISTEN_ON to a live socket from `kitty --listen-on`.";
-	}
-	return message;
-}
-
-function errorMessage(error) {
-	return error instanceof Error ? error.message : String(error);
-}
-
-function cleanKittyRemoteEnv() {
-	const env = { ...process.env };
-	delete env.KITTY_LISTEN_ON;
-	return env;
-}
-
-function buildKittyLaunchArgs(cwd, diffArgs, reviewBridge, listenOn) {
+async function openDiffviewInKittyOverlay(cwd, diffArgs, reviewBridge) {
 	const command = diffArgs
 		? `DiffviewOpen --imply-local ${diffArgs}`
 		: "DiffviewOpen --imply-local";
-	const launchArgs = ["@"];
 
-	if (listenOn) {
-		launchArgs.push("--to", listenOn);
-	}
-
-	launchArgs.push(
-		"launch",
-		"--no-response",
-		"--type=overlay",
-		"--cwd",
+	await launchKitty({
+		type: "overlay",
 		cwd,
-		"--copy-env",
-		"--env",
-		`PI_REVIEW_ADDRESS=${reviewBridge.address}`,
-		"--env",
-		`PI_REVIEW_TOKEN=${reviewBridge.token}`,
-		"--env",
-		"PI_REVIEW_OVERLAY=1",
-		"--title",
-		"Pi review diff",
-	);
-
-	if (process.env.KITTY_WINDOW_ID) {
-		launchArgs.push("--self");
-	}
-
-	launchArgs.push("nvim", "-c", command);
-	return launchArgs;
-}
-
-async function execKittyLaunch(cwd, diffArgs, reviewBridge, listenOn) {
-	await exec(
-		"kitty",
-		buildKittyLaunchArgs(cwd, diffArgs, reviewBridge, listenOn),
-		{
-			env: cleanKittyRemoteEnv(),
+		title: "Pi review diff",
+		copyEnv: true,
+		env: {
+			PI_REVIEW_ADDRESS: reviewBridge.address,
+			PI_REVIEW_TOKEN: reviewBridge.token,
+			PI_REVIEW_OVERLAY: "1",
 		},
-	);
-}
-
-async function openDiffviewInKittyOverlay(cwd, diffArgs, reviewBridge) {
-	const explicitListenOn = process.env.PI_KITTY_LISTEN_ON;
-	if (explicitListenOn) {
-		await execKittyLaunch(cwd, diffArgs, reviewBridge, explicitListenOn);
-		return;
-	}
-
-	const errors = [];
-	try {
-		await execKittyLaunch(cwd, diffArgs, reviewBridge, undefined);
-		return;
-	} catch (error) {
-		errors.push(`controlling terminal: ${errorMessage(error)}`);
-	}
-
-	if (process.env.KITTY_LISTEN_ON) {
-		try {
-			await execKittyLaunch(
-				cwd,
-				diffArgs,
-				reviewBridge,
-				process.env.KITTY_LISTEN_ON,
-			);
-			return;
-		} catch (error) {
-			errors.push(`KITTY_LISTEN_ON: ${errorMessage(error)}`);
-		}
-	}
-
-	throw new Error(errors.join("\n"));
+		command: ["nvim", "-c", command],
+	});
 }
 
 /** @param {import("@earendil-works/pi-coding-agent").ExtensionAPI} pi */
@@ -432,7 +401,7 @@ export default function piReviewExtension(pi) {
 				ctx.ui.notify("Opened Diffview with live Pi review comments", "info");
 			} catch (error) {
 				const message = error instanceof Error ? error.message : String(error);
-				ctx.ui.notify(humanKittyError(message), "error");
+				ctx.ui.notify(message, "error");
 			}
 		},
 	});

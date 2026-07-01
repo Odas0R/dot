@@ -24,6 +24,11 @@ for extension_file in "$PI_SRC/extensions"/*.{js}; do
   fi
 done
 
+# Symlink extension helper modules
+if [[ -d "$PI_SRC/extensions/lib" ]]; then
+  ln -sfn "$PI_SRC/extensions/lib" "$HOME/.pi/agent/extensions/lib"
+fi
+
 # Symlink settings (only if not already present to preserve user customizations)
 if [[ ! -e "$HOME/.pi/agent/settings.json" ]]; then
   ln -s "$PI_SRC/settings.json" "$HOME/.pi/agent/settings.json"

@@ -18,7 +18,7 @@ wt() {
       worktree_path="$(command wt path "$@")" || return
       [[ -n "$worktree_path" ]] && cd "$worktree_path"
       ;;
-    new | add)
+    new | add | tmp | temp)
       local subcommand target_path
       subcommand="$1"
       shift
@@ -43,17 +43,19 @@ repos() {
     "$HOME/gitlab.com"
   )
 
-  local all_repos=""
-  for path in "${paths[@]}"; do
-    if [[ -d "$path" ]]; then
-      if [[ -z "$all_repos" ]]; then
-        all_repos=$(find "$path" -mindepth 2 -maxdepth 2 -type d)
-      else
-        all_repos="$all_repos"$'\n'"$(find "$path" -mindepth 2 -maxdepth 2 -type d)"
-      fi
-    fi
-  done
+  local repo
+  repo="$(
+    {
+      local path
+      for path in "${paths[@]}"; do
+        [[ -d "$path" ]] || continue
 
-  repo=$(echo "$all_repos" | fzf --multi --prompt="Your repositories > ")
-  [ -n "$repo" ] && cd "$repo" || return
+        find "$path" -mindepth 2 -maxdepth 2 -type d ! -name "*.worktrees"
+        find "$path" -mindepth 2 -maxdepth 2 -type d -name "*.worktrees" \
+          -exec find {} -mindepth 1 -maxdepth 1 -type d \;
+      done
+    } | awk 'NF && !seen[$0]++' | fzf --prompt="Your repositories > "
+  )" || return
+
+  [[ -n "$repo" ]] && cd "$repo"
 }

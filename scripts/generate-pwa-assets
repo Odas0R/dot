@@ -1,0 +1,711 @@
+#!/usr/bin/env node
+
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+
+const VERSION = "1.0.0";
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+
+const ASSETS = [
+  { name: "favicon-16x16.png", size: 16, kind: "regular" },
+  { name: "favicon-32x32.png", size: 32, kind: "regular" },
+  { name: "favicon-96x96.png", size: 96, kind: "regular" },
+  { name: "apple-touch-icon.png", size: 180, kind: "regular" },
+  { name: "icon-192.png", size: 192, kind: "regular", manifest: true },
+  { name: "icon-512.png", size: 512, kind: "regular", manifest: true },
+  { name: "maskable-icon-192.png", size: 192, kind: "maskable", manifest: true },
+  { name: "maskable-icon-512.png", size: 512, kind: "maskable", manifest: true },
+];
+
+const ICO_SIZES = [16, 32, 48];
+
+function usage() {
+  console.log(`generate-pwa-assets ${VERSION}
+
+Generate modern PWA icons, favicons, and a web manifest from one source image.
+
+Usage:
+  generate-pwa-assets <source-image> [options]
+  generate-pwa-assets [options]                       # uses pwa-assets.config.json
+  generate-pwa-assets init [source-image] [options]  # writes pwa-assets.config.json
+
+Examples:
+  generate-pwa-assets init ./logo.svg --name "My App"
+  generate-pwa-assets ./logo.svg
+  generate-pwa-assets ./logo.png --out public --name "My App"
+  generate-pwa-assets ./logo.svg --theme-color '#111111' --background-color '#ffffff'
+  generate-pwa-assets ./logo.svg --padding 8 --maskable-padding 18 --print-tags
+  generate-pwa-assets --dry-run
+
+Options:
+      --source <file>          Source image. Alternative to positional source
+  -o, --out <dir>              Output directory. Default: public/, static/, or creates public/
+      --root <dir>             Project root. Default: nearest package root, then git root
+      --config <file>          JSON config file. Default: pwa-assets.config.json
+      --manifest <file>        Manifest path. Default: <out>/site.webmanifest
+      --no-manifest            Do not write/update a manifest
+      --name <name>            Manifest app name
+      --short-name <name>      Manifest short_name
+      --theme-color <color>    Manifest theme_color and printed meta tag. Default: #ffffff
+      --background-color <c>   Icon canvas + manifest background_color. Default: transparent
+      --display <mode>         Manifest display. Default: standalone
+      --start-url <url>        Manifest start_url. Default: /
+      --scope <url>            Manifest scope. Default: /
+      --base-path <path>       URL base for generated icon refs. Default: /
+      --padding <percent>      Padding for regular icons. Default: 0
+      --maskable-padding <pct> Padding for maskable icons. Default: 18
+      --print-tags             Print HTML tags for your <head>
+      --dry-run                Show what would be written without writing files
+      --force                  Overwrite config when using init
+  -h, --help                   Show this help
+      --version                Print version
+
+Config file keys use camelCase, for example:
+  {
+    "source": "assets/logo.svg",
+    "output": "public",
+    "name": "My App",
+    "shortName": "App",
+    "themeColor": "#111111",
+    "backgroundColor": "transparent",
+    "padding": 8,
+    "maskablePadding": 18
+  }
+`);
+}
+
+function fail(message) {
+  console.error(`❌ ${message}`);
+  process.exit(1);
+}
+
+function warn(message) {
+  console.warn(`⚠️  ${message}`);
+}
+
+function parseArgs(argv) {
+  const options = { command: "generate" };
+  const positionals = [];
+
+  if (argv[0] === "init") {
+    options.command = "init";
+    argv = argv.slice(1);
+  } else if (argv[0] === "generate") {
+    argv = argv.slice(1);
+  }
+
+  const valueOptions = new Map([
+    ["--source", "source"],
+    ["-o", "output"],
+    ["--out", "output"],
+    ["--output", "output"],
+    ["--root", "root"],
+    ["--config", "config"],
+    ["--manifest", "manifest"],
+    ["--name", "name"],
+    ["--short-name", "shortName"],
+    ["--theme", "themeColor"],
+    ["--theme-color", "themeColor"],
+    ["--background", "backgroundColor"],
+    ["--background-color", "backgroundColor"],
+    ["--display", "display"],
+    ["--start-url", "startUrl"],
+    ["--scope", "scope"],
+    ["--base-path", "basePath"],
+    ["--padding", "padding"],
+    ["--maskable-padding", "maskablePadding"],
+  ]);
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+
+    if (arg === "--") {
+      positionals.push(...argv.slice(i + 1));
+      break;
+    }
+
+    if (arg === "-h" || arg === "--help") {
+      options.help = true;
+      continue;
+    }
+
+    if (arg === "--version") {
+      options.version = true;
+      continue;
+    }
+
+    if (arg === "--dry-run") {
+      options.dryRun = true;
+      continue;
+    }
+
+    if (arg === "--force") {
+      options.force = true;
+      continue;
+    }
+
+    if (arg === "--print-tags" || arg === "--tags") {
+      options.printTags = true;
+      continue;
+    }
+
+    if (arg === "--no-manifest") {
+      options.noManifest = true;
+      continue;
+    }
+
+    if (arg.startsWith("--") && arg.includes("=")) {
+      const [key, ...rest] = arg.split("=");
+      const optionName = valueOptions.get(key);
+      if (!optionName) fail(`Unknown option: ${key}`);
+      options[optionName] = rest.join("=");
+      continue;
+    }
+
+    if (valueOptions.has(arg)) {
+      const optionName = valueOptions.get(arg);
+      const value = argv[++i];
+      if (value === undefined || value.startsWith("--")) {
+        fail(`Missing value for ${arg}`);
+      }
+      options[optionName] = value;
+      continue;
+    }
+
+    if (arg.startsWith("-")) {
+      fail(`Unknown option: ${arg}`);
+    }
+
+    positionals.push(arg);
+  }
+
+  if (positionals.length > 1) {
+    fail(`Expected one source image, received ${positionals.length}`);
+  }
+
+  if (positionals[0] && options.source) {
+    fail("Pass the source image either positionally or with --source, not both");
+  }
+
+  if (positionals[0]) options.source = positionals[0];
+  return options;
+}
+
+function findProjectRoot(cwd) {
+  // Prefer the nearest package over the git root so monorepo packages get
+  // their own pwa-assets.config.json, public/, and manifest by default.
+  let dir = cwd;
+  while (true) {
+    if (existsSync(path.join(dir, "package.json"))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+
+  try {
+    const gitRoot = execFileSync("git", ["rev-parse", "--show-toplevel"], {
+      cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+
+    if (gitRoot) return gitRoot;
+  } catch {
+    // Not a git repository, use cwd.
+  }
+
+  return cwd;
+}
+
+function readJson(file, label = file) {
+  try {
+    return JSON.parse(readFileSync(file, "utf8"));
+  } catch (error) {
+    fail(`Could not parse ${label}: ${error.message}`);
+  }
+}
+
+function configPaths(root, cliConfig, command) {
+  const configWritePath = cliConfig
+    ? path.resolve(process.cwd(), cliConfig)
+    : path.join(root, "pwa-assets.config.json");
+
+  if (existsSync(configWritePath)) {
+    return { configPath: configWritePath, configWritePath };
+  }
+
+  if (command === "generate" && cliConfig) {
+    fail(`Config file not found: ${configWritePath}`);
+  }
+
+  return { configPath: null, configWritePath };
+}
+
+function normalizeConfig(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== "object") return {};
+
+  return {
+    source: rawConfig.source,
+    output: rawConfig.output ?? rawConfig.out,
+    manifest: rawConfig.manifest,
+    noManifest: rawConfig.noManifest,
+    name: rawConfig.name,
+    shortName: rawConfig.shortName ?? rawConfig.short_name,
+    themeColor: rawConfig.themeColor ?? rawConfig.theme_color,
+    backgroundColor: rawConfig.backgroundColor ?? rawConfig.background_color,
+    display: rawConfig.display,
+    startUrl: rawConfig.startUrl ?? rawConfig.start_url,
+    scope: rawConfig.scope,
+    basePath: rawConfig.basePath ?? rawConfig.base_path,
+    padding: rawConfig.padding,
+    maskablePadding: rawConfig.maskablePadding ?? rawConfig.maskable_padding,
+    printTags: rawConfig.printTags,
+    dryRun: rawConfig.dryRun,
+  };
+}
+
+function firstDefined(...values) {
+  return values.find((value) => value !== undefined && value !== null);
+}
+
+function parsePercent(value, fallback, name) {
+  const raw = firstDefined(value, fallback);
+  const text = String(raw).trim().replace(/%$/, "");
+  const parsed = Number(text);
+
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed >= 50) {
+    fail(`${name} must be a percentage from 0 to less than 50`);
+  }
+
+  return parsed;
+}
+
+function resolveMaybeRelative(root, value) {
+  if (!value) return value;
+  return path.isAbsolute(value) ? value : path.resolve(root, value);
+}
+
+function autoOutputDir(root) {
+  const publicDir = path.join(root, "public");
+  if (existsSync(publicDir)) return publicDir;
+
+  const staticDir = path.join(root, "static");
+  if (existsSync(staticDir)) return staticDir;
+
+  return publicDir;
+}
+
+function stripScope(packageName) {
+  if (!packageName) return packageName;
+  return packageName.startsWith("@") ? packageName.split("/").at(-1) : packageName;
+}
+
+function humanizeName(packageName) {
+  return stripScope(packageName)
+    .replace(/[-_.]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim();
+}
+
+function readPackageName(root) {
+  const pkgPath = path.join(root, "package.json");
+  if (!existsSync(pkgPath)) return null;
+
+  try {
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+    return typeof pkg.name === "string" && pkg.name.trim() ? pkg.name.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeBasePath(value) {
+  let basePath = value ?? "/";
+  basePath = String(basePath).trim();
+
+  if (!basePath || basePath === ".") return "";
+  if (!basePath.startsWith("/")) basePath = `/${basePath}`;
+  if (!basePath.endsWith("/")) basePath += "/";
+  return basePath;
+}
+
+function assetUrl(basePath, filename) {
+  return `${basePath}${filename}`.replace(/\/+/g, "/");
+}
+
+function relativeAssetUrl(fromFile, outDir, filename, basePath) {
+  // Manifests are usually served from public root, so absolute root URLs are the least surprising default.
+  // If the user asked for a relative base path with --base-path ., generate relative URLs instead.
+  if (basePath !== "") return assetUrl(basePath, filename);
+
+  const relative = path.relative(path.dirname(fromFile), path.join(outDir, filename));
+  return relative.startsWith(".") ? relative : `./${relative}`;
+}
+
+function htmlTags(basePath, themeColor, manifestFilename = "site.webmanifest") {
+  const lines = [
+    `<link rel="icon" href="${assetUrl(basePath, "favicon.ico")}" sizes="any">`,
+    `<link rel="icon" type="image/png" href="${assetUrl(basePath, "favicon-32x32.png")}" sizes="32x32">`,
+    `<link rel="icon" type="image/png" href="${assetUrl(basePath, "favicon-16x16.png")}" sizes="16x16">`,
+    `<link rel="icon" type="image/png" href="${assetUrl(basePath, "favicon-96x96.png")}" sizes="96x96">`,
+    `<link rel="apple-touch-icon" href="${assetUrl(basePath, "apple-touch-icon.png")}">`,
+  ];
+
+  if (manifestFilename) {
+    lines.push(`<link rel="manifest" href="${assetUrl(basePath, manifestFilename)}">`);
+  }
+
+  lines.push(`<meta name="theme-color" content="${themeColor}">`);
+  return lines.join("\n");
+}
+
+function fileLabel(file, root) {
+  const relative = path.relative(root, file);
+  return relative.startsWith("..") || path.isAbsolute(relative) ? file : relative || ".";
+}
+
+function configPathValue(file, baseDir) {
+  const relative = path.relative(baseDir, file);
+  if (!relative || relative === "") return ".";
+  if (relative.startsWith("..") || path.isAbsolute(relative)) return file;
+  return relative;
+}
+
+async function loadSharp() {
+  try {
+    const module = await import("sharp");
+    return module.default;
+  } catch (error) {
+    fail(
+      `Missing dependency: sharp\n\nInstall it for these dot scripts with:\n  cd ${SCRIPT_DIR}\n  npm install --ignore-scripts=false\n  npm rebuild sharp --ignore-scripts=false\n\nOriginal error: ${error.message}`,
+    );
+  }
+}
+
+async function makePngBuffer(sharp, source, size, paddingPercent, backgroundColor) {
+  const padding = Math.round(size * (paddingPercent / 100));
+  const innerSize = Math.max(1, size - padding * 2);
+  const transparent = { r: 0, g: 0, b: 0, alpha: 0 };
+
+  const image = await sharp(source, { density: Math.max(72, size * 2) })
+    .rotate()
+    .resize({
+      width: innerSize,
+      height: innerSize,
+      fit: "contain",
+      background: transparent,
+      withoutEnlargement: false,
+    })
+    .png()
+    .toBuffer();
+
+  return sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: backgroundColor,
+    },
+  })
+    .composite([{ input: image, left: padding, top: padding }])
+    .png()
+    .toBuffer();
+}
+
+function makeIco(pngImages) {
+  const count = pngImages.length;
+  const headerSize = 6;
+  const directorySize = count * 16;
+  let offset = headerSize + directorySize;
+
+  const header = Buffer.alloc(headerSize);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // image type: icon
+  header.writeUInt16LE(count, 4);
+
+  const directory = Buffer.alloc(directorySize);
+
+  pngImages.forEach(({ size, buffer }, index) => {
+    const entryOffset = index * 16;
+    directory.writeUInt8(size >= 256 ? 0 : size, entryOffset);
+    directory.writeUInt8(size >= 256 ? 0 : size, entryOffset + 1);
+    directory.writeUInt8(0, entryOffset + 2); // color count
+    directory.writeUInt8(0, entryOffset + 3); // reserved
+    directory.writeUInt16LE(1, entryOffset + 4); // color planes
+    directory.writeUInt16LE(32, entryOffset + 6); // bits per pixel
+    directory.writeUInt32LE(buffer.length, entryOffset + 8);
+    directory.writeUInt32LE(offset, entryOffset + 12);
+    offset += buffer.length;
+  });
+
+  return Buffer.concat([header, directory, ...pngImages.map((image) => image.buffer)]);
+}
+
+async function writePng(sharp, source, outFile, size, padding, backgroundColor) {
+  const buffer = await makePngBuffer(sharp, source, size, padding, backgroundColor);
+  writeFileSync(outFile, buffer);
+}
+
+function mergeManifest({ existing, generatedIcons, defaults, explicit }) {
+  const manifest = existing && typeof existing === "object" && !Array.isArray(existing) ? { ...existing } : {};
+  const generatedBasenames = new Set(generatedIcons.map((icon) => path.basename(icon.src)));
+  const existingIcons = Array.isArray(manifest.icons) ? manifest.icons : [];
+  const preservedIcons = existingIcons.filter((icon) => {
+    if (!icon || typeof icon.src !== "string") return false;
+    return !generatedBasenames.has(path.basename(icon.src));
+  });
+
+  manifest.name = explicit.name || !manifest.name ? defaults.name : manifest.name;
+  manifest.short_name = explicit.shortName || !manifest.short_name ? defaults.shortName : manifest.short_name;
+  manifest.theme_color = explicit.themeColor || !manifest.theme_color ? defaults.themeColor : manifest.theme_color;
+  manifest.background_color = explicit.backgroundColor || !manifest.background_color ? defaults.backgroundColor : manifest.background_color;
+  manifest.display = explicit.display || !manifest.display ? defaults.display : manifest.display;
+  manifest.start_url = explicit.startUrl || !manifest.start_url ? defaults.startUrl : manifest.start_url;
+  manifest.scope = explicit.scope || !manifest.scope ? defaults.scope : manifest.scope;
+  manifest.icons = [...preservedIcons, ...generatedIcons];
+
+  return manifest;
+}
+
+function buildSettings() {
+  const cli = parseArgs(process.argv.slice(2));
+
+  if (cli.help) {
+    usage();
+    process.exit(0);
+  }
+
+  if (cli.version) {
+    console.log(VERSION);
+    process.exit(0);
+  }
+
+  const cwd = process.cwd();
+  const root = cli.root ? path.resolve(cwd, cli.root) : findProjectRoot(cwd);
+  const { configPath, configWritePath } = configPaths(root, cli.config, cli.command);
+  const shouldReadConfig = configPath && !(cli.command === "init" && cli.force);
+  const fileConfig = normalizeConfig(shouldReadConfig ? readJson(configPath, fileLabel(configPath, root)) : {});
+
+  const sourceValue = firstDefined(cli.source, fileConfig.source);
+  let source = null;
+
+  if (sourceValue) {
+    source = cli.source
+      ? path.resolve(cwd, sourceValue)
+      : path.resolve(configPath ? path.dirname(configPath) : root, sourceValue);
+  } else if (cli.command === "generate") {
+    usage();
+    fail("A source image is required. Pass one, set source in pwa-assets.config.json, or run generate-pwa-assets init.");
+  }
+
+  if (cli.command === "generate" && !existsSync(source)) fail(`Source image not found: ${source}`);
+  if (cli.command === "init" && source && !existsSync(source)) warn(`Source image does not exist yet: ${source}`);
+
+  const outputValue = firstDefined(cli.output, fileConfig.output);
+  const outDir = outputValue ? resolveMaybeRelative(root, outputValue) : autoOutputDir(root);
+
+  const noManifest = Boolean(firstDefined(cli.noManifest, fileConfig.noManifest, false));
+  const manifestValue = firstDefined(cli.manifest, fileConfig.manifest);
+  const manifestFile = noManifest
+    ? null
+    : manifestValue
+      ? resolveMaybeRelative(root, manifestValue)
+      : path.join(outDir, "site.webmanifest");
+
+  const packageName = readPackageName(root);
+  const defaultName = packageName ? humanizeName(packageName) : "App";
+  const name = firstDefined(cli.name, fileConfig.name, defaultName);
+  const shortName = firstDefined(cli.shortName, fileConfig.shortName, stripScope(packageName) ?? name);
+  const themeColor = firstDefined(cli.themeColor, fileConfig.themeColor, "#ffffff");
+  const backgroundColor = firstDefined(cli.backgroundColor, fileConfig.backgroundColor, "transparent");
+  const display = firstDefined(cli.display, fileConfig.display, "standalone");
+  const startUrl = firstDefined(cli.startUrl, fileConfig.startUrl, "/");
+  const scope = firstDefined(cli.scope, fileConfig.scope, "/");
+  const basePath = normalizeBasePath(firstDefined(cli.basePath, fileConfig.basePath, "/"));
+  const padding = parsePercent(firstDefined(cli.padding, fileConfig.padding), 0, "padding");
+  const maskablePadding = parsePercent(firstDefined(cli.maskablePadding, fileConfig.maskablePadding), 18, "maskable-padding");
+  const dryRun = Boolean(firstDefined(cli.dryRun, fileConfig.dryRun, false));
+  const printTags = Boolean(firstDefined(cli.printTags, fileConfig.printTags, false));
+
+  const explicit = {
+    name: cli.name !== undefined || fileConfig.name !== undefined,
+    shortName: cli.shortName !== undefined || fileConfig.shortName !== undefined,
+    themeColor: cli.themeColor !== undefined || fileConfig.themeColor !== undefined,
+    backgroundColor: cli.backgroundColor !== undefined || fileConfig.backgroundColor !== undefined,
+    display: cli.display !== undefined || fileConfig.display !== undefined,
+    startUrl: cli.startUrl !== undefined || fileConfig.startUrl !== undefined,
+    scope: cli.scope !== undefined || fileConfig.scope !== undefined,
+  };
+
+  return {
+    command: cli.command,
+    root,
+    source,
+    outDir,
+    manifestFile,
+    name,
+    shortName,
+    themeColor,
+    backgroundColor,
+    display,
+    startUrl,
+    scope,
+    basePath,
+    padding,
+    maskablePadding,
+    dryRun,
+    printTags,
+    force: Boolean(cli.force),
+    explicit,
+    configPath,
+    configWritePath,
+  };
+}
+
+function initConfig(settings) {
+  if (existsSync(settings.configWritePath) && !settings.force && !settings.dryRun) {
+    fail(`Config already exists: ${settings.configWritePath}\nUse --force to overwrite it.`);
+  }
+
+  const configDir = path.dirname(settings.configWritePath);
+  const config = {
+    source: settings.source ? configPathValue(settings.source, configDir) : "path/to/logo.svg",
+    output: configPathValue(settings.outDir, settings.root),
+    name: settings.name,
+    shortName: settings.shortName,
+    themeColor: settings.themeColor,
+    backgroundColor: settings.backgroundColor,
+    display: settings.display,
+    startUrl: settings.startUrl,
+    scope: settings.scope,
+    basePath: settings.basePath || ".",
+    padding: settings.padding,
+    maskablePadding: settings.maskablePadding,
+  };
+
+  if (!settings.manifestFile) {
+    config.noManifest = true;
+  } else {
+    const defaultManifest = path.join(settings.outDir, "site.webmanifest");
+    if (settings.manifestFile !== defaultManifest) {
+      config.manifest = configPathValue(settings.manifestFile, settings.root);
+    }
+  }
+
+  const content = `${JSON.stringify(config, null, 2)}\n`;
+
+  if (settings.dryRun) {
+    console.log(`Would write ${fileLabel(settings.configWritePath, settings.root)}:`);
+    console.log(content);
+  } else {
+    mkdirSync(configDir, { recursive: true });
+    writeFileSync(settings.configWritePath, content);
+    console.log(`✅ Wrote ${fileLabel(settings.configWritePath, settings.root)}`);
+  }
+
+  if (!settings.source) {
+    warn(`Edit the source path in ${fileLabel(settings.configWritePath, settings.root)} before generating assets.`);
+  }
+
+  console.log("\nNext:");
+  console.log("  generate-pwa-assets --print-tags");
+}
+
+async function generate(settings) {
+  const assetFiles = ASSETS.map((asset) => path.join(settings.outDir, asset.name));
+  const faviconFile = path.join(settings.outDir, "favicon.ico");
+  const manifestFilename = settings.manifestFile ? path.basename(settings.manifestFile) : null;
+
+  console.log("🖼  Generating PWA assets");
+  console.log(`   Source: ${fileLabel(settings.source, settings.root)}`);
+  console.log(`   Output: ${fileLabel(settings.outDir, settings.root)}`);
+  if (settings.configPath) console.log(`   Config: ${fileLabel(settings.configPath, settings.root)}`);
+  if (settings.manifestFile) console.log(`   Manifest: ${fileLabel(settings.manifestFile, settings.root)}`);
+  if (settings.dryRun) console.log("   Mode: dry run");
+  console.log("");
+
+  const plannedFiles = [faviconFile, ...assetFiles];
+  if (settings.manifestFile) plannedFiles.push(settings.manifestFile);
+
+  if (settings.dryRun) {
+    console.log("Would write:");
+    for (const file of plannedFiles) {
+      console.log(`  - ${fileLabel(file, settings.root)}`);
+    }
+  } else {
+    mkdirSync(settings.outDir, { recursive: true });
+    if (settings.manifestFile) mkdirSync(path.dirname(settings.manifestFile), { recursive: true });
+
+    const sharp = await loadSharp();
+
+    for (const asset of ASSETS) {
+      const outFile = path.join(settings.outDir, asset.name);
+      const padding = asset.kind === "maskable" ? settings.maskablePadding : settings.padding;
+      await writePng(sharp, settings.source, outFile, asset.size, padding, settings.backgroundColor);
+      console.log(`✅ ${fileLabel(outFile, settings.root)}`);
+    }
+
+    const icoImages = [];
+    for (const size of ICO_SIZES) {
+      icoImages.push({
+        size,
+        buffer: await makePngBuffer(sharp, settings.source, size, settings.padding, settings.backgroundColor),
+      });
+    }
+    writeFileSync(faviconFile, makeIco(icoImages));
+    console.log(`✅ ${fileLabel(faviconFile, settings.root)}`);
+
+    if (settings.manifestFile) {
+      const existing = existsSync(settings.manifestFile) ? readJson(settings.manifestFile, fileLabel(settings.manifestFile, settings.root)) : {};
+      const generatedIcons = ASSETS.filter((asset) => asset.manifest).map((asset) => ({
+        src: relativeAssetUrl(settings.manifestFile, settings.outDir, asset.name, settings.basePath),
+        sizes: `${asset.size}x${asset.size}`,
+        type: "image/png",
+        ...(asset.kind === "maskable" ? { purpose: "maskable" } : { purpose: "any" }),
+      }));
+
+      const manifest = mergeManifest({
+        existing,
+        generatedIcons,
+        defaults: {
+          name: settings.name,
+          shortName: settings.shortName,
+          themeColor: settings.themeColor,
+          backgroundColor: settings.backgroundColor,
+          display: settings.display,
+          startUrl: settings.startUrl,
+          scope: settings.scope,
+        },
+        explicit: settings.explicit,
+      });
+
+      writeFileSync(settings.manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
+      console.log(`✅ ${fileLabel(settings.manifestFile, settings.root)}`);
+    }
+  }
+
+  if (settings.printTags) {
+    console.log("\nHTML tags:");
+    console.log(htmlTags(settings.basePath, settings.themeColor, manifestFilename));
+  }
+
+  console.log("\n✨ Done");
+}
+
+async function main() {
+  const settings = buildSettings();
+
+  if (settings.command === "init") {
+    initConfig(settings);
+    return;
+  }
+
+  await generate(settings);
+}
+
+main().catch((error) => {
+  fail(error.stack || error.message);
+});
