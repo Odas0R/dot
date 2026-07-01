@@ -20,4 +20,4 @@ set -euo pipefail
 EOF
 
 chmod +x "$path"
-nvr "$path"
+nvim "$path"

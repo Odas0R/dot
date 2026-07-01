@@ -1,8 +1,5 @@
 import fs from "node:fs";
-import fsp from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { complete } from "@earendil-works/pi-ai/compat";
 import {
 	BorderedLoader,
@@ -10,7 +7,7 @@ import {
 	serializeConversation,
 } from "@earendil-works/pi-coding-agent";
 import { humanKittyError, launchKitty } from "./lib/kitty.js";
-import { errorMessage, exec, shellQuote } from "./lib/shell.js";
+import { errorMessage, exec } from "./lib/shell.js";
 
 const SYSTEM_PROMPT = `You are preparing a context handoff for a fresh coding-agent session.
 
@@ -54,33 +51,43 @@ function slugify(value, maxLength = 48) {
 }
 
 function getWtCommand() {
-	if (process.env.PI_BRANCH_OUT_WT) return process.env.PI_BRANCH_OUT_WT;
-
-	try {
-		const extensionFile = fs.realpathSync(fileURLToPath(import.meta.url));
-		const candidate = path.resolve(path.dirname(extensionFile), "../../scripts/wt");
-		if (fs.existsSync(candidate)) return candidate;
-	} catch {
-		// Fall through to PATH lookup.
-	}
-
-	return "wt";
+	return process.env.PI_BRANCH_OUT_WT || "wt";
 }
 
 function getPiInvocation(args) {
-	const currentScript = process.argv[1];
-	const isBunVirtualScript = currentScript?.startsWith("/$bunfs/root/");
-	if (currentScript && !isBunVirtualScript && fs.existsSync(currentScript)) {
-		return { command: process.execPath, args: [currentScript, ...args] };
-	}
-
-	const execName = path.basename(process.execPath).toLowerCase();
-	const isGenericRuntime = /^(node|bun)(\.exe)?$/.test(execName);
-	if (!isGenericRuntime) {
-		return { command: process.execPath, args };
+	const scriptPath = process.argv[1];
+	if (scriptPath && fs.existsSync(scriptPath)) {
+		return { command: process.execPath, args: [scriptPath, ...args] };
 	}
 
 	return { command: "pi", args };
+}
+
+function responseText(response) {
+	return response.content
+		.filter((part) => part.type === "text")
+		.map((part) => part.text)
+		.join("\n")
+		.trim();
+}
+
+async function withLoader(ctx, message, task) {
+	let taskError;
+	const result = await ctx.ui.custom((tui, theme, _kb, done) => {
+		const loader = new BorderedLoader(tui, theme, message);
+		loader.onAbort = () => done(null);
+		task(loader.signal)
+			.then(done)
+			.catch((error) => {
+				taskError = error;
+				done(null);
+			});
+		return loader;
+	});
+
+	if (result !== null) return result;
+	if (taskError) throw taskError;
+	throw new Error(`${message.replace(/\.+$/, "")} cancelled`);
 }
 
 function entryToMessage(entry) {
@@ -219,68 +226,39 @@ async function generateHandoffPrompt(ctx, goal, repo, dirtyBehavior) {
 		.filter(Boolean)
 		.join("\n");
 
-	let generationError;
-	const result = await ctx.ui.custom((tui, theme, _kb, done) => {
-		const loader = new BorderedLoader(tui, theme, "Generating branch-out handoff prompt...");
-		loader.onAbort = () => done(null);
+	return withLoader(ctx, "Generating branch-out handoff prompt...", async (signal) => {
+		const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
+		if (!auth.ok || !auth.apiKey) {
+			throw new Error(auth.ok ? `No API key for ${ctx.model.provider}` : auth.error);
+		}
 
-		const doGenerate = async () => {
-			const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
-			if (!auth.ok || !auth.apiKey) {
-				throw new Error(auth.ok ? `No API key for ${ctx.model.provider}` : auth.error);
-			}
+		const response = await complete(
+			ctx.model,
+			{
+				systemPrompt: SYSTEM_PROMPT,
+				messages: [
+					{
+						role: "user",
+						content: [
+							{
+								type: "text",
+								text: `## User goal for new session\n\n${goal}\n\n## Repository state\n\n${repoText}\n\n## Current conversation\n\n${conversationText}`,
+							},
+						],
+						timestamp: Date.now(),
+					},
+				],
+			},
+			{
+				apiKey: auth.apiKey,
+				headers: auth.headers,
+				env: auth.env,
+				signal,
+			},
+		);
 
-			const response = await complete(
-				ctx.model,
-				{
-					systemPrompt: SYSTEM_PROMPT,
-					messages: [
-						{
-							role: "user",
-							content: [
-								{
-									type: "text",
-									text: `## User goal for new session\n\n${goal}\n\n## Repository state\n\n${repoText}\n\n## Current conversation\n\n${conversationText}`,
-								},
-							],
-							timestamp: Date.now(),
-						},
-					],
-				},
-				{
-					apiKey: auth.apiKey,
-					headers: auth.headers,
-					env: auth.env,
-					signal: loader.signal,
-				},
-			);
-
-			if (response.stopReason === "aborted") return null;
-
-			return response.content
-				.filter((part) => part.type === "text")
-				.map((part) => part.text)
-				.join("\n")
-				.trim();
-		};
-
-		doGenerate()
-			.then(done)
-			.catch((error) => {
-				generationError = error;
-				console.error("Branch-out handoff generation failed:", error);
-				done(null);
-			});
-
-		return loader;
+		return response.stopReason === "aborted" ? null : responseText(response);
 	});
-
-	if (result === null) {
-		if (generationError) throw generationError;
-		throw new Error("Handoff generation cancelled");
-	}
-
-	return result;
 }
 
 function normalizeGeneratedTitle(text, fallback) {
@@ -301,62 +279,35 @@ async function generateBranchTitle(ctx, goal, prompt, repo) {
 		const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
 		if (!auth.ok || !auth.apiKey) return fallback;
 
-		let generationError;
-		const result = await ctx.ui.custom((tui, theme, _kb, done) => {
-			const loader = new BorderedLoader(tui, theme, "Generating branch-out title...");
-			loader.onAbort = () => done(null);
+		const result = await withLoader(ctx, "Generating branch-out title...", async (signal) => {
+			const response = await complete(
+				model,
+				{
+					systemPrompt: TITLE_SYSTEM_PROMPT,
+					messages: [
+						{
+							role: "user",
+							content: [
+								{
+									type: "text",
+									text: `Repo: ${repo.repoName}\nGoal: ${goal}\n\nHandoff prompt excerpt:\n${prompt.slice(0, 4000)}`,
+								},
+							],
+							timestamp: Date.now(),
+						},
+					],
+				},
+				{
+					apiKey: auth.apiKey,
+					headers: auth.headers,
+					env: auth.env,
+					reasoningEffort: "low",
+					signal,
+				},
+			);
 
-			const doGenerate = async () => {
-				const response = await complete(
-					model,
-					{
-						systemPrompt: TITLE_SYSTEM_PROMPT,
-						messages: [
-							{
-								role: "user",
-								content: [
-									{
-										type: "text",
-										text: `Repo: ${repo.repoName}\nGoal: ${goal}\n\nHandoff prompt excerpt:\n${prompt.slice(0, 4000)}`,
-									},
-								],
-								timestamp: Date.now(),
-							},
-						],
-					},
-					{
-						apiKey: auth.apiKey,
-						headers: auth.headers,
-						env: auth.env,
-						reasoningEffort: "low",
-						signal: loader.signal,
-					},
-				);
-
-				if (response.stopReason === "aborted") return null;
-
-				return response.content
-					.filter((part) => part.type === "text")
-					.map((part) => part.text)
-					.join("\n")
-					.trim();
-			};
-
-			doGenerate()
-				.then(done)
-				.catch((error) => {
-					generationError = error;
-					console.error("Branch-out title generation failed:", error);
-					done(null);
-				});
-
-			return loader;
+			return response.stopReason === "aborted" ? null : responseText(response);
 		});
-
-		if (result === null) {
-			if (generationError) console.error("Branch-out title generation failed:", generationError);
-			return fallback;
-		}
 
 		return normalizeGeneratedTitle(result, fallback);
 	} catch (error) {
@@ -365,16 +316,14 @@ async function generateBranchTitle(ctx, goal, prompt, repo) {
 	}
 }
 
-async function makeWorktreePlan(_repo, title) {
-	const titleSlug = slugify(title, 36);
-	return { worktreePath: undefined, title: `pi: ${titleSlug}` };
+function makeWorktreePlan(title) {
+	return { worktreePath: undefined, title: `pi: ${slugify(title, 36)}` };
 }
 
-async function createWorktree(ctx, plan, copyEnv) {
-	const wt = getWtCommand();
+async function createWorktree(ctx, copyEnv) {
 	const args = ["tmp"];
 	if (copyEnv) args.push("--env");
-	const result = await exec(wt, args, { cwd: ctx.cwd });
+	const result = await exec(getWtCommand(), args, { cwd: ctx.cwd });
 	const worktreePath = result.stdout
 		.trim()
 		.split(/\r?\n/)
@@ -383,25 +332,15 @@ async function createWorktree(ctx, plan, copyEnv) {
 	if (!worktreePath) {
 		throw new Error("wt tmp did not print a worktree path");
 	}
-	plan.worktreePath = worktreePath;
+	return worktreePath;
 }
 
 async function applyTrackedDiff(ctx, worktreePath) {
 	const diff = (await exec("git", ["diff", "--binary", "HEAD"], { cwd: ctx.cwd })).stdout;
 	if (!diff.trim()) return false;
 
-	const patchDir = await fsp.mkdtemp(path.join(os.tmpdir(), "pi-branch-out-patch-"));
-	const patchPath = path.join(patchDir, "tracked.patch");
-	await fsp.writeFile(patchPath, diff, { encoding: "utf8", mode: 0o600 });
-	await exec("git", ["apply", "--binary", patchPath], { cwd: worktreePath });
+	await exec("git", ["apply", "--binary", "-"], { cwd: worktreePath, input: diff });
 	return true;
-}
-
-async function writePromptFile(prompt) {
-	const promptDir = await fsp.mkdtemp(path.join(os.tmpdir(), "pi-branch-out-prompt-"));
-	const promptPath = path.join(promptDir, "prompt.md");
-	await fsp.writeFile(promptPath, prompt, { encoding: "utf8", mode: 0o600 });
-	return promptPath;
 }
 
 function buildFinalPrompt(prompt, plan, repo, dirtyBehavior, diffApplied, copyEnv) {
@@ -429,25 +368,11 @@ function buildFinalPrompt(prompt, plan, repo, dirtyBehavior, diffApplied, copyEn
 		notes.push("- Original worktree had uncommitted changes, but this temporary worktree starts from HEAD only.");
 	}
 
-	notes.push(
-		"",
-		"Start by checking `git status --short` and then execute the task.",
-		"If the result is worth keeping, commit your changes, then run `wt promote <branch>` and `wt pr` from this worktree.",
-	);
-
 	return `${prompt.trim()}\n${notes.join("\n")}`;
 }
 
-async function openPiInKitty(plan, promptPath, sessionName, parentSessionFile) {
-	const piArgs = ["--name", sessionName, `@${promptPath}`];
-	const invocation = getPiInvocation(piArgs);
-	const env = {
-		PI_BRANCH_OUT_TEMP_WORKTREE: "1",
-		PI_BRANCH_OUT_PROMPT: promptPath,
-	};
-	if (parentSessionFile) {
-		env.PI_BRANCH_OUT_PARENT_SESSION = parentSessionFile;
-	}
+async function openPiInKitty(plan, prompt, sessionName) {
+	const invocation = getPiInvocation(["--name", sessionName, prompt]);
 
 	await launchKitty({
 		type: "tab",
@@ -455,26 +380,8 @@ async function openPiInKitty(plan, promptPath, sessionName, parentSessionFile) {
 		title: plan.title,
 		tabTitle: plan.title,
 		copyEnv: true,
-		env,
 		command: [invocation.command, ...invocation.args],
 	});
-}
-
-function showResultWidget(ctx, payload) {
-	ctx.ui.setWidget("branch-out", [
-		"Branch-out session launched.",
-		"",
-		`Worktree: ${payload.plan.worktreePath}`,
-		"Branch: (none yet; detached temporary worktree)",
-		`Prompt: ${payload.promptPath}`,
-		`Session name: ${payload.sessionName}`,
-		`Copied .env files: ${payload.copyEnv ? "yes" : "no"}`,
-		`Applied tracked diff: ${payload.diffApplied ? "yes" : "no"}`,
-		"",
-		`Keep later: cd ${shellQuote(payload.plan.worktreePath)} && wt promote <branch>`,
-		`Open PR later: cd ${shellQuote(payload.plan.worktreePath)} && wt pr`,
-		`Throw away later: wt rm ${shellQuote(payload.plan.worktreePath)} --force`,
-	]);
 }
 
 /** @param {import("@earendil-works/pi-coding-agent").ExtensionAPI} pi */
@@ -536,35 +443,26 @@ export default function branchOutExtension(pi) {
 			}
 
 			const title = await generateBranchTitle(ctx, goal, generatedPrompt, repo);
-			const plan = await makeWorktreePlan(repo, title);
+			const plan = makeWorktreePlan(title);
 			const sessionName = `branch-out: ${title}`.slice(0, 80);
 			let diffApplied = false;
-			let promptPath;
+			let finalPrompt;
 
 			try {
-				await createWorktree(ctx, plan, copyEnv);
+				plan.worktreePath = await createWorktree(ctx, copyEnv);
 				if (dirtyBehavior === "apply") {
 					diffApplied = await applyTrackedDiff(ctx, plan.worktreePath);
 				}
 
-				const finalPrompt = buildFinalPrompt(generatedPrompt, plan, repo, dirtyBehavior, diffApplied, copyEnv);
-				promptPath = await writePromptFile(finalPrompt);
+				finalPrompt = buildFinalPrompt(generatedPrompt, plan, repo, dirtyBehavior, diffApplied, copyEnv);
 			} catch (error) {
 				ctx.ui.notify(`Failed to prepare branch-out worktree: ${errorMessage(error)}`, "error");
 				return;
 			}
 
-			const parentSessionFile = ctx.sessionManager.getSessionFile?.();
 			try {
-				await openPiInKitty(plan, promptPath, sessionName, parentSessionFile);
+				await openPiInKitty(plan, finalPrompt, sessionName);
 				ctx.ui.notify(`Launched ${plan.title} in ${plan.worktreePath}`, "info");
-				showResultWidget(ctx, {
-					plan,
-					promptPath,
-					sessionName,
-					diffApplied,
-					copyEnv,
-				});
 			} catch (error) {
 				ctx.ui.notify(humanKittyError(errorMessage(error)), "error");
 			}
