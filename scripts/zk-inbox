@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+
+// zk-inbox — Create/open an Inbox note in the zettelkasten.
+//
+// Usage:
+//   zk-inbox "Note title"              Create/open an Inbox note
+//   echo "text" | zk-inbox "Note title" Pre-populate body from stdin
+//
+// Set ZETTELKASTEN_DIR to override the default zettelkasten path.
+
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { execSync } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
+
+const ZK_DIR = process.env.ZETTELKASTEN_DIR
+  ? path.resolve(process.env.ZETTELKASTEN_DIR)
+  : path.join(os.homedir(), "github.com", "odas0r", "zettelkasten");
+const INBOX_DIR = path.join(ZK_DIR, "Inbox");
+
+const rawTitle = process.argv.slice(2).join(" ").trim();
+
+function usage() {
+  console.error('Usage: zk-inbox "Note title"');
+}
+
+function shellQuote(value) {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function open(fp) {
+  const editor = process.env.EDITOR || "nvim";
+  execSync(`${editor} ${shellQuote(fp)}`, { stdio: "inherit" });
+}
+
+function filenameFromTitle(title) {
+  return `${title
+    .replace(/\.md$/i, "")
+    .replace(/[\\/:*?"<>|]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()}.md`;
+}
+
+if (!rawTitle) {
+  usage();
+  process.exit(1);
+}
+
+const title = rawTitle.replace(/\.md$/i, "").trim();
+const filename = filenameFromTitle(rawTitle);
+const filepath = path.join(INBOX_DIR, filename);
+
+if (existsSync(filepath)) {
+  open(filepath);
+  process.exit(0);
+}
+
+let body = "";
+if (!process.stdin.isTTY) {
+  body = readFileSync(0, "utf-8").trim();
+}
+
+mkdirSync(INBOX_DIR, { recursive: true });
+
+const content = `# ${title}
+
+${body}
+`;
+
+writeFileSync(filepath, content, "utf-8");
+
+open(filepath);

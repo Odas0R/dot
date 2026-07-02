@@ -134,10 +134,9 @@ async function getRepoContext(cwd) {
 	const topLevel = (await exec("git", ["rev-parse", "--show-toplevel"], { cwd })).stdout.trim();
 	const branch = (await exec("git", ["branch", "--show-current"], { cwd, allowFailure: true })).stdout.trim();
 	const head = (await exec("git", ["rev-parse", "--short", "HEAD"], { cwd })).stdout.trim();
-	const status = (await exec("git", ["status", "--porcelain"], { cwd })).stdout.trim();
-	const untracked = (await exec("git", ["ls-files", "--others", "--exclude-standard"], { cwd })).stdout
-		.trim()
-		.split(/\r?\n/)
+	const status = (await exec("git", ["status", "--porcelain"], { cwd: topLevel })).stdout.trim();
+	const untracked = (await exec("git", ["ls-files", "--others", "--exclude-standard", "-z"], { cwd: topLevel })).stdout
+		.split("\0")
 		.filter(Boolean);
 
 	return {
@@ -189,12 +188,12 @@ async function selectDirtyBehavior(ctx, repo, parsed) {
 	if (parsed.applyDiff === false) return "ignore";
 
 	const choice = await ctx.ui.select("Current git worktree is dirty. Include changes?", [
-		"Apply tracked diff to the new worktree",
+		"Copy current workspace changes to the new worktree",
 		"Start new worktree from HEAD only",
 		"Cancel",
 	]);
 
-	if (choice === "Apply tracked diff to the new worktree") return "apply";
+	if (choice === "Copy current workspace changes to the new worktree") return "apply";
 	if (choice === "Start new worktree from HEAD only") return "ignore";
 	return "cancel";
 }
@@ -317,12 +316,16 @@ async function generateBranchTitle(ctx, goal, prompt, repo) {
 }
 
 function makeWorktreePlan(title) {
-	return { worktreePath: undefined, title: `pi: ${slugify(title, 36)}` };
+	const branchName = slugify(title, 36);
+	return { worktreePath: undefined, branchName, title: `pi: ${branchName}` };
 }
 
-async function createWorktree(ctx, copyEnv) {
+async function createWorktree(ctx, copyEnv, branchName, options = {}) {
 	const args = ["tmp"];
+	if (branchName) args.push(branchName);
 	if (copyEnv) args.push("--env");
+	if (options.fork) args.push("--fork");
+	if (options.noFork) args.push("--no-fork");
 	const result = await exec(getWtCommand(), args, { cwd: ctx.cwd });
 	const worktreePath = result.stdout
 		.trim()
@@ -335,22 +338,15 @@ async function createWorktree(ctx, copyEnv) {
 	return worktreePath;
 }
 
-async function applyTrackedDiff(ctx, worktreePath) {
-	const diff = (await exec("git", ["diff", "--binary", "HEAD"], { cwd: ctx.cwd })).stdout;
-	if (!diff.trim()) return false;
-
-	await exec("git", ["apply", "--binary", "-"], { cwd: worktreePath, input: diff });
-	return true;
-}
-
-function buildFinalPrompt(prompt, plan, repo, dirtyBehavior, diffApplied, copyEnv) {
+function buildFinalPrompt(prompt, plan, repo, dirtyBehavior, copyEnv) {
 	const notes = [
 		"",
 		"---",
 		"",
 		"## Branch-out execution notes",
 		`- Temporary worktree: ${plan.worktreePath}`,
-		"- This worktree starts detached; no branch has been created yet.",
+		`- Suggested branch name: ${plan.branchName}`,
+		`- This worktree starts detached; no branch has been created yet. Run \`wt promote ${plan.branchName}\` if you want to attach it to this branch.`,
 		`- Parent repo: ${repo.topLevel}`,
 		`- Parent branch: ${repo.branch || "(detached)"}`,
 		`- Parent HEAD: ${repo.head}`,
@@ -358,12 +354,7 @@ function buildFinalPrompt(prompt, plan, repo, dirtyBehavior, diffApplied, copyEn
 	];
 
 	if (dirtyBehavior === "apply") {
-		notes.push(`- Tracked uncommitted diff applied to this worktree: ${diffApplied ? "yes" : "no tracked diff found"}`);
-		if (repo.untracked.length > 0) {
-			notes.push(
-				`- Original worktree had untracked files that were not copied: ${repo.untracked.slice(0, 20).join(", ")}${repo.untracked.length > 20 ? ", ..." : ""}`,
-			);
-		}
+		notes.push("- Workspace changes copied by wt tmp: yes");
 	} else if (dirtyBehavior === "ignore") {
 		notes.push("- Original worktree had uncommitted changes, but this temporary worktree starts from HEAD only.");
 	}
@@ -445,16 +436,15 @@ export default function branchOutExtension(pi) {
 			const title = await generateBranchTitle(ctx, goal, generatedPrompt, repo);
 			const plan = makeWorktreePlan(title);
 			const sessionName = `branch-out: ${title}`.slice(0, 80);
-			let diffApplied = false;
 			let finalPrompt;
 
 			try {
-				plan.worktreePath = await createWorktree(ctx, copyEnv);
-				if (dirtyBehavior === "apply") {
-					diffApplied = await applyTrackedDiff(ctx, plan.worktreePath);
-				}
+				plan.worktreePath = await createWorktree(ctx, copyEnv, plan.branchName, {
+					fork: dirtyBehavior === "apply",
+					noFork: dirtyBehavior === "ignore",
+				});
 
-				finalPrompt = buildFinalPrompt(generatedPrompt, plan, repo, dirtyBehavior, diffApplied, copyEnv);
+				finalPrompt = buildFinalPrompt(generatedPrompt, plan, repo, dirtyBehavior, copyEnv);
 			} catch (error) {
 				ctx.ui.notify(`Failed to prepare branch-out worktree: ${errorMessage(error)}`, "error");
 				return;

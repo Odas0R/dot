@@ -1,0 +1,70 @@
+#!/usr/bin/env node
+
+// zk-log — Create/open today's Log note in the zettelkasten.
+//
+// Usage:
+//   zk-log                         Today's log
+//   echo "text" | zk-log           Pre-populate body from stdin
+//
+// Set ZETTELKASTEN_DIR to override the default zettelkasten path.
+
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { execSync } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
+
+const ZK_DIR = process.env.ZETTELKASTEN_DIR
+  ? path.resolve(process.env.ZETTELKASTEN_DIR)
+  : path.join(os.homedir(), "github.com", "odas0r", "zettelkasten");
+const LOGS_DIR = path.join(ZK_DIR, "Logs");
+
+const now = new Date();
+const y = now.getFullYear();
+const m = String(now.getMonth() + 1).padStart(2, "0");
+const d = String(now.getDate()).padStart(2, "0");
+const dateStr = `${y}-${m}-${d}`;
+const prefix = `${y}${m}${d}`;
+const filename = `${prefix}_Log.md`;
+const filepath = path.join(LOGS_DIR, filename);
+
+function shellQuote(value) {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function open(fp) {
+  const editor = process.env.EDITOR || "nvim";
+  execSync(`${editor} ${shellQuote(fp)}`, { stdio: "inherit" });
+}
+
+if (existsSync(filepath)) {
+  open(filepath);
+  process.exit(0);
+}
+
+let body = "";
+if (!process.stdin.isTTY) {
+  body = readFileSync(0, "utf-8").trim();
+}
+
+mkdirSync(LOGS_DIR, { recursive: true });
+
+const content = `# Log — ${dateStr}
+
+${body}
+
+## 🧠 Thoughts
+
+
+
+## 📋 Events
+
+
+
+## ✅ Actions
+
+- [ ]
+`;
+
+writeFileSync(filepath, content, "utf-8");
+
+open(filepath);

@@ -3,6 +3,14 @@
 [includeIf "gitdir:~/gitlab.com/"]
     path = ~/.gitconfig-gitlab
 
+[rerere]
+	enabled = true
+[pull]
+	ff = only
+[fetch]
+	prune = true
+[rebase]
+	updateRefs = true
 [color]
     ui = auto
 [color "branch"]

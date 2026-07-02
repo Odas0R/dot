@@ -13,39 +13,44 @@ Usage:
   wt list
   wt new <branch> [base] [--path <path>] [--env]
   wt add <branch> [--path <path>] [--env]
-  wt tmp [--env]
+  wt tmp [name] [--env] [--fork|--no-fork]
   wt promote <branch>
   wt pr [base]
   wt path [branch]
   wt cd [branch]
   wt rm [branch] [--force]
-  wt finish [branch] [target]
   wt prune [git-prune-options]
 
 Examples:
   wt new feature/login
   wt new feature/login main
   wt add existing-branch
-  wt tmp --env
+  wt tmp branch-out-title --env
   wt promote agent/login
   wt pr
   wt cd feature/login
-  wt finish feature/login main
   wt rm feature/login
 
 Default persistent worktree location:
   ../<repo>.worktrees/<branch-slug>
 
 Default temporary worktree location:
-  $TMPDIR/wt/<repo>-<branch-or-head>-XXXXXX
+  $TMPDIR/wt/<repo>-<name-or-branch-or-head>-XXXXXX
 
 Environment files:
   Pass --env to copy .env files from the current worktree.
 
+Workspace forking:
+  Pass --fork to copy the current tracked diff plus untracked non-ignored
+  files into the new temporary worktree. When wt tmp is run from an existing
+  temporary wt worktree, this happens by default so nested sessions continue
+  from the current workspace. Pass --no-fork to force a clean checkout.
+
 Temporary workflow:
-  wt tmp remembers the source branch. After committing in the temp worktree,
-  use wt promote <branch> to attach it to a branch, then wt pr to push it and
-  open a pull request against the source branch.
+  wt tmp [name] remembers the source branch. The optional name labels the
+  temporary path but does not create a branch. After committing in the temp
+  worktree, use wt promote <branch> to attach it to a branch, then wt pr to
+  push it and open a pull request against the source branch.
 `;
 
 function die(message, code = 1) {
@@ -64,7 +69,8 @@ function git(args, options = {}) {
   const result = spawnSync("git", args, {
     cwd: options.cwd ?? process.cwd(),
     encoding: options.encoding ?? "utf8",
-    stdio: options.stdio ?? ["ignore", "pipe", "pipe"],
+    input: options.input,
+    stdio: options.stdio ?? [options.input === undefined ? "ignore" : "pipe", "pipe", "pipe"],
   });
 
   if (result.error) {
@@ -228,13 +234,13 @@ function defaultWorktreePath(branch) {
   return path.join(repoInfo().baseDir, branchSlug(branch));
 }
 
-function defaultTemporaryWorktreePath() {
+function defaultTemporaryWorktreePath(name = null) {
   const parent = path.join(os.tmpdir(), "wt");
   fs.mkdirSync(parent, { recursive: true });
 
   const branch = currentBranch();
   const head = gitOutput(["rev-parse", "--short", "HEAD"]);
-  const label = branch || head;
+  const label = name || branch || head;
 
   return fs.mkdtempSync(
     path.join(parent, `${branchSlug(repoInfo().repoName)}-${branchSlug(label)}-`),
@@ -303,6 +309,16 @@ function parseOptions(args, definitions = {}) {
 
     if (arg === "--no-env" && definitions.env) {
       options.copyEnv = false;
+      continue;
+    }
+
+    if (arg === "--fork" && definitions.fork) {
+      options.fork = true;
+      continue;
+    }
+
+    if (arg === "--no-fork" && definitions.fork) {
+      options.fork = false;
       continue;
     }
 
@@ -503,6 +519,65 @@ function copyEnvFiles(sourceRoot, targetRoot) {
   }
 }
 
+function resolveInsideRoot(root, relativePath) {
+  const resolvedRoot = path.resolve(root);
+  const resolvedPath = path.resolve(resolvedRoot, relativePath);
+  const relativeToRoot = path.relative(resolvedRoot, resolvedPath);
+
+  if (relativeToRoot === "" || relativeToRoot.startsWith("..") || path.isAbsolute(relativeToRoot)) {
+    die(`unsafe repository path '${relativePath}'`);
+  }
+
+  return resolvedPath;
+}
+
+function copyUntrackedWorkspaceFiles(sourceRoot, targetRoot) {
+  const output = git(["ls-files", "--others", "--exclude-standard", "-z"], {
+    cwd: sourceRoot,
+  }).stdout;
+  const paths = output.split("\0").filter(Boolean);
+  let copied = 0;
+
+  for (const relativePath of paths) {
+    const source = resolveInsideRoot(sourceRoot, relativePath);
+    const target = resolveInsideRoot(targetRoot, relativePath);
+
+    if (!fs.existsSync(source)) continue;
+    if (fs.existsSync(target)) {
+      die(`refusing to overwrite existing path while copying untracked file '${relativePath}'`);
+    }
+
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.cpSync(source, target, {
+      recursive: true,
+      preserveTimestamps: true,
+      verbatimSymlinks: true,
+    });
+    copied += 1;
+  }
+
+  return copied;
+}
+
+function copyWorkspaceChanges(sourceRoot, targetRoot) {
+  const diff = git(["diff", "--binary", "HEAD"], { cwd: sourceRoot }).stdout;
+  const copiedTrackedDiff = diff.trim().length > 0;
+
+  if (copiedTrackedDiff) {
+    git(["apply", "--binary", "-"], { cwd: targetRoot, input: diff });
+  }
+
+  const copiedUntracked = copyUntrackedWorkspaceFiles(sourceRoot, targetRoot);
+
+  if (copiedTrackedDiff || copiedUntracked > 0) {
+    console.error(
+      `wt: forked workspace changes (tracked diff: ${copiedTrackedDiff ? "yes" : "no"}, untracked files: ${copiedUntracked})`,
+    );
+  }
+
+  return { copiedTrackedDiff, copiedUntracked };
+}
+
 function commandList(args) {
   if (args.length > 0) die("usage: wt list");
 
@@ -564,9 +639,10 @@ function commandAdd(args) {
 }
 
 function commandTmp(args) {
-  const { options, rest } = parseOptions(args, { env: true });
-  if (rest.length > 0) die("usage: wt tmp [--env]");
+  const { options, rest } = parseOptions(args, { env: true, fork: true });
+  if (rest.length > 1) die("usage: wt tmp [name] [--env] [--fork|--no-fork]");
 
+  const [name] = rest;
   const currentRoot = gitOutput(["rev-parse", "--show-toplevel"]);
   const currentSourceBranch = currentBranch() || null;
   const currentHead = gitOutput(["rev-parse", "HEAD"]);
@@ -581,11 +657,13 @@ function commandTmp(args) {
   const sourceHead = shouldInheritSource
     ? (parentMetadata.sourceHead ?? currentHead)
     : currentHead;
-  const worktreePath = defaultTemporaryWorktreePath();
+  const shouldForkWorkspace = options.fork ?? (parentMetadata?.temporary === true);
+  const worktreePath = defaultTemporaryWorktreePath(name);
 
   gitVisible(["worktree", "add", "--detach", worktreePath, "HEAD"]);
   writeWorktreeMetadata(worktreePath, {
     temporary: true,
+    name: name ?? null,
     sourcePath,
     sourceBranch,
     sourceHead,
@@ -594,6 +672,7 @@ function commandTmp(args) {
     parentHead: currentHead,
     createdAt: new Date().toISOString(),
   });
+  if (shouldForkWorkspace) copyWorkspaceChanges(currentRoot, worktreePath);
   if (options.copyEnv === true) copyEnvFiles(currentRoot, worktreePath);
   console.error(`wt: created temporary ${worktreePath}`);
   console.log(worktreePath);
@@ -667,46 +746,6 @@ function commandRemove(args) {
   console.error(`wt: removed ${entry.path}`);
 }
 
-function commandFinish(args) {
-  const { rest } = parseOptions(args);
-  if (rest.length > 2) die("usage: wt finish [branch] [target]");
-
-  const info = repoInfo();
-  const entries = info.entries.filter((entry) => !entry.bare);
-  const source = rest[0]
-    ? findWorktree(rest[0], entries)
-    : currentWorktree(entries);
-
-  if (!source) die("could not determine current worktree");
-  if (!source.branch) die("can only finish a branch worktree");
-
-  const metadata = readWorktreeMetadata(source.path);
-  const targetBranch = rest[1] ?? defaultTargetBranch(source.branch, info.entries, metadata);
-  const target = findWorktree(targetBranch, entries);
-
-  if (!target.branch) die(`target '${targetBranch}' is not a branch worktree`);
-  if (path.resolve(source.path) === path.resolve(target.path)) {
-    die("source and target worktree are the same");
-  }
-  if (source.branch === target.branch) {
-    die("source and target branch are the same");
-  }
-
-  ensureClean(source, "source");
-  ensureClean(target, "target");
-
-  console.error(`wt: merging ${source.branch} into ${target.branch}`);
-  gitVisible(["merge", "--no-edit", source.branch], { cwd: target.path });
-
-  console.error(`wt: removing ${source.path}`);
-  gitVisible(["worktree", "remove", source.path], { cwd: target.path });
-
-  console.error(`wt: deleting branch ${source.branch}`);
-  gitVisible(["branch", "-d", source.branch], { cwd: target.path });
-
-  console.log(target.path);
-}
-
 function commandPrune(args) {
   git(["worktree", "prune", ...args], { stdio: "inherit" });
 }
@@ -746,9 +785,6 @@ switch (command) {
   case "rm":
   case "remove":
     commandRemove(args);
-    break;
-  case "finish":
-    commandFinish(args);
     break;
   case "prune":
     commandPrune(args);
