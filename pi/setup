@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 set -euo pipefail
 
 PI_SRC="${DOT:-$HOME/github.com/odas0r/dot}/pi"
@@ -7,6 +8,7 @@ PI_SRC="${DOT:-$HOME/github.com/odas0r/dot}/pi"
 mkdir -p "$HOME/.pi/agent/themes"
 mkdir -p "$HOME/.pi/agent/sessions"
 mkdir -p "$HOME/.pi/agent/extensions"
+mkdir -p "$HOME/.pi/agent/prompts"
 
 # Symlink themes
 for theme_file in "$PI_SRC/themes"/*.json; do
@@ -16,8 +18,16 @@ for theme_file in "$PI_SRC/themes"/*.json; do
   fi
 done
 
+# Symlink prompts
+for prompt_file in "$PI_SRC/prompts"/*.md; do
+  if [[ -f "$prompt_file" ]]; then
+    prompt_name="$(basename "$prompt_file")"
+    ln -sf "$prompt_file" "$HOME/.pi/agent/prompts/$prompt_name"
+  fi
+done
+
 # Symlink extensions
-for extension_file in "$PI_SRC/extensions"/*.{js}; do
+for extension_file in "$PI_SRC/extensions"/*.js; do
   if [[ -f "$extension_file" ]]; then
     extension_name="$(basename "$extension_file")"
     ln -sf "$extension_file" "$HOME/.pi/agent/extensions/$extension_name"
@@ -33,8 +43,6 @@ fi
 if [[ ! -e "$HOME/.pi/agent/settings.json" ]]; then
   ln -s "$PI_SRC/settings.json" "$HOME/.pi/agent/settings.json"
   echo "  → Created symlink for pi settings"
-else
-  echo "  → ~/.pi/agent/settings.json already exists, skipping"
 fi
 
 # Provision auth.json from sample if it doesn't exist yet
