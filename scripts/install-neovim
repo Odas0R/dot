@@ -4,13 +4,20 @@ set -euo pipefail
 
 cd /tmp
 
-if [[ -d neovim ]]; then
-  git -C neovim pull
+repo_dir=/tmp/neovim
+
+if [[ -d "$repo_dir/.git" ]]; then
+  git -C "$repo_dir" pull --ff-only
 else
-  git clone https://github.com/neovim/neovim
+  if [[ -e "$repo_dir" ]]; then
+    echo "$repo_dir exists but is not a git checkout; removing it."
+    rm -rf "$repo_dir"
+  fi
+
+  git clone https://github.com/neovim/neovim "$repo_dir"
 fi
 
-cd neovim && make CMAKE_BUILD_TYPE=RelWithDebInfo
+cd "$repo_dir" && make CMAKE_BUILD_TYPE=RelWithDebInfo
 
 sudo make install
 

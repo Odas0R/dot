@@ -25,10 +25,10 @@ wt() {
       target_path="$(command wt "$subcommand" "$@")" || return
       [[ -n "$target_path" ]] && cd "$target_path"
       ;;
-    finish)
+    done)
       shift
       local target_path
-      target_path="$(command wt finish "$@")" || return
+      target_path="$(command wt done "$@")" || return
       [[ -n "$target_path" ]] && cd "$target_path"
       ;;
     *)

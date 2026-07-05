@@ -7,6 +7,14 @@ return {
     "hrsh7th/cmp-buffer",
     "hrsh7th/cmp-path",
     "saadparwaiz1/cmp_luasnip",
+    {
+      "jdrupal-dev/css-vars.nvim",
+      dependencies = { "nvim-lua/plenary.nvim" },
+      opts = {
+        cmp_filetypes = { "astro", "css", "scss", "sass", "less" },
+        search_extensions = { ".astro", ".css", ".scss", ".sass", ".less" },
+      },
+    },
   },
   config = function()
     -- setup lspkind
@@ -46,6 +54,7 @@ return {
       sources = cmp.config.sources({
         { name = "nvim_lua" },
         { name = "nvim_lsp" },
+        { name = "css_vars" },
         { name = "luasnip" },
         { name = "path" },
         {
@@ -72,6 +81,7 @@ return {
           menu = {
             nvim_lua = "[Lua]",
             nvim_lsp = "[Lsp]",
+            css_vars = "[CSS Var]",
             luasnip = "[Snip]",
             path = "[Path]",
             buffer = "[Buffer]",

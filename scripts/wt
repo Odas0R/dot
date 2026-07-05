@@ -15,10 +15,11 @@ Usage:
   wt add <branch> [--path <path>] [--env]
   wt tmp [name] [--env] [--fork|--no-fork]
   wt promote <branch>
-  wt pr [base]
+  wt pr [base] [--fill]
   wt path [branch]
   wt cd [branch]
   wt rm [branch] [--force]
+  wt done [--force]
   wt prune [git-prune-options]
 
 Examples:
@@ -30,6 +31,7 @@ Examples:
   wt pr
   wt cd feature/login
   wt rm feature/login
+  wt done
 
 Default persistent worktree location:
   ../<repo>.worktrees/<branch-slug>
@@ -106,24 +108,6 @@ function gitVisible(args, options = {}) {
 
   if (result.status !== 0 && !options.allowFailure) {
     die(`git ${args.join(" ")} failed`);
-  }
-
-  return result;
-}
-
-function commandVisible(command, args, options = {}) {
-  const result = spawnSync(command, args, {
-    cwd: options.cwd ?? process.cwd(),
-    encoding: "utf8",
-    stdio: "inherit",
-  });
-
-  if (result.error) {
-    die(`could not run ${command}: ${result.error.message}`);
-  }
-
-  if (result.status !== 0 && !options.allowFailure) {
-    die(`${command} ${args.join(" ")} failed`);
   }
 
   return result;
@@ -322,6 +306,11 @@ function parseOptions(args, definitions = {}) {
       continue;
     }
 
+    if (arg === "--fill" && definitions.fill) {
+      options.fill = true;
+      continue;
+    }
+
     if (arg.startsWith("-")) die(`unknown option '${arg}'`);
     rest.push(arg);
   }
@@ -423,41 +412,6 @@ function branchExists(branch) {
       allowFailure: true,
     }).status === 0
   );
-}
-
-function defaultTargetBranch(sourceBranch, entries, metadata = null) {
-  const sourceMetadataBranch = metadata?.sourceBranch;
-  if (sourceMetadataBranch && sourceMetadataBranch !== sourceBranch) {
-    return sourceMetadataBranch;
-  }
-
-  const remoteHead = gitOutput(
-    ["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"],
-    { allowFailure: true },
-  );
-
-  if (remoteHead) {
-    const branch = remoteHead.replace(/^[^/]+\//, "");
-    if (branch && branch !== sourceBranch) return branch;
-  }
-
-  for (const branch of ["main", "master", "trunk", "develop"]) {
-    if (branch !== sourceBranch && branchExists(branch)) return branch;
-  }
-
-  const mainWorktreeBranch = entries[0]?.branch;
-  if (mainWorktreeBranch && mainWorktreeBranch !== sourceBranch) {
-    return mainWorktreeBranch;
-  }
-
-  die("could not determine target branch; pass one explicitly");
-}
-
-function ensureClean(entry, description) {
-  const status = gitOutput(["status", "--porcelain"], { cwd: entry.path });
-  if (status) {
-    die(`${description} worktree has uncommitted changes: ${entry.path}`);
-  }
 }
 
 function isEnvFileName(name) {
@@ -701,29 +655,6 @@ function commandPromote(args) {
   console.error(`wt: promoted to ${branch}`);
 }
 
-function commandPr(args) {
-  const { rest } = parseOptions(args);
-  if (rest.length > 1) die("usage: wt pr [base]");
-  if (!commandExists("gh")) die("gh is required for wt pr");
-
-  const [requestedBase] = rest;
-  const branch = currentBranch();
-  if (!branch) die("current worktree is detached; run wt promote <branch> first");
-
-  const currentRoot = gitOutput(["rev-parse", "--show-toplevel"]);
-  ensureClean({ path: currentRoot }, "current");
-
-  const metadata = readWorktreeMetadata();
-  const base = requestedBase ?? defaultTargetBranch(branch, worktrees(), metadata);
-  if (base === branch) die("pull request base and head branch are the same");
-
-  console.error(`wt: pushing ${branch}`);
-  gitVisible(["push", "-u", "origin", branch]);
-
-  console.error(`wt: opening PR ${branch} -> ${base}`);
-  commandVisible("gh", ["pr", "create", "--base", base, "--head", branch, "--fill"]);
-}
-
 function commandRemove(args) {
   const { options, rest } = parseOptions(args, { force: true });
   if (rest.length > 1) die("usage: wt rm [branch] [--force]");
@@ -744,6 +675,27 @@ function commandRemove(args) {
 
   git(gitArgs, { stdio: "inherit" });
   console.error(`wt: removed ${entry.path}`);
+}
+
+function commandDone(args) {
+  const { options, rest } = parseOptions(args, { force: true });
+  if (rest.length > 0) die("usage: wt done [--force]");
+
+  const info = repoInfo();
+  const entry = currentWorktree(info.entries);
+  if (!entry) die("could not determine current worktree");
+
+  if (path.resolve(entry.path) === path.resolve(info.mainPath)) {
+    die("refusing to remove the main worktree");
+  }
+
+  const gitArgs = ["worktree", "remove"];
+  if (options.force) gitArgs.push("--force");
+  gitArgs.push(entry.path);
+
+  git(gitArgs, { cwd: info.mainPath, stdio: "inherit" });
+  console.error(`wt: removed ${entry.path}`);
+  console.log(info.mainPath);
 }
 
 function commandPrune(args) {
@@ -775,9 +727,6 @@ switch (command) {
   case "promote":
     commandPromote(args);
     break;
-  case "pr":
-    commandPr(args);
-    break;
   case "path":
   case "cd":
     commandPath(args);
@@ -785,6 +734,9 @@ switch (command) {
   case "rm":
   case "remove":
     commandRemove(args);
+    break;
+  case "done":
+    commandDone(args);
     break;
   case "prune":
     commandPrune(args);
