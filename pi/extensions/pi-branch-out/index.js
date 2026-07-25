@@ -6,8 +6,8 @@ import {
 	convertToLlm,
 	serializeConversation,
 } from "@earendil-works/pi-coding-agent";
-import { humanKittyError, launchKitty } from "./lib/kitty.js";
-import { errorMessage, exec } from "./lib/shell.js";
+import { humanKittyError, launchKitty } from "../shared/kitty.js";
+import { errorMessage, exec } from "../shared/shell.js";
 
 const SYSTEM_PROMPT = `You are preparing a context handoff for a fresh coding-agent session.
 
@@ -344,9 +344,8 @@ function buildFinalPrompt(prompt, plan, repo, dirtyBehavior, copyEnv) {
 		"---",
 		"",
 		"## Branch-out execution notes",
-		`- Temporary worktree: ${plan.worktreePath}`,
+		`- Current temporary worktree: ${plan.worktreePath}`,
 		`- Suggested branch name: ${plan.branchName}`,
-		`- This worktree starts detached; no branch has been created yet. Run \`wt promote ${plan.branchName}\` if you want to attach it to this branch.`,
 		`- Parent repo: ${repo.topLevel}`,
 		`- Parent branch: ${repo.branch || "(detached)"}`,
 		`- Parent HEAD: ${repo.head}`,
@@ -432,6 +431,17 @@ export default function branchOutExtension(pi) {
 				ctx.ui.notify(errorMessage(error), "error");
 				return;
 			}
+
+			const editedPrompt = await ctx.ui.editor("Edit branch-out prompt", generatedPrompt);
+			if (editedPrompt === undefined) {
+				ctx.ui.notify("Cancelled", "info");
+				return;
+			}
+			if (!editedPrompt.trim()) {
+				ctx.ui.notify("Cancelled: prompt was empty", "info");
+				return;
+			}
+			generatedPrompt = editedPrompt.trim();
 
 			const title = await generateBranchTitle(ctx, goal, generatedPrompt, repo);
 			const plan = makeWorktreePlan(title);

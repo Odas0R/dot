@@ -15,7 +15,6 @@ Usage:
   wt add <branch> [--path <path>] [--env]
   wt tmp [name] [--env] [--fork|--no-fork]
   wt promote <branch>
-  wt pr [base] [--fill]
   wt path [branch]
   wt cd [branch]
   wt rm [branch] [--force]
@@ -28,7 +27,6 @@ Examples:
   wt add existing-branch
   wt tmp branch-out-title --env
   wt promote agent/login
-  wt pr
   wt cd feature/login
   wt rm feature/login
   wt done
@@ -51,8 +49,7 @@ Workspace forking:
 Temporary workflow:
   wt tmp [name] remembers the source branch. The optional name labels the
   temporary path but does not create a branch. After committing in the temp
-  worktree, use wt promote <branch> to attach it to a branch, then wt pr to
-  push it and open a pull request against the source branch.
+  worktree, use wt promote <branch> to attach it to a branch.
 `;
 
 function die(message, code = 1) {

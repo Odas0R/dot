@@ -1,55 +1,47 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
 PI_SRC="${DOT:-$HOME/github.com/odas0r/dot}/pi"
+PI_HOME="$HOME/.pi/agent"
 
-# Ensure pi agent directories exist
-mkdir -p "$HOME/.pi/agent/themes"
-mkdir -p "$HOME/.pi/agent/sessions"
-mkdir -p "$HOME/.pi/agent/extensions"
-mkdir -p "$HOME/.pi/agent/prompts"
+mkdir -p "$PI_HOME"/{extensions,prompts,sessions,themes}
 
-# Symlink themes
-for theme_file in "$PI_SRC/themes"/*.json; do
-  if [[ -f "$theme_file" ]]; then
-    theme_name="$(basename "$theme_file")"
-    ln -sf "$theme_file" "$HOME/.pi/agent/themes/$theme_name"
+link_files() {
+  local destination=$1 source
+  shift
+
+  for source in "$@"; do
+    [[ -f "$source" ]] || continue
+    ln -sfn "$source" "$destination/$(basename "$source")"
+  done
+}
+
+link_files "$PI_HOME/themes" "$PI_SRC/themes"/*.json
+link_files "$PI_HOME/prompts" "$PI_SRC/prompts"/*.md
+
+# Pi discovers extension directories through index.js. Keep shared helpers beside them.
+for source in "$PI_SRC/extensions"/*; do
+  name=$(basename "$source")
+  [[ -f "$source/index.js" || "$name" == shared ]] || continue
+  if [[ -f "$source/package.json" ]]; then
+    npm install --omit=dev --omit=peer --no-audit --no-fund --prefix "$source"
   fi
+  ln -sfn "$source" "$PI_HOME/extensions/$name"
 done
 
-# Symlink prompts
-for prompt_file in "$PI_SRC/prompts"/*.md; do
-  if [[ -f "$prompt_file" ]]; then
-    prompt_name="$(basename "$prompt_file")"
-    ln -sf "$prompt_file" "$HOME/.pi/agent/prompts/$prompt_name"
-  fi
+# Remove symlinks from the previous flat layout and lib helper directory.
+for name in pi-branch-out.js pi-review.js lib; do
+  link="$PI_HOME/extensions/$name"
+  [[ -L "$link" && "$(readlink "$link")" == "$PI_SRC/extensions/$name" ]] && rm "$link"
 done
 
-# Symlink extensions
-for extension_file in "$PI_SRC/extensions"/*.js; do
-  if [[ -f "$extension_file" ]]; then
-    extension_name="$(basename "$extension_file")"
-    ln -sf "$extension_file" "$HOME/.pi/agent/extensions/$extension_name"
-  fi
-done
-
-# Symlink extension helper modules
-if [[ -d "$PI_SRC/extensions/lib" ]]; then
-  ln -sfn "$PI_SRC/extensions/lib" "$HOME/.pi/agent/extensions/lib"
-fi
-
-# Symlink settings (only if not already present to preserve user customizations)
-if [[ ! -e "$HOME/.pi/agent/settings.json" ]]; then
-  ln -s "$PI_SRC/settings.json" "$HOME/.pi/agent/settings.json"
+if [[ ! -e "$PI_HOME/settings.json" && ! -L "$PI_HOME/settings.json" ]]; then
+  ln -s "$PI_SRC/settings.json" "$PI_HOME/settings.json"
   echo "  → Created symlink for pi settings"
 fi
 
-# Provision auth.json from sample if it doesn't exist yet
-# (real auth.json contains API keys — never committed, listed in .gitignore)
-if [[ ! -f "$HOME/.pi/agent/auth.json" ]]; then
-  cp "$PI_SRC/auth.sample.json" "$HOME/.pi/agent/auth.json"
-  chmod 600 "$HOME/.pi/agent/auth.json"
+if [[ ! -f "$PI_HOME/auth.json" ]]; then
+  install -m 600 "$PI_SRC/auth.sample.json" "$PI_HOME/auth.json"
   echo "  → Created ~/.pi/agent/auth.json from sample — please add your API keys"
 fi
 

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:net";
-import { launchKitty } from "./lib/kitty.js";
+import { launchKitty } from "../shared/kitty.js";
 
 function ensureSafeExArgs(args) {
 	const trimmed = args.trim();

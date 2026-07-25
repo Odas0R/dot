@@ -26,6 +26,9 @@ export OPEN_CODE="$HOME/.opencode/bin"
 # bun
 export BUN_INSTALL="$HOME/.bun"
 
+# gcloud
+export GCLOUD="/opt/homebrew/share/google-cloud-sdk"
+
 # Fixing GNU utils in macOS
 #
 # brew install coreutils findutils gnu-sed gawk grep gnu-tar
@@ -43,6 +46,7 @@ PATH="$GNU_UTILS:$PATH:/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin:"
 
 PATH+="$LOCAL_BIN:$LOCAL_BIN_SCRIPTS:"
 PATH+="$GOROOT/bin:$GOPATH/bin:"
+PATH+="$GCLOUD/bin:"
 PATH+="$PNPM_HOME:"
 PATH+="$NODE_HOME/bin:"
 PATH+="$BUN_INSTALL/bin:"

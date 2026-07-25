@@ -170,7 +170,10 @@ async function npmOutdated() {
 async function npmVersions(name) {
   const { stdout } = await runNpm(["view", name, "versions", "--json"]);
   const parsed = JSON.parse(stdout || "[]");
-  return Array.isArray(parsed) ? parsed : [parsed];
+  // npm 12 preserves the result array, so an array-valued field is nested.
+  const versions =
+    parsed.length === 1 && Array.isArray(parsed[0]) ? parsed[0] : parsed;
+  return Array.isArray(versions) ? versions : [versions];
 }
 
 async function npmPackageMeta(name, version) {
@@ -184,7 +187,9 @@ async function npmPackageMeta(name, version) {
     "gitHead",
     "--json",
   ]);
-  return JSON.parse(stdout || "{}");
+  const parsed = JSON.parse(stdout || "{}");
+  // npm 12 always returns matching `npm view --json` results as an array.
+  return Array.isArray(parsed) ? (parsed[0] ?? {}) : parsed;
 }
 
 function parseVersion(version) {

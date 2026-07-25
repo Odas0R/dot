@@ -1,12 +1,12 @@
 {
   "shellPath": "/opt/homebrew/bin/bash",
   "theme": "gruvbox",
-  "lastChangelogVersion": "0.80.3",
+  "lastChangelogVersion": "0.82.1",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.5",
+  "defaultModel": "gpt-5.6-sol",
   "enabledModels": [
-    "openai-codex/gpt-5.5"
+    "openai-codex/gpt-5.6-sol"
   ],
-  "defaultThinkingLevel": "xhigh",
+  "defaultThinkingLevel": "high",
   "hideThinkingBlock": false
 }
