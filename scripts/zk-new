@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-// zk-inbox — Create/open an Inbox note in the zettelkasten.
+// zk-new — Create/open an Inbox note in the zettelkasten.
 //
 // Usage:
-//   zk-inbox "Note title"              Create/open an Inbox note
-//   echo "text" | zk-inbox "Note title" Pre-populate body from stdin
+//   zk-new "Note title"              Create/open an Inbox note
+//   echo "text" | zk-new "Note title" Pre-populate body from stdin
 //
 // Set ZETTELKASTEN_DIR to override the default zettelkasten path.
 
@@ -21,7 +21,7 @@ const INBOX_DIR = path.join(ZK_DIR, "Inbox");
 const rawTitle = process.argv.slice(2).join(" ").trim();
 
 function usage() {
-  console.error('Usage: zk-inbox "Note title"');
+  console.error('Usage: zk-new "Note title"');
 }
 
 function shellQuote(value) {

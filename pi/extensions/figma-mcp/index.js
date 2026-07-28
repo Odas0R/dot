@@ -21,7 +21,9 @@ const STATUS_KEY = "figma-mcp";
 const CLIENT_INFO = { name: "pi-figma-mcp", version: "0.1.0" };
 const FIGMA_PROMPT_PATTERN = /\b(figma|design|frame|layer|ui)\b/i;
 const FIGMA_HINT =
-	"Figma desktop MCP tools are available. Use them for the current selection, or pass a Figma frame or layer URL when the selected tool supports one.";
+	"Figma desktop MCP tools are available. For design-to-code work, call figma_get_design_context first. Use screenshots only as visual references, never as a substitute for structured design context.";
+const FIGMA_IMPLEMENT_USAGE =
+	"Usage: /figma-implement <figma-design-url-with-node-id> [instructions]";
 
 function errorMessage(error) {
 	return error instanceof Error ? error.message : String(error);
@@ -48,6 +50,89 @@ function parseServerUrl(value) {
 	}
 
 	return url;
+}
+
+function normalizeNodeId(value) {
+	const nodeId = value.trim();
+	const dashed = nodeId.match(/^(\d+)-(\d+)$/);
+	return dashed ? `${dashed[1]}:${dashed[2]}` : nodeId;
+}
+
+function extractFigmaTarget(prompt) {
+	const urls = prompt.match(/https?:\/\/(?:www\.)?figma\.com\/[^\s<>"']+/gi) ?? [];
+	for (const candidate of urls) {
+		let url;
+		try {
+			url = new URL(candidate.replace(/[),.;!?]+$/, ""));
+		} catch {
+			continue;
+		}
+
+		const nodeId = url.searchParams.get("node-id");
+		if (nodeId?.trim()) {
+			return { nodeId: normalizeNodeId(nodeId), url: url.href };
+		}
+	}
+	return undefined;
+}
+
+function parseFigmaImplementArgs(args) {
+	const input = args.trim();
+	if (!input) throw new Error(FIGMA_IMPLEMENT_USAGE);
+
+	const match = input.match(/^(\S+)(?:\s+([\s\S]*))?$/);
+	if (!match) throw new Error(FIGMA_IMPLEMENT_USAGE);
+
+	let url;
+	try {
+		url = new URL(match[1]);
+	} catch {
+		throw new Error(`Invalid Figma URL. ${FIGMA_IMPLEMENT_USAGE}`);
+	}
+
+	const hostname = url.hostname.toLowerCase();
+	if (
+		url.protocol !== "https:" ||
+		(hostname !== "figma.com" && hostname !== "www.figma.com") ||
+		!/^\/design\/[^/]+(?:\/|$)/.test(url.pathname)
+	) {
+		throw new Error(
+			`Expected a node-specific https://www.figma.com/design/... URL. ${FIGMA_IMPLEMENT_USAGE}`,
+		);
+	}
+
+	const rawNodeId = url.searchParams.get("node-id");
+	const nodeId = rawNodeId ? normalizeNodeId(rawNodeId) : "";
+	if (!/^\d+:\d+$/.test(nodeId)) {
+		throw new Error(`The Figma Design URL must contain a valid node-id. ${FIGMA_IMPLEMENT_USAGE}`);
+	}
+
+	return {
+		url: url.href,
+		nodeId,
+		instructions: match[2]?.trim() || undefined,
+	};
+}
+
+function buildFigmaImplementPrompt({ url, instructions }) {
+	const lines = [
+		`Implement the complete Figma target at ${url}.`,
+		"",
+		"Load and follow the `figma-design-to-code` skill. Treat the URL node as the root target. The URL is mandatory; never fall back to the current Figma desktop selection.",
+		"",
+		"- If the target is a Section or Flow, inventory and implement every top-level screen and state.",
+		"- Build a concise coverage manifest before coding. Classify every top-level node as `implement`, `reference`, or `exclude`, with a valid reason.",
+		"- Fetch detailed design context only for implementation nodes; never generate or implement connector code.",
+		"- Build a transition manifest for represented flow behavior and implement every confirmed transition and branch.",
+		"- If any required transition semantics are missing or contradictory, present one consolidated transition manifest, ask focused questions, and wait for my confirmation before implementing the affected interactions.",
+		"- Consolidate screens from the same family into shared components with explicit runtime states rather than duplicating the page.",
+		"- Follow existing project architecture, components, tokens, routing, state management, accessibility, and testing conventions.",
+		"- Validate every implemented visual state against its Figma screenshot and exercise every confirmed transition.",
+		"- Do not stop after planning unless missing or contradictory requirements require my confirmation; after confirmation, complete the implementation and validation.",
+	];
+
+	if (instructions) lines.push("", "Additional instructions:", instructions);
+	return lines.join("\n");
 }
 
 async function readConfiguredUrl(path) {
@@ -268,16 +353,17 @@ function promptGuidelines(mcpToolName, piToolName) {
 	switch (mcpToolName) {
 		case "get_design_context":
 			return [
-				`Use ${piToolName} for implementation-ready context from a Figma selection, frame, or layer.`,
-				`When the user shares a Figma URL, pass it to ${piToolName} if its arguments support one.`,
+				`Always prefer ${piToolName} as the primary tool for design-to-code work.`,
+				`When the user shares a node-specific Figma URL, extract its node-id, normalize 1-2 to 1:2, and pass it as nodeId to ${piToolName}; the URL target overrides the desktop selection.`,
 			];
 		case "get_metadata":
 			return [
-				`Use ${piToolName} before requesting full design context for a very large or complex Figma frame.`,
+				`Use ${piToolName} to orient within a large frame or after design context is too large or truncated; it is not a substitute for figma_get_design_context.`,
 			];
 		case "get_screenshot":
 			return [
-				`Use ${piToolName} when a screenshot is more useful than code-oriented Figma context.`,
+				`Use ${piToolName} only as a visual reference or validation aid, not as a substitute for figma_get_design_context.`,
+				`When the user supplied a node-specific Figma URL, pass the same explicit nodeId to ${piToolName} and never fall back to the current selection.`,
 			];
 		default:
 			return [
@@ -370,6 +456,7 @@ export default function figmaMcpExtension(pi) {
 	let client;
 	let connection;
 	let connectedConfig;
+	let promptFigmaTarget;
 	const registeredPiToolNames = new Set();
 	const toolInfoByPiName = new Map();
 
@@ -405,6 +492,7 @@ export default function figmaMcpExtension(pi) {
 
 	function registerTool(tool) {
 		const info = getToolInfo(tool.name);
+		info.acceptsNodeId = Boolean(tool.inputSchema?.properties?.nodeId);
 		if (registeredPiToolNames.has(info.piToolName)) return;
 		registeredPiToolNames.add(info.piToolName);
 
@@ -525,10 +613,50 @@ export default function figmaMcpExtension(pi) {
 	});
 
 	pi.on("before_agent_start", (event) => {
+		promptFigmaTarget = extractFigmaTarget(event.prompt);
 		if (!FIGMA_PROMPT_PATTERN.test(event.prompt) || toolInfoByPiName.size === 0) {
 			return undefined;
 		}
-		return { systemPrompt: `${event.systemPrompt}\n\n${FIGMA_HINT}` };
+
+		const targetHint = promptFigmaTarget
+			? ` The user supplied rootTargetId="${promptFigmaTarget.nodeId}". This explicit URL target overrides the current Figma desktop selection. Pass rootTargetId to figma_get_design_context first. Descendant reads may use explicit child node IDs discovered from that root. Every related Figma read, including figma_get_screenshot, must include an explicit nodeId; never omit it or silently use the current selection.`
+			: "";
+		return {
+			systemPrompt: `${event.systemPrompt}\n\n${FIGMA_HINT}${targetHint}`,
+		};
+	});
+
+	pi.on("tool_call", (event) => {
+		if (!promptFigmaTarget) return undefined;
+		const info = toolInfoByPiName.get(event.toolName);
+		if (!info?.acceptsNodeId || !event.input || typeof event.input !== "object") {
+			return undefined;
+		}
+		if (typeof event.input.nodeId !== "string" || !event.input.nodeId.trim()) {
+			event.input.nodeId = promptFigmaTarget.nodeId;
+		}
+		return undefined;
+	});
+
+	pi.registerCommand("figma-implement", {
+		description:
+			"Prepare an implementation prompt from a node-specific Figma Design URL",
+		handler: async (args, ctx) => {
+			let target;
+			try {
+				target = parseFigmaImplementArgs(args);
+			} catch (error) {
+				ctx.ui.notify(errorMessage(error), "warning");
+				return;
+			}
+
+			if (!ctx.hasUI) {
+				throw new Error("/figma-implement requires an interactive or RPC editor");
+			}
+
+			ctx.ui.setEditorText(buildFigmaImplementPrompt(target));
+			ctx.ui.notify(`Prepared Figma implementation prompt for ${target.nodeId}`, "info");
+		},
 	});
 
 	pi.registerCommand("figma-mcp-status", {

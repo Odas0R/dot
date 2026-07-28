@@ -4,41 +4,41 @@ set -euo pipefail
 PI_SRC="${DOT:-$HOME/github.com/odas0r/dot}/pi"
 PI_HOME="$HOME/.pi/agent"
 
-mkdir -p "$PI_HOME"/{extensions,prompts,sessions,themes}
+link_path() {
+  local source=$1 target=$2
 
-link_files() {
-  local destination=$1 source
-  shift
+  if [[ -L "$target" ]]; then
+    [[ "$(readlink "$target")" == "$source" ]] && return
+    rm "$target"
+  elif [[ -e "$target" ]]; then
+    echo "Refusing to replace non-symlink: $target" >&2
+    return 1
+  fi
 
-  for source in "$@"; do
-    [[ -f "$source" ]] || continue
-    ln -sfn "$source" "$destination/$(basename "$source")"
-  done
+  ln -s "$source" "$target"
 }
 
-link_files "$PI_HOME/themes" "$PI_SRC/themes"/*.json
-link_files "$PI_HOME/prompts" "$PI_SRC/prompts"/*.md
+mkdir -p "$PI_HOME/sessions"
 
-# Pi discovers extension directories through index.js. Keep shared helpers beside them.
-for source in "$PI_SRC/extensions"/*; do
-  name=$(basename "$source")
-  [[ -f "$source/index.js" || "$name" == shared ]] || continue
-  if [[ -f "$source/package.json" ]]; then
-    npm install --omit=dev --omit=peer --no-audit --no-fund --prefix "$source"
-  fi
-  ln -sfn "$source" "$PI_HOME/extensions/$name"
+for package in "$PI_SRC"/extensions/*/package.json; do
+  [[ -f "$package" ]] || continue
+  npm install --omit=dev --omit=peer --no-audit --no-fund \
+    --prefix "$(dirname "$package")"
 done
 
-# Remove symlinks from the previous flat layout and lib helper directory.
-for name in pi-branch-out.js pi-review.js lib; do
-  link="$PI_HOME/extensions/$name"
-  [[ -L "$link" && "$(readlink "$link")" == "$PI_SRC/extensions/$name" ]] && rm "$link"
+for resource in extensions prompts skills themes; do
+  source="$PI_SRC/$resource"
+  target="$PI_HOME/$resource"
+
+  [[ -d "$source" ]] || {
+    echo "Missing Pi resource directory: $source" >&2
+    exit 1
+  }
+
+  link_path "$source" "$target"
 done
 
-if [[ ! -e "$PI_HOME/settings.json" && ! -L "$PI_HOME/settings.json" ]]; then
-  ln -s "$PI_SRC/settings.json" "$PI_HOME/settings.json"
-  echo "  → Created symlink for pi settings"
-fi
+link_path "$PI_SRC/settings.json" "$PI_HOME/settings.json"
 
 if [[ ! -f "$PI_HOME/auth.json" ]]; then
   install -m 600 "$PI_SRC/auth.sample.json" "$PI_HOME/auth.json"
