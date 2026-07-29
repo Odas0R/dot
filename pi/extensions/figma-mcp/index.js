@@ -17,7 +17,7 @@ import { Type } from "typebox";
 
 const DEFAULT_SERVER_URL = "http://127.0.0.1:3845/mcp";
 const CONFIG_FILE = "figma-mcp.json";
-const STATUS_KEY = "figma-mcp";
+const UI_KEY = "figma-mcp";
 const CLIENT_INFO = { name: "pi-figma-mcp", version: "0.1.0" };
 const FIGMA_PROMPT_PATTERN = /\b(figma|design|frame|layer|ui)\b/i;
 const FIGMA_HINT =
@@ -463,10 +463,6 @@ export default function figmaMcpExtension(pi) {
 	const registeredPiToolNames = new Set();
 	const toolInfoByPiName = new Map();
 
-	function setStatus(ctx, text) {
-		ctx.ui.setStatus(STATUS_KEY, text);
-	}
-
 	function getToolInfo(mcpToolName) {
 		const existing = [...toolInfoByPiName.values()].find(
 			(info) => info.mcpToolName === mcpToolName,
@@ -524,7 +520,6 @@ export default function figmaMcpExtension(pi) {
 					);
 				} catch (error) {
 					if (client === activeClient) await disconnect().catch(() => {});
-					setStatus(ctx, "figma mcp: offline");
 					throw error;
 				}
 
@@ -568,7 +563,6 @@ export default function figmaMcpExtension(pi) {
 			client = nextClient;
 			connectedConfig = config;
 
-			setStatus(ctx, `figma mcp: ${listed.tools.length} tools`);
 			ctx.ui.notify(
 				`Connected to Figma desktop MCP (${listed.tools.length} tools, ${config.source} URL)`,
 				"info",
@@ -585,7 +579,6 @@ export default function figmaMcpExtension(pi) {
 		if (client && !force && connectedConfig?.url === config.url) return client;
 		if (force && client) await disconnect();
 		if (!connection) {
-			setStatus(ctx, "figma mcp: connecting...");
 			connection = openConnection(ctx, config).finally(() => {
 				connection = undefined;
 			});
@@ -594,16 +587,12 @@ export default function figmaMcpExtension(pi) {
 	}
 
 	async function ensureConnected(ctx) {
-		try {
-			return await connect(ctx);
-		} catch (error) {
-			setStatus(ctx, "figma mcp: offline");
-			throw error;
-		}
+		return connect(ctx);
 	}
 
 	pi.on("session_start", async (_event, ctx) => {
-		setStatus(ctx, "figma mcp: idle");
+		ctx.ui.setStatus(UI_KEY, undefined);
+		ctx.ui.setWidget(UI_KEY, undefined);
 		try {
 			await ensureConnected(ctx);
 		} catch (error) {
@@ -693,25 +682,21 @@ export default function figmaMcpExtension(pi) {
 		description: "Show the Figma MCP connection and discovered tools",
 		handler: async (_args, ctx) => {
 			const config = await resolveServerConfig(ctx);
-			ctx.ui.setWidget(STATUS_KEY, [
+			const lines = [
 				`Server URL: ${config.url}`,
 				`URL source: ${config.source}${config.path ? ` (${config.path})` : ""}`,
 				`Connected: ${client ? "yes" : "no"}`,
 				`Discovered tools: ${toolInfoByPiName.size}`,
 				...toolLines(toolInfoByPiName),
-			]);
-			ctx.ui.notify(
-				`Figma MCP ${client ? "connected" : "offline"}`,
-				client ? "info" : "warning",
-			);
+			];
+			ctx.ui.notify(lines.join("\n"), client ? "info" : "warning");
 		},
 	});
 
 	pi.registerCommand("figma-mcp-list-tools", {
 		description: "List Pi tools mirrored from the Figma MCP server",
 		handler: async (_args, ctx) => {
-			ctx.ui.setWidget(STATUS_KEY, toolLines(toolInfoByPiName));
-			ctx.ui.notify(`Listed ${toolInfoByPiName.size} Figma MCP tools`, "info");
+			ctx.ui.notify(toolLines(toolInfoByPiName).join("\n"), "info");
 		},
 	});
 
@@ -721,7 +706,6 @@ export default function figmaMcpExtension(pi) {
 			try {
 				await connect(ctx, { force: true });
 			} catch (error) {
-				setStatus(ctx, "figma mcp: offline");
 				ctx.ui.notify(`Failed to connect to Figma MCP: ${errorMessage(error)}`, "error");
 			}
 		},
@@ -775,7 +759,9 @@ export default function figmaMcpExtension(pi) {
 		},
 	});
 
-	pi.on("session_shutdown", async () => {
+	pi.on("session_shutdown", async (_event, ctx) => {
+		ctx.ui.setStatus(UI_KEY, undefined);
+		ctx.ui.setWidget(UI_KEY, undefined);
 		await disconnect().catch(() => {});
 	});
 }
