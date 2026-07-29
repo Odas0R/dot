@@ -29,18 +29,12 @@ function isOptMemContextMessage(message) {
 	return message?.role === "custom" && message.customType === CONTEXT_TYPE;
 }
 
-function branchHasOptMemContext(branch) {
-	return branch.some(
-		(entry) =>
-			(entry.type === "custom_message" && entry.customType === CONTEXT_TYPE) ||
-			(entry.type === "message" && isOptMemContextMessage(entry.message)),
-	);
-}
-
 function latestOptMemContextOnly(messages) {
 	const latest = messages.findLastIndex(isOptMemContextMessage);
 	if (latest < 0) return messages;
-	return messages.filter((message, index) => !isOptMemContextMessage(message) || index === latest);
+	return messages.filter(
+		(message, index) => !isOptMemContextMessage(message) || index === latest,
+	);
 }
 
 function notifyError(ctx, error) {
@@ -76,58 +70,35 @@ function executeAction(memory, params) {
 export default function optMemExtension(pi) {
 	const memory = createMemory();
 	let disabled = false;
-	let startupContext;
-	let shouldInjectStartup = false;
-	let systemGuidance = memoryInstructions(memory.directory, 280, {
-		...ACTION_FORMAT,
-		startup: "injected",
-	});
+	let systemGuidance = memoryInstructions(memory.directory, 280, ACTION_FORMAT);
 
 	function ensureMemory() {
 		const initialized = memory.init();
-		systemGuidance = memoryInstructions(memory.directory, initialized.sizes.ENTRY_CHARS, {
-			...ACTION_FORMAT,
-			startup: "injected",
-		});
+		systemGuidance = memoryInstructions(
+			memory.directory,
+			initialized.sizes.ENTRY_CHARS,
+			ACTION_FORMAT,
+		);
 		return initialized;
 	}
 
-	pi.on("session_start", (event, ctx) => {
+	pi.on("session_start", () => {
 		disabled = optMemDisabled();
-		startupContext = undefined;
-		shouldInjectStartup = false;
 		if (disabled) {
 			pi.setActiveTools(pi.getActiveTools().filter((name) => name !== TOOL_NAME));
 			return;
 		}
 
-		const alreadyPresent = branchHasOptMemContext(ctx.sessionManager.buildContextEntries());
-		shouldInjectStartup = event.reason !== "reload" || !alreadyPresent;
-		if (!shouldInjectStartup) return;
-
 		try {
 			ensureMemory();
-			startupContext = formatResult(memory.wake(), ACTION_FORMAT);
-		} catch (error) {
-			startupContext = `OptMem could not start: ${error instanceof Error ? error.message : String(error)}`;
+		} catch {
+			// The explicit wake tool call will report initialization errors to the agent.
 		}
 	});
 
 	pi.on("before_agent_start", (event) => {
 		if (disabled) return undefined;
-		const result = { systemPrompt: `${event.systemPrompt}\n\n${systemGuidance}` };
-		if (!shouldInjectStartup || startupContext === undefined) return result;
-
-		shouldInjectStartup = false;
-		return {
-			...result,
-			message: {
-				customType: CONTEXT_TYPE,
-				content: formatStartupContext(startupContext),
-				display: false,
-				details: { directory: memory.directory, loadedAt: Date.now() },
-			},
-		};
+		return { systemPrompt: `${event.systemPrompt}\n\n${systemGuidance}` };
 	});
 
 	pi.on("context", (event) => {
@@ -234,7 +205,6 @@ export default function optMemExtension(pi) {
 }
 
 export {
-	branchHasOptMemContext,
 	executeAction,
 	formatStartupContext,
 	latestOptMemContextOnly,
