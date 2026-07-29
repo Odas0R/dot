@@ -638,7 +638,7 @@ export default function figmaMcpExtension(pi) {
 
 	pi.registerCommand("figma-implement", {
 		description:
-			"Prepare an implementation prompt from a node-specific Figma Design URL",
+			"Implement a node-specific Figma Design URL",
 		handler: async (args, ctx) => {
 			let target;
 			try {
@@ -648,18 +648,19 @@ export default function figmaMcpExtension(pi) {
 				return;
 			}
 
-			if (!ctx.hasUI) {
-				throw new Error("/figma-implement requires an interactive or RPC editor");
+			const prompt = buildFigmaImplementPrompt(target);
+			if (ctx.isIdle()) {
+				pi.sendUserMessage(prompt);
+			} else {
+				pi.sendUserMessage(prompt, { deliverAs: "followUp" });
+				ctx.ui.notify(`Queued Figma implementation for ${target.nodeId}`, "info");
 			}
-
-			ctx.ui.setEditorText(buildFigmaImplementPrompt(target));
-			ctx.ui.notify(`Prepared Figma implementation prompt for ${target.nodeId}`, "info");
 		},
 	});
 
 	pi.registerCommand("figma-brief", {
 		description:
-			"Prepare a feature discovery brief prompt from a node-specific Figma Design URL",
+			"Create a feature discovery brief from a node-specific Figma Design URL",
 		handler: async (args, ctx) => {
 			let target;
 			try {
@@ -669,12 +670,13 @@ export default function figmaMcpExtension(pi) {
 				return;
 			}
 
-			if (!ctx.hasUI) {
-				throw new Error("/figma-brief requires an interactive or RPC editor");
+			const prompt = buildFigmaBriefPrompt(target);
+			if (ctx.isIdle()) {
+				pi.sendUserMessage(prompt);
+			} else {
+				pi.sendUserMessage(prompt, { deliverAs: "followUp" });
+				ctx.ui.notify(`Queued Figma feature brief for ${target.nodeId}`, "info");
 			}
-
-			ctx.ui.setEditorText(buildFigmaBriefPrompt(target));
-			ctx.ui.notify(`Prepared Figma feature brief prompt for ${target.nodeId}`, "info");
 		},
 	});
 
