@@ -9,32 +9,27 @@ import {
 import { humanKittyError, launchKitty } from "../shared/kitty.js";
 import { errorMessage, exec } from "../shared/shell.js";
 
-const SYSTEM_PROMPT = `You are preparing a context handoff for a fresh coding-agent session.
+const BRANCH_PREFIX = "agent/";
 
-Given the current conversation, repository state, and the user's goal, write a self-contained prompt that the new agent can execute immediately in a fresh git worktree.
+const SYSTEM_PROMPT = `You are preparing a scoped implementation handoff from an orchestrating coding-agent session to a branch agent.
+
+Given the current conversation, repository state, and requested task, write a self-contained implementation prompt with these sections when relevant:
+- Responsibility: the branch's single clear task.
+- Context: only findings and decisions needed for that task.
+- Requirements and acceptance criteria.
+- Constraints and shared contracts that must not change.
+- Out of scope.
+- Relevant files, commands, tests, docs, issues, PRs, or URLs.
+- Required validation.
 
 Requirements:
-- Preserve decisions, constraints, relevant findings, and next steps.
-- List relevant files, commands, tests, docs, branches, issues, or URLs mentioned.
-- Clearly state the exact implementation task to perform now.
-- Mention any suggested skills the new agent should invoke, if relevant.
-- Do not duplicate large artifacts; reference paths/URLs instead.
+- Preserve established decisions and exact technical details.
+- Keep the task independent and within the requested scope.
+- Clearly distinguish fixed shared contracts from local implementation choices.
+- Do not duplicate large artifacts; reference paths or URLs instead.
 - Redact secrets, API keys, tokens, passwords, and private personal data.
-- Be concise, but include enough context that the new session does not need the old conversation.
-- Output only the prompt, with no preamble.`;
-
-const TITLE_SYSTEM_PROMPT = `Generate a short title for a coding-agent branch-out session.
-
-Rules:
-- 2 to 5 words
-- lowercase kebab-case
-- max 36 characters
-- no quotes
-- no prefix like "pi" or "branch"
-- return only the title.`;
-
-const TITLE_MODEL_PROVIDER = "openai-codex";
-const TITLE_MODEL_ID = "gpt-5.5";
+- Be concise, but include enough context that the branch agent does not need the old conversation.
+- Output only the implementation prompt, with no preamble.`;
 
 function slugify(value, maxLength = 48) {
 	const slug = String(value)
@@ -47,7 +42,7 @@ function slugify(value, maxLength = 48) {
 		.slice(0, maxLength)
 		.replace(/[.-]+$/g, "");
 
-	return slug || "handoff";
+	return slug || "task";
 }
 
 function getWtCommand() {
@@ -90,140 +85,79 @@ async function withLoader(ctx, message, task) {
 	throw new Error(`${message.replace(/\.+$/, "")} cancelled`);
 }
 
-function entryToMessage(entry) {
-	if (entry.type === "message") return entry.message;
-	if (entry.type === "compaction") {
-		return {
-			role: "compactionSummary",
-			summary: entry.summary,
-			tokensBefore: entry.tokensBefore,
-			timestamp: new Date(entry.timestamp).getTime(),
-		};
-	}
-	return undefined;
-}
-
-function getHandoffMessages(branch) {
-	let compactionIndex = -1;
-	for (let i = branch.length - 1; i >= 0; i -= 1) {
-		if (branch[i].type === "compaction") {
-			compactionIndex = i;
-			break;
-		}
-	}
-
-	if (compactionIndex < 0) {
-		return branch.map(entryToMessage).filter(Boolean);
-	}
-
-	const compaction = branch[compactionIndex];
-	const firstKeptIndex =
-		compaction.type === "compaction"
-			? branch.findIndex((entry) => entry.id === compaction.firstKeptEntryId)
-			: -1;
-	const compactedBranch = [
-		compaction,
-		...(firstKeptIndex >= 0 ? branch.slice(firstKeptIndex, compactionIndex) : []),
-		...branch.slice(compactionIndex + 1),
-	];
-
-	return compactedBranch.map(entryToMessage).filter(Boolean);
+function canonicalPath(value) {
+	return fs.realpathSync.native(value);
 }
 
 async function getRepoContext(cwd) {
-	const topLevel = (await exec("git", ["rev-parse", "--show-toplevel"], { cwd })).stdout.trim();
+	const topLevel = canonicalPath(
+		(await exec("git", ["rev-parse", "--show-toplevel"], { cwd })).stdout.trim(),
+	);
+	const canonicalCwd = canonicalPath(cwd);
 	const branch = (await exec("git", ["branch", "--show-current"], { cwd, allowFailure: true })).stdout.trim();
-	const head = (await exec("git", ["rev-parse", "--short", "HEAD"], { cwd })).stdout.trim();
+	const head = (await exec("git", ["rev-parse", "HEAD"], { cwd })).stdout.trim();
+	const shortHead = (await exec("git", ["rev-parse", "--short", "HEAD"], { cwd })).stdout.trim();
 	const status = (await exec("git", ["status", "--porcelain"], { cwd: topLevel })).stdout.trim();
-	const untracked = (await exec("git", ["ls-files", "--others", "--exclude-standard", "-z"], { cwd: topLevel })).stdout
-		.split("\0")
-		.filter(Boolean);
 
 	return {
 		topLevel,
 		repoName: path.basename(topLevel),
 		branch,
 		head,
+		shortHead,
 		status,
 		isDirty: status.length > 0,
-		untracked,
+		relativeCwd: path.relative(topLevel, canonicalCwd),
 	};
 }
 
 function parseArgs(rawArgs) {
-	const tokens = rawArgs.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? [];
-	const flags = {
-		copyEnv: undefined,
-		applyDiff: undefined,
-	};
-	const goalParts = [];
+	let rest = String(rawArgs || "").trim();
+	let copyEnv;
 
-	for (const token of tokens) {
-		const unquoted = token.replace(/^(["'])(.*)\1$/, "$2");
-		if (unquoted === "--env") {
-			flags.copyEnv = true;
-			continue;
-		}
-		if (unquoted === "--no-env") {
-			flags.copyEnv = false;
-			continue;
-		}
-		if (unquoted === "--apply-diff") {
-			flags.applyDiff = true;
-			continue;
-		}
-		if (unquoted === "--no-diff") {
-			flags.applyDiff = false;
-			continue;
-		}
-		goalParts.push(unquoted);
+	while (rest) {
+		const match = rest.match(/^(--env|--no-env)(?=\s|$)/);
+		if (!match) break;
+		copyEnv = match[1] === "--env";
+		rest = rest.slice(match[0].length).trimStart();
 	}
 
-	return { ...flags, goal: goalParts.join(" ").trim() };
+	if (rest === "--") {
+		rest = "";
+	} else if (rest.startsWith("-- ")) {
+		rest = rest.slice(3);
+	} else if (rest.startsWith("-")) {
+		throw new Error(`Unknown option '${rest.split(/\s+/, 1)[0]}'`);
+	}
+
+	return { copyEnv, goal: rest.trim() };
 }
 
-async function selectDirtyBehavior(ctx, repo, parsed) {
-	if (!repo.isDirty) return "clean";
-	if (parsed.applyDiff === true) return "apply";
-	if (parsed.applyDiff === false) return "ignore";
+function fallbackPrompt(goal, repo) {
+	return `## Responsibility
+${goal}
 
-	const choice = await ctx.ui.select("Current git worktree is dirty. Include changes?", [
-		"Copy current workspace changes to the new worktree",
-		"Start new worktree from HEAD only",
-		"Cancel",
-	]);
+## Context
+This branch starts from ${repo.branch} at ${repo.shortHead} in ${repo.repoName}.
 
-	if (choice === "Copy current workspace changes to the new worktree") return "apply";
-	if (choice === "Start new worktree from HEAD only") return "ignore";
-	return "cancel";
+## Acceptance criteria
+- Implement only the stated responsibility.
+- Run the relevant validation and report the results.`;
 }
 
-async function generateHandoffPrompt(ctx, goal, repo, dirtyBehavior) {
-	const messages = getHandoffMessages(ctx.sessionManager.getBranch());
-	if (messages.length === 0) {
-		return `## Context\nThis is a new branch-out session from ${repo.repoName} at ${repo.head}.\n\n## Task\n${goal}\n\nExecute the task in this worktree. Inspect the repository first, make the necessary changes, and summarize what changed and how you verified it.`;
-	}
+async function generateHandoffPrompt(ctx, goal, repo) {
+	const messages = ctx.sessionManager.buildSessionContext().messages;
+	if (messages.length === 0) return fallbackPrompt(goal, repo);
+	if (!ctx.model) throw new Error("No model selected");
 
-	if (!ctx.model) {
-		throw new Error("No model selected");
-	}
-
-	const llmMessages = convertToLlm(messages);
-	const conversationText = serializeConversation(llmMessages);
+	const conversationText = serializeConversation(convertToLlm(messages));
 	const repoText = [
 		`cwd: ${ctx.cwd}`,
 		`repo root: ${repo.topLevel}`,
 		`repo: ${repo.repoName}`,
-		`branch: ${repo.branch || "(detached)"}`,
-		`HEAD: ${repo.head}`,
-		`dirty: ${repo.isDirty ? "yes" : "no"}`,
-		repo.isDirty ? `dirty handoff behavior: ${dirtyBehavior}` : undefined,
-		repo.untracked.length > 0
-			? `untracked files present in original worktree: ${repo.untracked.slice(0, 20).join(", ")}${repo.untracked.length > 20 ? ", ..." : ""}`
-			: undefined,
-	]
-		.filter(Boolean)
-		.join("\n");
+		`source branch: ${repo.branch}`,
+		`source HEAD: ${repo.head}`,
+	].join("\n");
 
 	return withLoader(ctx, "Generating branch-out handoff prompt...", async (signal) => {
 		const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
@@ -241,7 +175,7 @@ async function generateHandoffPrompt(ctx, goal, repo, dirtyBehavior) {
 						content: [
 							{
 								type: "text",
-								text: `## User goal for new session\n\n${goal}\n\n## Repository state\n\n${repoText}\n\n## Current conversation\n\n${conversationText}`,
+								text: `## Requested branch task\n\n${goal}\n\n## Repository state\n\n${repoText}\n\n## Current conversation\n\n${conversationText}`,
 							},
 						],
 						timestamp: Date.now(),
@@ -256,134 +190,118 @@ async function generateHandoffPrompt(ctx, goal, repo, dirtyBehavior) {
 			},
 		);
 
-		return response.stopReason === "aborted" ? null : responseText(response);
+		if (response.stopReason === "aborted") return null;
+		if (response.stopReason === "error") {
+			throw new Error(response.errorMessage || "Handoff generation failed");
+		}
+
+		const text = responseText(response);
+		if (!text) throw new Error("Handoff generation returned an empty prompt");
+		return text;
 	});
 }
 
-function normalizeGeneratedTitle(text, fallback) {
-	const firstLine = String(text || "")
-		.split(/\r?\n/)
-		.map((line) => line.trim())
-		.find(Boolean);
-	const withoutPrefix = (firstLine || "").replace(/^title\s*:\s*/i, "").trim();
-	return withoutPrefix ? slugify(withoutPrefix, 36) : slugify(fallback, 36);
+function makeWorktreePlan(goal) {
+	const slug = slugify(goal, 36);
+	const branchName = `${BRANCH_PREFIX}${slug}`;
+	return {
+		branchName,
+		title: `pi: ${slug}`,
+		worktreePath: undefined,
+		cwd: undefined,
+	};
 }
 
-async function generateBranchTitle(ctx, goal, prompt, repo) {
-	const fallback = slugify(goal, 36);
-	const model = ctx.modelRegistry.find(TITLE_MODEL_PROVIDER, TITLE_MODEL_ID);
-	if (!model) return fallback;
-
-	try {
-		const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
-		if (!auth.ok || !auth.apiKey) return fallback;
-
-		const result = await withLoader(ctx, "Generating branch-out title...", async (signal) => {
-			const response = await complete(
-				model,
-				{
-					systemPrompt: TITLE_SYSTEM_PROMPT,
-					messages: [
-						{
-							role: "user",
-							content: [
-								{
-									type: "text",
-									text: `Repo: ${repo.repoName}\nGoal: ${goal}\n\nHandoff prompt excerpt:\n${prompt.slice(0, 4000)}`,
-								},
-							],
-							timestamp: Date.now(),
-						},
-					],
-				},
-				{
-					apiKey: auth.apiKey,
-					headers: auth.headers,
-					env: auth.env,
-					reasoningEffort: "low",
-					signal,
-				},
-			);
-
-			return response.stopReason === "aborted" ? null : responseText(response);
-		});
-
-		return normalizeGeneratedTitle(result, fallback);
-	} catch (error) {
-		console.error("Branch-out title generation failed:", error);
-		return fallback;
-	}
-}
-
-function makeWorktreePlan(title) {
-	const branchName = slugify(title, 36);
-	return { worktreePath: undefined, branchName, title: `pi: ${branchName}` };
-}
-
-async function createWorktree(ctx, copyEnv, branchName, options = {}) {
-	const args = ["tmp"];
-	if (branchName) args.push(branchName);
+async function createWorktree(ctx, copyEnv, branchName, baseHead) {
+	const args = ["new", branchName, baseHead];
 	if (copyEnv) args.push("--env");
-	if (options.fork) args.push("--fork");
-	if (options.noFork) args.push("--no-fork");
+
 	const result = await exec(getWtCommand(), args, { cwd: ctx.cwd });
-	const worktreePath = result.stdout
+	const lines = result.stdout
 		.trim()
 		.split(/\r?\n/)
-		.filter(Boolean)
-		.at(-1);
-	if (!worktreePath) {
-		throw new Error("wt tmp did not print a worktree path");
+		.filter(Boolean);
+	if (lines.length !== 1) {
+		throw new Error("wt new did not print exactly one worktree path");
 	}
-	return worktreePath;
+	return lines[0];
 }
 
-function buildFinalPrompt(prompt, plan, repo, dirtyBehavior, copyEnv) {
-	const notes = [
-		"",
-		"---",
-		"",
-		"## Branch-out execution notes",
-		`- Current temporary worktree: ${plan.worktreePath}`,
-		`- Suggested branch name: ${plan.branchName}`,
-		`- Parent repo: ${repo.topLevel}`,
-		`- Parent branch: ${repo.branch || "(detached)"}`,
-		`- Parent HEAD: ${repo.head}`,
-		`- .env files copied: ${copyEnv ? "yes" : "no"}`,
+function buildFinalPrompt(prompt, plan, repo, copyEnv) {
+	return `${prompt.trim()}
+
+---
+
+## Branch rules
+
+- You own only the responsibility and acceptance criteria above.
+- Do not broaden the task or improve unrelated code.
+- Treat shared contracts and constraints as fixed. If one must change, stop and report that scope change to the orchestrating agent.
+- Keep local implementation discoveries in this branch when they do not alter scope or shared contracts.
+- Run the relevant validation for every change you make.
+- When implementation and validation are complete, stop and wait for manual review.
+- Before manual review, do not push, rebase, merge, open a PR, post GitHub comments, close issues, or remove this worktree.
+
+## Branch-out execution notes
+
+- Worktree: ${plan.worktreePath}
+- Branch: ${plan.branchName}
+- Source worktree: ${repo.topLevel}
+- Source branch: ${repo.branch}
+- Source HEAD: ${repo.head}
+- .env files copied: ${copyEnv ? "yes" : "no"}`;
+}
+
+function childWorkingDirectory(plan, repo) {
+	if (!repo.relativeCwd) return plan.worktreePath;
+	const candidate = path.join(plan.worktreePath, repo.relativeCwd);
+	return fs.existsSync(candidate) ? candidate : plan.worktreePath;
+}
+
+async function openPiInKitty(plan, prompt, sessionName, model, thinkingLevel, sourceBranch) {
+	const piArgs = [
+		"--name",
+		sessionName,
+		"--provider",
+		model.provider,
+		"--model",
+		model.id,
+		"--thinking",
+		thinkingLevel,
+		prompt,
 	];
-
-	if (dirtyBehavior === "apply") {
-		notes.push("- Workspace changes copied by wt tmp: yes");
-	} else if (dirtyBehavior === "ignore") {
-		notes.push("- Original worktree had uncommitted changes, but this temporary worktree starts from HEAD only.");
-	}
-
-	return `${prompt.trim()}\n${notes.join("\n")}`;
-}
-
-async function openPiInKitty(plan, prompt, sessionName) {
-	const invocation = getPiInvocation(["--name", sessionName, prompt]);
+	const invocation = getPiInvocation(piArgs);
 
 	await launchKitty({
 		type: "tab",
-		cwd: plan.worktreePath,
+		cwd: plan.cwd,
 		title: plan.title,
 		tabTitle: plan.title,
 		copyEnv: true,
+		env: {
+			PI_BRANCH_OUT: "1",
+			PI_BRANCH_OUT_BRANCH: plan.branchName,
+			PI_BRANCH_OUT_SOURCE_BRANCH: sourceBranch,
+		},
 		command: [invocation.command, ...invocation.args],
 	});
+}
+
+function sourceChanged(original, current) {
+	return (
+		original.topLevel !== current.topLevel ||
+		original.branch !== current.branch ||
+		original.head !== current.head ||
+		current.isDirty
+	);
 }
 
 /** @param {import("@earendil-works/pi-coding-agent").ExtensionAPI} pi */
 export default function branchOutExtension(pi) {
 	pi.registerCommand("branch-out", {
-		description: "Create a handoff prompt, temporary git worktree, and new Kitty Pi tab",
+		description: "Create a scoped agent branch in a new git worktree and Pi tab",
 		getArgumentCompletions: (prefix) => {
-			const examples = [
-				"--env implement the next slice",
-				"--apply-diff continue this refactor in parallel",
-				"--no-diff explore an alternative from HEAD",
-			];
+			const examples = ["--env implement the next task", "--no-env implement the next task"];
 			const filtered = examples.filter((item) => item.startsWith(prefix));
 			return filtered.length > 0 ? filtered.map((value) => ({ value, label: value })) : null;
 		},
@@ -392,10 +310,21 @@ export default function branchOutExtension(pi) {
 				ctx.ui.notify("/branch-out requires interactive TUI mode", "error");
 				return;
 			}
+			if (process.env.PI_BRANCH_OUT === "1") {
+				ctx.ui.notify("Nested /branch-out is not allowed", "error");
+				return;
+			}
 
 			await ctx.waitForIdle();
 
-			const parsed = parseArgs(args);
+			let parsed;
+			try {
+				parsed = parseArgs(args);
+			} catch (error) {
+				ctx.ui.notify(errorMessage(error), "error");
+				return;
+			}
+
 			let goal = parsed.goal;
 			if (!goal) {
 				const input = await ctx.ui.input("Goal for the new branch-out session", "Implement ...");
@@ -414,19 +343,30 @@ export default function branchOutExtension(pi) {
 				return;
 			}
 
-			const dirtyBehavior = await selectDirtyBehavior(ctx, repo, parsed);
-			if (dirtyBehavior === "cancel") {
-				ctx.ui.notify("Cancelled", "info");
+			if (!repo.branch) {
+				ctx.ui.notify("/branch-out requires a named source branch", "error");
+				return;
+			}
+			if (repo.branch.startsWith(BRANCH_PREFIX)) {
+				ctx.ui.notify(`Nested /branch-out is not allowed from ${repo.branch}`, "error");
+				return;
+			}
+			if (repo.isDirty) {
+				ctx.ui.notify("/branch-out requires a clean source worktree", "error");
+				return;
+			}
+			if (!ctx.model) {
+				ctx.ui.notify("No model selected", "error");
 				return;
 			}
 
 			const copyEnv =
 				parsed.copyEnv ??
-				(await ctx.ui.confirm("Copy .env files?", "Copy .env files from the current worktree into the new temporary worktree?"));
+				(await ctx.ui.confirm("Copy .env files?", "Copy .env files into the new branch worktree?"));
 
 			let generatedPrompt;
 			try {
-				generatedPrompt = await generateHandoffPrompt(ctx, goal, repo, dirtyBehavior);
+				generatedPrompt = await generateHandoffPrompt(ctx, goal, repo);
 			} catch (error) {
 				ctx.ui.notify(errorMessage(error), "error");
 				return;
@@ -441,30 +381,40 @@ export default function branchOutExtension(pi) {
 				ctx.ui.notify("Cancelled: prompt was empty", "info");
 				return;
 			}
-			generatedPrompt = editedPrompt.trim();
 
-			const title = await generateBranchTitle(ctx, goal, generatedPrompt, repo);
-			const plan = makeWorktreePlan(title);
-			const sessionName = `branch-out: ${title}`.slice(0, 80);
+			let currentRepo;
+			try {
+				currentRepo = await getRepoContext(ctx.cwd);
+			} catch (error) {
+				ctx.ui.notify(`Could not recheck source worktree: ${errorMessage(error)}`, "error");
+				return;
+			}
+			if (sourceChanged(repo, currentRepo)) {
+				ctx.ui.notify("Source branch, HEAD, or worktree changed while preparing the handoff; run /branch-out again", "error");
+				return;
+			}
+
+			const plan = makeWorktreePlan(goal);
+			const sessionName = `branch-out: ${plan.branchName.slice(BRANCH_PREFIX.length)}`.slice(0, 80);
 			let finalPrompt;
 
 			try {
-				plan.worktreePath = await createWorktree(ctx, copyEnv, plan.branchName, {
-					fork: dirtyBehavior === "apply",
-					noFork: dirtyBehavior === "ignore",
-				});
-
-				finalPrompt = buildFinalPrompt(generatedPrompt, plan, repo, dirtyBehavior, copyEnv);
+				plan.worktreePath = await createWorktree(ctx, copyEnv, plan.branchName, repo.head);
+				plan.cwd = childWorkingDirectory(plan, repo);
+				finalPrompt = buildFinalPrompt(editedPrompt, plan, repo, copyEnv);
 			} catch (error) {
-				ctx.ui.notify(`Failed to prepare branch-out worktree: ${errorMessage(error)}`, "error");
+				ctx.ui.notify(`Failed to create branch-out worktree: ${errorMessage(error)}`, "error");
 				return;
 			}
 
 			try {
-				await openPiInKitty(plan, finalPrompt, sessionName);
-				ctx.ui.notify(`Launched ${plan.title} in ${plan.worktreePath}`, "info");
+				await openPiInKitty(plan, finalPrompt, sessionName, ctx.model, ctx.thinkingLevel, repo.branch);
+				ctx.ui.notify(`Launched ${plan.branchName} in ${plan.cwd}`, "info");
 			} catch (error) {
-				ctx.ui.notify(humanKittyError(errorMessage(error)), "error");
+				ctx.ui.notify(
+					`${humanKittyError(errorMessage(error))}\nWorktree remains at ${plan.worktreePath}`,
+					"error",
+				);
 			}
 		},
 	});

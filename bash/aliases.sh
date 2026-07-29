@@ -18,7 +18,7 @@ wt() {
       worktree_path="$(command wt path "$@")" || return
       [[ -n "$worktree_path" ]] && cd "$worktree_path"
       ;;
-    new | add | tmp | temp)
+    new | add)
       local subcommand target_path
       subcommand="$1"
       shift

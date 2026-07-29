@@ -13,8 +13,6 @@ Usage:
   wt list
   wt new <branch> [base] [--path <path>] [--env]
   wt add <branch> [--path <path>] [--env]
-  wt tmp [name] [--env] [--fork|--no-fork]
-  wt promote <branch>
   wt path [branch]
   wt cd [branch]
   wt rm [branch] [--force]
@@ -25,31 +23,19 @@ Examples:
   wt new feature/login
   wt new feature/login main
   wt add existing-branch
-  wt tmp branch-out-title --env
-  wt promote agent/login
   wt cd feature/login
   wt rm feature/login
   wt done
 
-Default persistent worktree location:
+Default worktree location:
   ../<repo>.worktrees/<branch-slug>
-
-Default temporary worktree location:
-  $TMPDIR/wt/<repo>-<name-or-branch-or-head>-XXXXXX
 
 Environment files:
   Pass --env to copy .env files from the current worktree.
 
-Workspace forking:
-  Pass --fork to copy the current tracked diff plus untracked non-ignored
-  files into the new temporary worktree. When wt tmp is run from an existing
-  temporary wt worktree, this happens by default so nested sessions continue
-  from the current workspace. Pass --no-fork to force a clean checkout.
-
-Temporary workflow:
-  wt tmp [name] remembers the source branch. The optional name labels the
-  temporary path but does not create a branch. After committing in the temp
-  worktree, use wt promote <branch> to attach it to a branch.
+Branch-out worktrees:
+  Branches under agent/ cannot create more worktrees. Worktrees must also be
+  siblings: --path cannot place a worktree inside another worktree.
 `;
 
 function die(message, code = 1) {
@@ -62,6 +48,20 @@ function expandHome(value) {
   if (value === "~") return os.homedir();
   if (value.startsWith("~/")) return path.join(os.homedir(), value.slice(2));
   return value;
+}
+
+function canonicalPath(value) {
+  const resolved = path.resolve(expandHome(value));
+
+  try {
+    return fs.realpathSync.native(resolved);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+
+    const parent = path.dirname(resolved);
+    if (parent === resolved) return resolved;
+    return path.join(canonicalPath(parent), path.basename(resolved));
+  }
 }
 
 function git(args, options = {}) {
@@ -154,6 +154,7 @@ function parseWorktreeList(output) {
 
   return worktrees.map((worktree) => ({
     ...worktree,
+    path: canonicalPath(worktree.path),
     branch: friendlyBranch(worktree.branchRef),
   }));
 }
@@ -205,7 +206,7 @@ function repoInfo() {
   const repoName = path.basename(mainPath);
   const configuredHome = process.env.WT_HOME;
   const baseDir = configuredHome
-    ? path.join(path.resolve(expandHome(configuredHome)), repoName)
+    ? path.join(canonicalPath(configuredHome), repoName)
     : path.join(path.dirname(mainPath), `${repoName}.worktrees`);
 
   return { entries, mainPath, repoName, baseDir };
@@ -213,44 +214,6 @@ function repoInfo() {
 
 function defaultWorktreePath(branch) {
   return path.join(repoInfo().baseDir, branchSlug(branch));
-}
-
-function defaultTemporaryWorktreePath(name = null) {
-  const parent = path.join(os.tmpdir(), "wt");
-  fs.mkdirSync(parent, { recursive: true });
-
-  const branch = currentBranch();
-  const head = gitOutput(["rev-parse", "--short", "HEAD"]);
-  const label = name || branch || head;
-
-  return fs.mkdtempSync(
-    path.join(parent, `${branchSlug(repoInfo().repoName)}-${branchSlug(label)}-`),
-  );
-}
-
-function worktreeGitDir(cwd = process.cwd()) {
-  const gitDir = gitOutput(["rev-parse", "--git-dir"], { cwd });
-  return path.isAbsolute(gitDir) ? gitDir : path.resolve(cwd, gitDir);
-}
-
-function worktreeMetadataPath(cwd = process.cwd()) {
-  return path.join(worktreeGitDir(cwd), "wt-meta.json");
-}
-
-function readWorktreeMetadata(cwd = process.cwd()) {
-  const file = worktreeMetadataPath(cwd);
-  if (!fs.existsSync(file)) return null;
-
-  try {
-    return JSON.parse(fs.readFileSync(file, "utf8"));
-  } catch (error) {
-    die(`could not read worktree metadata ${file}: ${error.message}`);
-  }
-}
-
-function writeWorktreeMetadata(cwd, metadata) {
-  const file = worktreeMetadataPath(cwd);
-  fs.writeFileSync(file, `${JSON.stringify(metadata, null, 2)}\n`);
 }
 
 function parseOptions(args, definitions = {}) {
@@ -290,21 +253,6 @@ function parseOptions(args, definitions = {}) {
 
     if (arg === "--no-env" && definitions.env) {
       options.copyEnv = false;
-      continue;
-    }
-
-    if (arg === "--fork" && definitions.fork) {
-      options.fork = true;
-      continue;
-    }
-
-    if (arg === "--no-fork" && definitions.fork) {
-      options.fork = false;
-      continue;
-    }
-
-    if (arg === "--fill" && definitions.fill) {
-      options.fill = true;
       continue;
     }
 
@@ -359,11 +307,11 @@ function selectWorktree(entries) {
 
 function findWorktree(query, entries) {
   const expandedQuery = expandHome(query);
-  const resolvedQuery = path.resolve(expandedQuery);
+  const resolvedQuery = canonicalPath(expandedQuery);
   const normalizedBranch = friendlyBranch(query);
 
   const exactMatches = entries.filter((entry) => {
-    const entryPath = path.resolve(entry.path);
+    const entryPath = canonicalPath(entry.path);
     const branch = entry.branch ?? "";
 
     return (
@@ -399,16 +347,8 @@ function findWorktree(query, entries) {
 }
 
 function currentWorktree(entries) {
-  const currentRoot = gitOutput(["rev-parse", "--show-toplevel"]);
-  return entries.find((entry) => path.resolve(entry.path) === path.resolve(currentRoot));
-}
-
-function branchExists(branch) {
-  return (
-    git(["rev-parse", "--verify", "--quiet", `refs/heads/${branch}`], {
-      allowFailure: true,
-    }).status === 0
-  );
+  const currentRoot = canonicalPath(gitOutput(["rev-parse", "--show-toplevel"]));
+  return entries.find((entry) => canonicalPath(entry.path) === currentRoot);
 }
 
 function isEnvFileName(name) {
@@ -418,6 +358,21 @@ function isEnvFileName(name) {
 function isInsidePath(candidate, parent) {
   const relative = path.relative(parent, candidate);
   return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
+function ensureCanCreateWorktree(worktreePath) {
+  const sourceBranch = currentBranch();
+  if (sourceBranch.startsWith("agent/")) {
+    die(`cannot create a worktree from branch '${sourceBranch}'`);
+  }
+
+  const candidate = canonicalPath(worktreePath);
+  for (const entry of worktrees()) {
+    const existing = canonicalPath(entry.path);
+    if (isInsidePath(candidate, existing) || isInsidePath(existing, candidate)) {
+      die(`worktree path '${candidate}' overlaps existing worktree '${existing}'`);
+    }
+  }
 }
 
 function shouldSkipEnvSearchDirectory(name) {
@@ -470,76 +425,17 @@ function copyEnvFiles(sourceRoot, targetRoot) {
   }
 }
 
-function resolveInsideRoot(root, relativePath) {
-  const resolvedRoot = path.resolve(root);
-  const resolvedPath = path.resolve(resolvedRoot, relativePath);
-  const relativeToRoot = path.relative(resolvedRoot, resolvedPath);
-
-  if (relativeToRoot === "" || relativeToRoot.startsWith("..") || path.isAbsolute(relativeToRoot)) {
-    die(`unsafe repository path '${relativePath}'`);
-  }
-
-  return resolvedPath;
-}
-
-function copyUntrackedWorkspaceFiles(sourceRoot, targetRoot) {
-  const output = git(["ls-files", "--others", "--exclude-standard", "-z"], {
-    cwd: sourceRoot,
-  }).stdout;
-  const paths = output.split("\0").filter(Boolean);
-  let copied = 0;
-
-  for (const relativePath of paths) {
-    const source = resolveInsideRoot(sourceRoot, relativePath);
-    const target = resolveInsideRoot(targetRoot, relativePath);
-
-    if (!fs.existsSync(source)) continue;
-    if (fs.existsSync(target)) {
-      die(`refusing to overwrite existing path while copying untracked file '${relativePath}'`);
-    }
-
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.cpSync(source, target, {
-      recursive: true,
-      preserveTimestamps: true,
-      verbatimSymlinks: true,
-    });
-    copied += 1;
-  }
-
-  return copied;
-}
-
-function copyWorkspaceChanges(sourceRoot, targetRoot) {
-  const diff = git(["diff", "--binary", "HEAD"], { cwd: sourceRoot }).stdout;
-  const copiedTrackedDiff = diff.trim().length > 0;
-
-  if (copiedTrackedDiff) {
-    git(["apply", "--binary", "-"], { cwd: targetRoot, input: diff });
-  }
-
-  const copiedUntracked = copyUntrackedWorkspaceFiles(sourceRoot, targetRoot);
-
-  if (copiedTrackedDiff || copiedUntracked > 0) {
-    console.error(
-      `wt: forked workspace changes (tracked diff: ${copiedTrackedDiff ? "yes" : "no"}, untracked files: ${copiedUntracked})`,
-    );
-  }
-
-  return { copiedTrackedDiff, copiedUntracked };
-}
-
 function commandList(args) {
   if (args.length > 0) die("usage: wt list");
 
   const entries = worktrees();
-  const currentRoot = gitOutput(["rev-parse", "--show-toplevel"], {
-    allowFailure: true,
-  });
+  const currentRoot = canonicalPath(
+    gitOutput(["rev-parse", "--show-toplevel"], { allowFailure: true }),
+  );
   const labelWidth = Math.max(...entries.map((entry) => labelFor(entry).length));
 
   for (const entry of entries) {
-    const marker = path.resolve(entry.path) === path.resolve(currentRoot) ? "*" : " ";
+    const marker = canonicalPath(entry.path) === currentRoot ? "*" : " ";
     const label = labelFor(entry).padEnd(labelWidth);
     const suffix = entry.prunable ? "  (prunable)" : "";
     console.log(`${marker} ${label}  ${entry.path}${suffix}`);
@@ -561,17 +457,19 @@ function commandNew(args) {
   }
 
   const [branch, base] = rest;
-  const sourceRoot = gitOutput(["rev-parse", "--show-toplevel"]);
-  const worktreePath = options.path ?? defaultWorktreePath(branch);
+  const sourceRoot = canonicalPath(gitOutput(["rev-parse", "--show-toplevel"]));
+  const worktreePath = canonicalPath(options.path ?? defaultWorktreePath(branch));
+  ensureCanCreateWorktree(worktreePath);
   fs.mkdirSync(path.dirname(worktreePath), { recursive: true });
 
   const gitArgs = ["worktree", "add", "-b", branch, worktreePath];
   if (base) gitArgs.push(base);
 
   gitVisible(gitArgs);
-  if (options.copyEnv === true) copyEnvFiles(sourceRoot, worktreePath);
-  console.error(`wt: created ${worktreePath}`);
-  console.log(worktreePath);
+  const createdPath = canonicalPath(gitOutput(["rev-parse", "--show-toplevel"], { cwd: worktreePath }));
+  if (options.copyEnv === true) copyEnvFiles(sourceRoot, createdPath);
+  console.error(`wt: created ${createdPath}`);
+  console.log(createdPath);
 }
 
 function commandAdd(args) {
@@ -579,77 +477,16 @@ function commandAdd(args) {
   if (rest.length !== 1) die("usage: wt add <branch> [--path <path>] [--env]");
 
   const [branch] = rest;
-  const sourceRoot = gitOutput(["rev-parse", "--show-toplevel"]);
-  const worktreePath = options.path ?? defaultWorktreePath(branch);
+  const sourceRoot = canonicalPath(gitOutput(["rev-parse", "--show-toplevel"]));
+  const worktreePath = canonicalPath(options.path ?? defaultWorktreePath(branch));
+  ensureCanCreateWorktree(worktreePath);
   fs.mkdirSync(path.dirname(worktreePath), { recursive: true });
 
   gitVisible(["worktree", "add", worktreePath, branch]);
-  if (options.copyEnv === true) copyEnvFiles(sourceRoot, worktreePath);
-  console.error(`wt: added ${worktreePath}`);
-  console.log(worktreePath);
-}
-
-function commandTmp(args) {
-  const { options, rest } = parseOptions(args, { env: true, fork: true });
-  if (rest.length > 1) die("usage: wt tmp [name] [--env] [--fork|--no-fork]");
-
-  const [name] = rest;
-  const currentRoot = gitOutput(["rev-parse", "--show-toplevel"]);
-  const currentSourceBranch = currentBranch() || null;
-  const currentHead = gitOutput(["rev-parse", "HEAD"]);
-  const parentMetadata = readWorktreeMetadata(currentRoot);
-  const shouldInheritSource = !currentSourceBranch && parentMetadata;
-  const sourcePath = shouldInheritSource
-    ? (parentMetadata.sourcePath ?? currentRoot)
-    : currentRoot;
-  const sourceBranch = shouldInheritSource
-    ? (parentMetadata.sourceBranch ?? null)
-    : currentSourceBranch;
-  const sourceHead = shouldInheritSource
-    ? (parentMetadata.sourceHead ?? currentHead)
-    : currentHead;
-  const shouldForkWorkspace = options.fork ?? (parentMetadata?.temporary === true);
-  const worktreePath = defaultTemporaryWorktreePath(name);
-
-  gitVisible(["worktree", "add", "--detach", worktreePath, "HEAD"]);
-  writeWorktreeMetadata(worktreePath, {
-    temporary: true,
-    name: name ?? null,
-    sourcePath,
-    sourceBranch,
-    sourceHead,
-    parentPath: currentRoot,
-    parentBranch: currentSourceBranch,
-    parentHead: currentHead,
-    createdAt: new Date().toISOString(),
-  });
-  if (shouldForkWorkspace) copyWorkspaceChanges(currentRoot, worktreePath);
-  if (options.copyEnv === true) copyEnvFiles(currentRoot, worktreePath);
-  console.error(`wt: created temporary ${worktreePath}`);
-  console.log(worktreePath);
-}
-
-function commandPromote(args) {
-  const { rest } = parseOptions(args);
-  if (rest.length !== 1) die("usage: wt promote <branch>");
-
-  const [branch] = rest;
-  const existingBranch = currentBranch();
-  if (existingBranch) die(`already on branch '${existingBranch}'`);
-  if (branchExists(branch)) die(`branch '${branch}' already exists`);
-
-  gitVisible(["switch", "-c", branch]);
-
-  const metadata = readWorktreeMetadata();
-  if (metadata) {
-    writeWorktreeMetadata(process.cwd(), {
-      ...metadata,
-      promotedBranch: branch,
-      promotedAt: new Date().toISOString(),
-    });
-  }
-
-  console.error(`wt: promoted to ${branch}`);
+  const createdPath = canonicalPath(gitOutput(["rev-parse", "--show-toplevel"], { cwd: worktreePath }));
+  if (options.copyEnv === true) copyEnvFiles(sourceRoot, createdPath);
+  console.error(`wt: added ${createdPath}`);
+  console.log(createdPath);
 }
 
 function commandRemove(args) {
@@ -658,12 +495,15 @@ function commandRemove(args) {
 
   const info = repoInfo();
   const removable = info.entries.filter(
-    (entry) => path.resolve(entry.path) !== path.resolve(info.mainPath) && !entry.bare,
+    (entry) => canonicalPath(entry.path) !== canonicalPath(info.mainPath) && !entry.bare,
   );
   const entry = rest.length === 0 ? selectWorktree(removable) : findWorktree(rest[0], info.entries);
 
-  if (path.resolve(entry.path) === path.resolve(info.mainPath)) {
+  if (canonicalPath(entry.path) === canonicalPath(info.mainPath)) {
     die("refusing to remove the main worktree");
+  }
+  if (!entry.branch) {
+    die("refusing to remove a detached worktree; attach HEAD to a branch first");
   }
 
   const gitArgs = ["worktree", "remove"];
@@ -682,8 +522,11 @@ function commandDone(args) {
   const entry = currentWorktree(info.entries);
   if (!entry) die("could not determine current worktree");
 
-  if (path.resolve(entry.path) === path.resolve(info.mainPath)) {
+  if (canonicalPath(entry.path) === canonicalPath(info.mainPath)) {
     die("refusing to remove the main worktree");
+  }
+  if (!entry.branch) {
+    die("refusing to remove a detached worktree; attach HEAD to a branch first");
   }
 
   const gitArgs = ["worktree", "remove"];
@@ -716,13 +559,6 @@ switch (command) {
     break;
   case "add":
     commandAdd(args);
-    break;
-  case "tmp":
-  case "temp":
-    commandTmp(args);
-    break;
-  case "promote":
-    commandPromote(args);
     break;
   case "path":
   case "cd":
