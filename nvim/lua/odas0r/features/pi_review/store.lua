@@ -78,7 +78,8 @@ end
 
 function Store:payload()
   return {
-    scope = "batch",
+    version = 1,
+    type = "review_batch",
     comments = vim.deepcopy(self.comments),
   }
 end

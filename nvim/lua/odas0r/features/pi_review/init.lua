@@ -11,8 +11,11 @@ local M = {}
 
 local review_comment_input_width = 64
 local review_comment_input_height = 7
+local review_snippet_max_lines = 60
+local review_snippet_max_chars = 6000
 local review_loclist_title = "Pi review comments"
 local comments = Store.new()
+local submitting = false
 
 local function notify(message, level)
   vim.notify(message, level or vim.log.levels.INFO, { title = "Pi review" })
@@ -70,7 +73,29 @@ end
 
 local function selected_lines(line1, line2)
   local lines = vim.api.nvim_buf_get_lines(0, line1 - 1, line2, false)
-  return table.concat(lines, "\n")
+  local truncated = false
+
+  if #lines > review_snippet_max_lines then
+    local kept = {}
+    for index = 1, review_snippet_max_lines do
+      kept[index] = lines[index]
+    end
+    lines = kept
+    truncated = true
+  end
+
+  local code = table.concat(lines, "\n")
+  if vim.fn.strchars(code) > review_snippet_max_chars then
+    code = vim.fn.strcharpart(code, 0, review_snippet_max_chars)
+    truncated = true
+  end
+
+  if truncated then
+    code = code
+      .. "\n… [review snippet truncated; inspect the current file for full context]"
+  end
+
+  return code
 end
 
 local function review_root()
@@ -97,15 +122,15 @@ local function review_file_context()
 end
 
 local function textarea(opts, on_confirm)
-  Input.textarea(
-    vim.tbl_extend("force", {
-      width = review_comment_input_width,
-      height = review_comment_input_height,
-      filetype = "markdown",
-      submit_on_enter = true,
-    }, opts or {}),
-    on_confirm
-  )
+  local input_opts = vim.tbl_extend("force", {
+    width = review_comment_input_width,
+    height = review_comment_input_height,
+    filetype = "markdown",
+    submit_on_enter = false,
+  }, opts or {})
+  input_opts.prompt = "Ctrl-S save · "
+    .. (input_opts.prompt or "Review comment")
+  Input.textarea(input_opts, on_confirm)
 end
 
 local function add_review_comment(comment)
@@ -222,6 +247,12 @@ local function set_review_loclist_keymaps(buf)
     buffer = buf,
     desc = "Refresh Pi review comments",
   })
+  vim.keymap.set("n", "s", function()
+    M.submit_comments()
+  end, {
+    buffer = buf,
+    desc = "Submit Pi review comments",
+  })
   vim.keymap.set("n", "q", close_review_loclist, {
     buffer = buf,
     desc = "Close Pi review comments",
@@ -321,13 +352,28 @@ function M.add_file_comment()
 end
 
 function M.submit_comments()
+  if submitting then
+    notify("Review submission is already in progress", vim.log.levels.INFO)
+    return
+  end
+
   local count = comments:count()
   if count == 0 then
     notify("No pending review comments", vim.log.levels.INFO)
     return
   end
 
-  if Bridge.send(comments:payload(), notify) then
+  submitting = true
+  Bridge.send(comments:payload(), function(ok, err)
+    submitting = false
+    if not ok then
+      notify(
+        "Review submission failed: " .. tostring(err),
+        vim.log.levels.ERROR
+      )
+      return
+    end
+
     comments:clear_all()
     notify(
       ("Wrote %d review %s to Pi input"):format(
@@ -337,7 +383,7 @@ function M.submit_comments()
     )
     close_review_loclist()
     close_review_overlay()
-  end
+  end)
 end
 
 function M.list_comments()
@@ -372,6 +418,9 @@ function M.edit_comment(id)
 
     comment.comment = msg
     notify(("Updated review comment #%d"):format(comment.id))
+    if Loclist.is_open(review_loclist_title) then
+      M.list_comments()
+    end
   end)
 end
 
@@ -440,6 +489,11 @@ local function setup_review_keymaps()
   end, {
     desc = "Toggle Pi review comments",
   })
+  vim.keymap.set("n", "<leader>s", function()
+    M.submit_comments()
+  end, {
+    desc = "Submit Pi review comments",
+  })
 end
 
 function M.setup()
@@ -448,6 +502,11 @@ function M.setup()
   end
 
   setup_review_keymaps()
+  vim.schedule(function()
+    notify(
+      "Review: <leader>c comment · <leader>C file · <leader>l list · <leader>s submit; list: Enter edit · d delete · s submit"
+    )
+  end)
 
   vim.api.nvim_create_user_command("PiReviewComment", function(opts)
     M.add_comment(opts)
