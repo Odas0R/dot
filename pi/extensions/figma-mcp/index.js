@@ -24,6 +24,8 @@ const FIGMA_HINT =
 	"Figma desktop MCP tools are available. For design-to-code work, call figma_get_design_context first. Use screenshots only as visual references, never as a substitute for structured design context.";
 const FIGMA_IMPLEMENT_USAGE =
 	"Usage: /figma-implement <figma-design-url-with-node-id> [instructions]";
+const FIGMA_BRIEF_USAGE =
+	"Usage: /figma-brief <figma-design-url-with-node-id> [feature intent]";
 
 function errorMessage(error) {
 	return error instanceof Error ? error.message : String(error);
@@ -76,18 +78,18 @@ function extractFigmaTarget(prompt) {
 	return undefined;
 }
 
-function parseFigmaImplementArgs(args) {
+function parseFigmaTargetArgs(args, usage) {
 	const input = args.trim();
-	if (!input) throw new Error(FIGMA_IMPLEMENT_USAGE);
+	if (!input) throw new Error(usage);
 
 	const match = input.match(/^(\S+)(?:\s+([\s\S]*))?$/);
-	if (!match) throw new Error(FIGMA_IMPLEMENT_USAGE);
+	if (!match) throw new Error(usage);
 
 	let url;
 	try {
 		url = new URL(match[1]);
 	} catch {
-		throw new Error(`Invalid Figma URL. ${FIGMA_IMPLEMENT_USAGE}`);
+		throw new Error(`Invalid Figma URL. ${usage}`);
 	}
 
 	const hostname = url.hostname.toLowerCase();
@@ -97,14 +99,14 @@ function parseFigmaImplementArgs(args) {
 		!/^\/design\/[^/]+(?:\/|$)/.test(url.pathname)
 	) {
 		throw new Error(
-			`Expected a node-specific https://www.figma.com/design/... URL. ${FIGMA_IMPLEMENT_USAGE}`,
+			`Expected a node-specific https://www.figma.com/design/... URL. ${usage}`,
 		);
 	}
 
 	const rawNodeId = url.searchParams.get("node-id");
 	const nodeId = rawNodeId ? normalizeNodeId(rawNodeId) : "";
 	if (!/^\d+:\d+$/.test(nodeId)) {
-		throw new Error(`The Figma Design URL must contain a valid node-id. ${FIGMA_IMPLEMENT_USAGE}`);
+		throw new Error(`The Figma Design URL must contain a valid node-id. ${usage}`);
 	}
 
 	return {
@@ -122,6 +124,17 @@ function buildFigmaImplementPrompt({ url, instructions }) {
 	];
 
 	if (instructions) lines.push("", "Additional instructions:", instructions);
+	return lines.join("\n");
+}
+
+function buildFigmaBriefPrompt({ url, instructions }) {
+	const lines = [
+		`Create a feature discovery brief for the Figma target at ${url}.`,
+		"",
+		"Load and follow the `figma-feature-brief` skill. Treat the URL node as the root target, inspect the target project, and produce a self-contained brief suitable for handoff to a clean agent session. Do not implement the feature or modify production code. The URL is mandatory; never fall back to the current Figma desktop selection.",
+	];
+
+	if (instructions) lines.push("", "Feature intent:", instructions);
 	return lines.join("\n");
 }
 
@@ -640,7 +653,7 @@ export default function figmaMcpExtension(pi) {
 		handler: async (args, ctx) => {
 			let target;
 			try {
-				target = parseFigmaImplementArgs(args);
+				target = parseFigmaTargetArgs(args, FIGMA_IMPLEMENT_USAGE);
 			} catch (error) {
 				ctx.ui.notify(errorMessage(error), "warning");
 				return;
@@ -652,6 +665,27 @@ export default function figmaMcpExtension(pi) {
 
 			ctx.ui.setEditorText(buildFigmaImplementPrompt(target));
 			ctx.ui.notify(`Prepared Figma implementation prompt for ${target.nodeId}`, "info");
+		},
+	});
+
+	pi.registerCommand("figma-brief", {
+		description:
+			"Prepare a feature discovery brief prompt from a node-specific Figma Design URL",
+		handler: async (args, ctx) => {
+			let target;
+			try {
+				target = parseFigmaTargetArgs(args, FIGMA_BRIEF_USAGE);
+			} catch (error) {
+				ctx.ui.notify(errorMessage(error), "warning");
+				return;
+			}
+
+			if (!ctx.hasUI) {
+				throw new Error("/figma-brief requires an interactive or RPC editor");
+			}
+
+			ctx.ui.setEditorText(buildFigmaBriefPrompt(target));
+			ctx.ui.notify(`Prepared Figma feature brief prompt for ${target.nodeId}`, "info");
 		},
 	});
 
