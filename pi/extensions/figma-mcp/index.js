@@ -118,17 +118,7 @@ function buildFigmaImplementPrompt({ url, instructions }) {
 	const lines = [
 		`Implement the complete Figma target at ${url}.`,
 		"",
-		"Load and follow the `figma-design-to-code` skill. Treat the URL node as the root target. The URL is mandatory; never fall back to the current Figma desktop selection.",
-		"",
-		"- If the target is a Section or Flow, inventory and implement every top-level screen and state.",
-		"- Build a concise coverage manifest before coding. Classify every top-level node as `implement`, `reference`, or `exclude`, with a valid reason.",
-		"- Fetch detailed design context only for implementation nodes; never generate or implement connector code.",
-		"- Build a transition manifest for represented flow behavior and implement every confirmed transition and branch.",
-		"- If any required transition semantics are missing or contradictory, present one consolidated transition manifest, ask focused questions, and wait for my confirmation before implementing the affected interactions.",
-		"- Consolidate screens from the same family into shared components with explicit runtime states rather than duplicating the page.",
-		"- Follow existing project architecture, components, tokens, routing, state management, accessibility, and testing conventions.",
-		"- Validate every implemented visual state against its Figma screenshot and exercise every confirmed transition.",
-		"- Do not stop after planning unless missing or contradictory requirements require my confirmation; after confirmation, complete the implementation and validation.",
+		"Load and follow the `figma-design-to-code` skill. Treat the URL node as the root target and implement its complete scope. The URL is mandatory; never fall back to the current Figma desktop selection.",
 	];
 
 	if (instructions) lines.push("", "Additional instructions:", instructions);
@@ -619,7 +609,7 @@ export default function figmaMcpExtension(pi) {
 		}
 
 		const targetHint = promptFigmaTarget
-			? ` The user supplied rootTargetId="${promptFigmaTarget.nodeId}". This explicit URL target overrides the current Figma desktop selection. Pass rootTargetId to figma_get_design_context first. Descendant reads may use explicit child node IDs discovered from that root. Every related Figma read, including figma_get_screenshot, must include an explicit nodeId; never omit it or silently use the current selection.`
+			? ` The user supplied rootTargetId="${promptFigmaTarget.nodeId}". This explicit URL target overrides the current Figma desktop selection. Pass nodeId="${promptFigmaTarget.nodeId}" to figma_get_design_context first. Descendant reads may use explicit child node IDs discovered from that root. Every related Figma read, including figma_get_screenshot, must include an explicit nodeId; never omit it or silently use the current selection.`
 			: "";
 		return {
 			systemPrompt: `${event.systemPrompt}\n\n${FIGMA_HINT}${targetHint}`,
@@ -633,7 +623,13 @@ export default function figmaMcpExtension(pi) {
 			return undefined;
 		}
 		if (typeof event.input.nodeId !== "string" || !event.input.nodeId.trim()) {
-			event.input.nodeId = promptFigmaTarget.nodeId;
+			return {
+				block: true,
+				reason:
+					`The prompt supplied Figma root node ${promptFigmaTarget.nodeId}. ` +
+					`Pass an explicit nodeId to ${event.toolName}: use ${promptFigmaTarget.nodeId} ` +
+					"for the root target or an explicit child node ID discovered from it.",
+			};
 		}
 		return undefined;
 	});
