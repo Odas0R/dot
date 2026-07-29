@@ -7,6 +7,6 @@
   "enabledModels": [
     "openai-codex/gpt-5.6-sol"
   ],
-  "defaultThinkingLevel": "max",
+  "defaultThinkingLevel": "high",
   "hideThinkingBlock": false
 }

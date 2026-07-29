@@ -1,0 +1,22 @@
+{
+  "name": "@odas0r/pi-optmem",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.2"
+  },
+  "pi": {
+    "extensions": [
+      "./index.js"
+    ]
+  },
+  "dependencies": {
+    "optmem-js": "file:../../../../optmem-js"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  }
+}
