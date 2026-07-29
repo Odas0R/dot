@@ -10,6 +10,7 @@ Persistent append-only memory for Pi, backed by [`optmem-js`](../../../../optmem
 - Does not preload or inject wake results; startup follows the same explicit protocol as the CLI.
 - Keeps only the newest context added explicitly with `/memory`.
 - Registers the `optmem` tool for `wake`, `note`, `nap`, `recall`, `zoom`, and `forget`.
+- Keeps successful `wake` tool calls hidden in Pi's TUI while still sending their full results to the agent; errors and incomplete wakes remain visible.
 - Adds `/memory`, `/memory-note`, and `/memory-recall` commands.
 - Uses `optmem-js`'s canonical action-tool guidance instead of duplicating its system prompt.
 - Leaves compression to the primary agent; the extension never calls a model itself.

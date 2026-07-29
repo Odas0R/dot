@@ -1,4 +1,5 @@
 import { StringEnum } from "@earendil-works/pi-ai";
+import { Container, Text } from "@earendil-works/pi-tui";
 import { createMemory, formatResult, memoryInstructions } from "optmem-js";
 import { Type } from "typebox";
 
@@ -40,6 +41,37 @@ function latestOptMemContextOnly(messages) {
 function notifyError(ctx, error) {
 	const message = error instanceof Error ? error.message : String(error);
 	ctx.ui.notify(message, "error");
+}
+
+function textOutput(result) {
+	return result.content.find((item) => item.type === "text")?.text || "";
+}
+
+function renderOptMemCall(args, theme) {
+	if (!args?.action || args.action === "wake") return new Container();
+	return new Text(
+		`${theme.fg("toolTitle", theme.bold("OptMem"))} ${theme.fg("muted", args.action)}`,
+		0,
+		0,
+	);
+}
+
+function renderOptMemResult(result, _options, theme, context) {
+	if (context.args?.action !== "wake") {
+		return new Text(theme.fg(context.isError ? "error" : "toolOutput", textOutput(result)), 0, 0);
+	}
+
+	if (context.isError) {
+		return new Text(theme.fg("error", textOutput(result)), 0, 0);
+	}
+
+	const wake = result.details?.result;
+	if (wake?.awake) return new Container();
+
+	let message = "OptMem wake is incomplete";
+	if (wake?.missingBlock) message = `OptMem wake requires compression of #${wake.missingBlock}`;
+	else if (wake?.nextPage) message = `OptMem wake is awaiting part ${wake.nextPage.part}`;
+	return new Text(theme.fg("warning", message), 0, 0);
 }
 
 function executeAction(memory, params) {
@@ -118,6 +150,9 @@ export default function optMemExtension(pi) {
 			"Never use optmem from a subagent and never edit OptMem storage files directly.",
 		],
 		executionMode: "sequential",
+		renderShell: "self",
+		renderCall: renderOptMemCall,
+		renderResult: renderOptMemResult,
 		parameters: Type.Object({
 			action: StringEnum(["wake", "note", "nap", "recall", "zoom", "forget"]),
 			text: Type.Optional(
