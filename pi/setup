@@ -39,10 +39,6 @@ for resource in extensions prompts skills themes; do
 done
 
 link_path "$PI_SRC/settings.json" "$PI_HOME/settings.json"
-
-if [[ ! -f "$PI_HOME/auth.json" ]]; then
-  install -m 600 "$PI_SRC/auth.sample.json" "$PI_HOME/auth.json"
-  echo "  → Created ~/.pi/agent/auth.json from sample — please add your API keys"
-fi
+link_path "$PI_SRC/APPEND_SYSTEM.md" "$PI_HOME/APPEND_SYSTEM.md"
 
 echo "Pi setup done! 🌟"

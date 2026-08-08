@@ -9,5 +9,5 @@ else
   exit 1
 fi
 
-# start the tunnel using quic protoco a.k.a http/3
-cloudflared tunnel --protocol quic --url "$localhost"
+# start the tunnel
+cloudflared tunnel --url "$localhost"

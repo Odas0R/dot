@@ -92,15 +92,6 @@ To add a new LSP server:
 
 Use `:help lspconfig-all` to find the exact server name, install command, default filetypes, root markers, and supported settings.
 
-## Review workflow
-
-- `<leader>dr` opens `diffview-plus.nvim` for working-tree review.
-- `<leader>dR` reviews `origin/main...HEAD`.
-- From Pi, `/review-diff` opens Diffview in a kitty overlay pane with a live review bridge.
-- In a Pi review Diffview session, `<leader>c` / `:PiReviewComment` adds a pending line or visual-range review comment.
-- In a Pi review Diffview session, `<leader>C` / `:PiReviewFileComment` adds a pending whole-file review comment.
-- `<leader>l` toggles pending comments in the location list (`:PiReviewList` opens it; `Enter` edits, `d` clears one or a visual selection, `q` closes), and `:PiSubmitReview` writes all pending comments into the Pi input for review, then closes the review overlay.
-
 ## References
 
 - lazy.nvim structuring: https://lazy.folke.io/usage/structuring

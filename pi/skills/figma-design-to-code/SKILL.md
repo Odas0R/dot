@@ -37,16 +37,24 @@ Use these terms consistently:
 For a Section, use each top-level Frame name as the source of its page, state, and breakpoint semantics. Prefer this human-readable convention:
 
 ```text
-<Page> / <State> / <Breakpoint>
+<Surface> / <Flow and State> / <Breakpoint>
 ```
 
-Examples:
+For tabbed pages or surfaces, include the active tab as an additional semantic segment:
 
 ```text
-Checkout / Default / Desktop
-Checkout / Error / Desktop
-Checkout / Default / Mobile
-Checkout / Error / Mobile
+<Surface> / <Tab> / <State> / <Breakpoint>
+```
+
+Examples :
+
+```text
+Teachers / Default / Desktop
+
+Teacher Drawer / General / Citizen Search Open / Desktop
+Teacher Drawer / General / Citizen Search Empty / Desktop
+Teacher Drawer / General / Citizen Selected / Desktop
+Teacher Drawer / General / Citizen Search Open with Selection / Desktop
 ```
 
 Equivalent semantic naming is acceptable. Use Frame dimensions to verify the named breakpoint, not to invent one. Do not derive page, state, or breakpoint meaning from canvas order or position.

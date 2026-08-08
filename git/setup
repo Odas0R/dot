@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 set -euo pipefail
 
 DOT="$HOME/github.com/odas0r/dot"
@@ -28,7 +29,7 @@ printf "Git setup done! 🌟\n"
 
 # Only show GPG reminder if signing key is still the placeholder
 if grep -q '<YOUR_KEY>' "$HOME/.gitconfig-github-key" 2>/dev/null ||
-   grep -q '<YOUR_KEY>' "$HOME/.gitconfig-gitlab-key" 2>/dev/null; then
+  grep -q '<YOUR_KEY>' "$HOME/.gitconfig-gitlab-key" 2>/dev/null; then
   cat <<EOF
 
 ** DON'T FORGET **
