@@ -10,6 +10,7 @@ return {
   "lua_ls",
   "marksman",
   "pylsp",
+  "sourcekit",
   "templ",
   "ts_ls",
   "yamlls",

@@ -219,7 +219,7 @@ function buildReviewPrompt(payload) {
 		"- If an item is already satisfied, verify and report that.",
 		"- Update tests or documentation when necessary for a change.",
 		"- After modifying code, run the relevant targeted validation.",
-		"- Do not commit, push, invoke /wr, or open a PR.",
+		"- Do not commit, push, or open a PR.",
 		"- Stop after addressing this batch so the reviewer can inspect the result again.",
 		"",
 	];

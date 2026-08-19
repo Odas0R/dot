@@ -1,5 +1,5 @@
 import { StringEnum } from "@earendil-works/pi-ai";
-import { Container, Text } from "@earendil-works/pi-tui";
+import { Text } from "@earendil-works/pi-tui";
 import { createMemory, formatResult, memoryInstructions } from "optmem-js";
 import { Type } from "typebox";
 
@@ -48,30 +48,39 @@ function textOutput(result) {
 }
 
 function renderOptMemCall(args, theme) {
-	if (!args?.action || args.action === "wake") return new Container();
 	return new Text(
-		`${theme.fg("toolTitle", theme.bold("OptMem"))} ${theme.fg("muted", args.action)}`,
+		`${theme.fg("toolTitle", theme.bold("OptMem"))} ${theme.fg("muted", args?.action || "")}`.trimEnd(),
 		0,
 		0,
 	);
 }
 
 function renderOptMemResult(result, _options, theme, context) {
-	if (context.args?.action !== "wake") {
-		return new Text(theme.fg(context.isError ? "error" : "toolOutput", textOutput(result)), 0, 0);
-	}
-
-	if (context.isError) {
-		return new Text(theme.fg("error", textOutput(result)), 0, 0);
+	if (context.args?.action !== "wake" || context.isError) {
+		return new Text(
+			theme.fg(context.isError ? "error" : "toolOutput", textOutput(result)),
+			0,
+			0,
+		);
 	}
 
 	const wake = result.details?.result;
-	if (wake?.awake) return new Container();
+	if (!wake) return new Text(theme.fg("toolOutput", textOutput(result)), 0, 0);
 
-	let message = "OptMem wake is incomplete";
-	if (wake?.missingBlock) message = `OptMem wake requires compression of #${wake.missingBlock}`;
-	else if (wake?.nextPage) message = `OptMem wake is awaiting part ${wake.nextPage.part}`;
-	return new Text(theme.fg("warning", message), 0, 0);
+	const previewLimit = 5;
+	const lines = wake.lines || [];
+	const preview = lines.slice(0, previewLimit);
+	const hidden = lines.length - preview.length;
+	const heading = wake.parts
+		? `Memory preview — part ${wake.part} of ${wake.parts}`
+		: `Memory preview — part ${wake.part}`;
+	const output = [heading, ...preview];
+	if (hidden > 0) output.push(`… ${hidden} more ${hidden === 1 ? "line" : "lines"} in this part`);
+	if (wake.missingBlock) output.push(`Compression required for #${wake.missingBlock}`);
+	else if (wake.nextPage) output.push(`Awaiting part ${wake.nextPage.part}`);
+	else output.push("Wake complete");
+
+	return new Text(theme.fg("toolOutput", output.join("\n")), 0, 0);
 }
 
 function executeAction(memory, params) {
