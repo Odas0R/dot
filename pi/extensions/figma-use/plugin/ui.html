@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<style>
+		:root { color-scheme: light dark; font: 12px Inter, sans-serif; }
+		body { margin: 0; padding: 12px; background: var(--figma-color-bg); color: var(--figma-color-text); }
+		.row { display: flex; align-items: center; gap: 8px; }
+		.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--figma-color-icon-danger); }
+		.connected .dot { background: var(--figma-color-icon-success); }
+		#target { margin-top: 7px; overflow: hidden; color: var(--figma-color-text-secondary); text-overflow: ellipsis; white-space: nowrap; }
+	</style>
+</head>
+<body>
+	<div class="row"><span class="dot"></span><strong id="status">Connecting to Pi…</strong></div>
+	<div id="target">Waiting for file context</div>
+	<script>
+		const URL = "ws://localhost:3846/figma-use";
+		let socket;
+		let reconnectTimer;
+		let target = {};
+
+		function render(connected) {
+			document.body.className = connected ? "connected" : "";
+			document.getElementById("status").textContent = connected ? "Connected to Pi" : "Connecting to Pi…";
+			document.getElementById("target").textContent = target.fileName
+				? `${target.fileName} / ${target.pageName || "unknown page"}`
+				: "Waiting for file context";
+		}
+
+		function sendHello() {
+			if (!socket || socket.readyState !== WebSocket.OPEN) return;
+			socket.send(JSON.stringify({ type: "hello", role: "plugin", ...target }));
+		}
+
+		function connect() {
+			clearTimeout(reconnectTimer);
+			socket = new WebSocket(URL);
+			socket.onopen = () => {
+				render(true);
+				sendHello();
+				parent.postMessage({ pluginMessage: { type: "ready" } }, "*");
+			};
+			socket.onmessage = (event) => {
+				let message;
+				try { message = JSON.parse(event.data); } catch (_error) { return; }
+				if (message.type === "execute") {
+					parent.postMessage({ pluginMessage: message }, "*");
+				}
+			};
+			socket.onclose = () => {
+				render(false);
+				reconnectTimer = setTimeout(connect, 1500);
+			};
+			socket.onerror = () => socket.close();
+		}
+
+		window.onmessage = (event) => {
+			const message = event.data && event.data.pluginMessage;
+			if (!message) return;
+			if (message.type === "target") {
+				target = message;
+				render(socket && socket.readyState === WebSocket.OPEN);
+				sendHello();
+				return;
+			}
+			if (socket && socket.readyState === WebSocket.OPEN) {
+				socket.send(JSON.stringify(message));
+			}
+		};
+
+		render(false);
+		connect();
+	</script>
+</body>
+</html>

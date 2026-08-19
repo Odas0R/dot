@@ -19,13 +19,11 @@ const DEFAULT_SERVER_URL = "http://127.0.0.1:3845/mcp";
 const CONFIG_FILE = "figma-mcp.json";
 const UI_KEY = "figma-mcp";
 const CLIENT_INFO = { name: "pi-figma-mcp", version: "0.1.0" };
-const FIGMA_PROMPT_PATTERN = /\b(figma|design|frame|layer|ui)\b/i;
+const FIGMA_PROMPT_PATTERN = /\bfigma\b|https?:\/\/(?:www\.)?figma\.com\//i;
 const FIGMA_HINT =
-	"Figma desktop MCP tools are available. For design-to-code work, call figma_get_design_context first. Use screenshots only as visual references, never as a substitute for structured design context.";
+	"Figma MCP tools are available. For design-to-code work, call figma_get_design_context first. Use screenshots only as visual references, never as a substitute for structured design context.";
 const FIGMA_IMPLEMENT_USAGE =
 	"Usage: /figma-implement <figma-design-url-with-node-id> [instructions]";
-const FIGMA_BRIEF_USAGE =
-	"Usage: /figma-brief <figma-design-url-with-node-id> [feature intent]";
 
 function errorMessage(error) {
 	return error instanceof Error ? error.message : String(error);
@@ -124,17 +122,6 @@ function buildFigmaImplementPrompt({ url, instructions }) {
 	];
 
 	if (instructions) lines.push("", "Additional instructions:", instructions);
-	return lines.join("\n");
-}
-
-function buildFigmaBriefPrompt({ url, instructions }) {
-	const lines = [
-		`Create a feature discovery brief for the Figma target at ${url}.`,
-		"",
-		"Load and follow the `figma-feature-brief` skill. Treat the URL node as the root target, inspect the target project, and produce a self-contained brief suitable for handoff to a clean agent session. Do not implement the feature or modify production code. The URL is mandatory; never fall back to the current Figma desktop selection.",
-	];
-
-	if (instructions) lines.push("", "Feature intent:", instructions);
 	return lines.join("\n");
 }
 
@@ -654,28 +641,6 @@ export default function figmaMcpExtension(pi) {
 			} else {
 				pi.sendUserMessage(prompt, { deliverAs: "followUp" });
 				ctx.ui.notify(`Queued Figma implementation for ${target.nodeId}`, "info");
-			}
-		},
-	});
-
-	pi.registerCommand("figma-brief", {
-		description:
-			"Create a feature discovery brief from a node-specific Figma Design URL",
-		handler: async (args, ctx) => {
-			let target;
-			try {
-				target = parseFigmaTargetArgs(args, FIGMA_BRIEF_USAGE);
-			} catch (error) {
-				ctx.ui.notify(errorMessage(error), "warning");
-				return;
-			}
-
-			const prompt = buildFigmaBriefPrompt(target);
-			if (ctx.isIdle()) {
-				pi.sendUserMessage(prompt);
-			} else {
-				pi.sendUserMessage(prompt, { deliverAs: "followUp" });
-				ctx.ui.notify(`Queued Figma feature brief for ${target.nodeId}`, "info");
 			}
 		},
 	});
