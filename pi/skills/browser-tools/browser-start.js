@@ -14,14 +14,23 @@ if (process.argv[2] && process.argv[2] !== "--profile") {
 
 const SCRAPING_DIR = `${process.env.HOME}/.cache/browser-tools`;
 
-// Check if already running on :9222
+async function ensurePage(browser) {
+	const pages = await browser.pages();
+	if (pages.length === 0) {
+		await browser.newPage();
+	}
+}
+
+// Check if already running on :9222. A browser can be connected but have no
+// page targets, for example after Chrome starts with --no-startup-window.
 try {
 	const browser = await puppeteer.connect({
 		browserURL: "http://localhost:9222",
 		defaultViewport: null,
 	});
+	await ensurePage(browser);
 	await browser.disconnect();
-	console.log("✓ Chrome already running on :9222");
+	console.log("✓ Chrome already running on :9222 and ready");
 	process.exit(0);
 } catch {}
 
@@ -70,6 +79,7 @@ for (let i = 0; i < 30; i++) {
 			browserURL: "http://localhost:9222",
 			defaultViewport: null,
 		});
+		await ensurePage(browser);
 		await browser.disconnect();
 		connected = true;
 		break;

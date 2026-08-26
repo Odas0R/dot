@@ -9,11 +9,10 @@ Chrome DevTools Protocol tools for agent-assisted web automation. These tools co
 
 ## Setup
 
-Run once before first use:
+Run this command one time. Do not run `npm install` on each use:
 
 ```bash
-cd {baseDir}/browser-tools
-npm install
+cd {baseDir}/browser-tools && npm install
 ```
 
 ## Start Chrome
@@ -23,7 +22,26 @@ npm install
 {baseDir}/browser-start.js --profile    # Copy user's profile (cookies, logins)
 ```
 
-Launch Chrome with remote debugging on `:9222`. Use `--profile` to preserve user's authentication state.
+Launch Chrome with remote debugging on `:9222`. Use `--profile` to preserve the user's authentication state.
+
+Run `browser-start.js` in the foreground. The command waits until Chrome and one page are ready. It then exits and leaves Chrome running. Do not add `&` or a `sleep` after this command.
+
+**Shell rule:** Use absolute tool paths when you run more than one command. Do not use this form:
+
+```bash
+cd {baseDir}/browser-tools && ./browser-start.js & sleep 2 && ./browser-nav.js URL
+```
+
+The shell can run the `cd` in the background job. The next relative path then uses the old working directory and fails.
+
+Use this form:
+
+```bash
+TOOLS={baseDir}/browser-tools
+"$TOOLS/browser-start.js"
+"$TOOLS/browser-nav.js" http://127.0.0.1:4173
+"$TOOLS/browser-eval.js" 'document.title'
+```
 
 ## Navigate
 
@@ -32,7 +50,7 @@ Launch Chrome with remote debugging on `:9222`. Use `--profile` to preserve user
 {baseDir}/browser-nav.js https://example.com --new
 ```
 
-Navigate to URLs. Use `--new` flag to open in a new tab instead of reusing current tab.
+Navigate to URLs. Use the `--new` flag to open a new tab instead of reusing the current tab. If Chrome has no page, this command creates one.
 
 ## Evaluate JavaScript
 
@@ -79,6 +97,10 @@ Display all cookies for the current tab including domain, path, httpOnly, and se
 ```
 
 Navigate to a URL and extract readable content as markdown. Uses Mozilla Readability for article extraction and Turndown for HTML-to-markdown conversion. Works on pages with JavaScript content (waits for page to load).
+
+## Recovery
+
+If a tool cannot connect, run `{baseDir}/browser-start.js` one time, then run the failed tool again. Do not kill Chrome first unless the start command also fails. If Chrome is connected but has no tab, the start and navigation commands create one automatically.
 
 ## When to Use
 
