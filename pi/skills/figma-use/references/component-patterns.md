@@ -105,7 +105,7 @@ const iconSlotKey = comp.addComponentProperty('Icon', 'INSTANCE_SWAP', iconCompo
 
 ## Linking Properties to Child Nodes (Required)
 
-A property that is added but not linked to a child node does **nothing**. You must set `componentPropertyReferences` on the child:
+A property that is added but not linked to a child node does **nothing**. You must set `componentPropertyReferences` on a valid component sublayer. Append the child to the owning component first. Never assign references on the component root, component set, or an arbitrary page-level node:
 
 Follows the [canonical text-edit recipe](gotchas.md#canonical-text-edit-recipe-font-load--await--mutate--return-ids) — load the font for every (family, style) you'll mutate (here `Inter Regular`; same rule for every other font) before any `characters`/`fontName`/`fontSize` write.
 
@@ -510,7 +510,7 @@ function getComponentProps(node) {
  * @param {string[]} namespace - Accumulated variant names for the current path.
  * @param {Record<string, object>} result - Accumulator object populated in place.
  */
-function collectDescendants(node, namespace, result) {
+async function collectDescendants(node, namespace, result) {
   if (node.type === "INSTANCE" || node.type === "TEXT") {
     const references = node.componentPropertyReferences || {};
     if (!node.visible && !references.visible) return;
@@ -523,11 +523,12 @@ function collectDescendants(node, namespace, result) {
     }
 
     if (node.type === "INSTANCE") {
-      const mainComponent = getRelevantComponentNode(node.mainComponent);
-      object.properties = getComponentProps(mainComponent);
+      const resolved = await node.getMainComponentAsync();
+      const mainComponent = resolved ? getRelevantComponentNode(resolved) : null;
+      object.properties = mainComponent ? getComponentProps(mainComponent) : {};
       object.descendants = {};
-      object.mainComponentName = mainComponent.name;
-      collectDescendants(mainComponent, [], object.descendants);
+      object.mainComponentName = mainComponent ? mainComponent.name : null;
+      if (mainComponent) await collectDescendants(mainComponent, [], object.descendants);
     }
 
     const start = namespace.length ? { variants: [] } : {};
@@ -535,7 +536,9 @@ function collectDescendants(node, namespace, result) {
     if (namespace.length) result[key].variants.push(namespace[namespace.length - 1]);
   } else if ("children" in node && node.visible) {
     if (node.type === "COMPONENT" && node.parent.type === "COMPONENT_SET") namespace.push(node.name);
-    node.children.forEach(child => collectDescendants(child, namespace, result));
+    for (const child of node.children) {
+      await collectDescendants(child, namespace, result);
+    }
   }
 }
 
@@ -555,7 +558,7 @@ async function getLocalComponentMetadata(componentId) {
       descendants: {}
     };
     result.properties = getComponentProps(node);
-    collectDescendants(node, [], result.descendants);
+    await collectDescendants(node, [], result.descendants);
     return result;
   } else {
     throw new Error("Node is not a Component or Component Set");
@@ -577,7 +580,7 @@ async function getPublishedComponentMetadata(componentKey) {
     descendants: {}
   };
   result.properties = getComponentProps(node);
-  collectDescendants(node, [], result.descendants);
+  await collectDescendants(node, [], result.descendants);
   return result;
 }
 ```

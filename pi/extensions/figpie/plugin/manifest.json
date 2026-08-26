@@ -1,13 +1,14 @@
 {
-  "name": "Pi Figma Use Bridge",
-  "id": "pi-figma-use-bridge-dev",
+  "name": "Figpie",
+  "id": "figpie",
   "api": "1.0.0",
   "main": "code.js",
   "ui": "ui.html",
   "editorType": ["figma"],
+  "permissions": ["teamlibrary"],
   "documentAccess": "dynamic-page",
   "networkAccess": {
     "allowedDomains": ["http://localhost:3846", "ws://localhost:3846"],
-    "reasoning": "Connects only to the local Pi Figma Use Bridge."
+    "reasoning": "Connects only to the local Figpie broker."
   }
 }

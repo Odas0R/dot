@@ -10,18 +10,17 @@ Use the `figma_use` tool to execute JavaScript in Figma files via the Plugin API
 
 Before anything, load [plugin-api-standalone.index.md](references/plugin-api-standalone.index.md) to understand what is possible. When you are asked to write plugin API code, use this context to grep [plugin-api-standalone.d.ts](references/plugin-api-standalone.d.ts) for relevant types, methods, and properties. It is a large typings file, so do not load it all at once; grep for relevant sections as needed.
 
-## Local bridge compatibility overrides
+## Runtime differences
 
-This skill follows Figma's official `figma-use` skill. The local bridge has a different execution harness. These rules override conflicting upstream text in this file and its references:
+These rules override conflicting instructions in this skill and its references:
 
-- `figma_use` has no `skillNames` parameter. Load this skill before calling the tool.
-- The bridge exposes the standard Plugin API. It does not add `figma.createAutoLayout()`, `node.query()`, `node.set()`, `node.screenshot()`, `node.placeholder`, or `figma.io`.
-- Use `figma.createFrame()` plus standard auto-layout properties, standard traversal and assignments, and `figma_get_screenshot` instead.
-- Failed scripts are not atomic. Completed statements can leave partial changes. Inspect before retrying.
-- `figma.currentPage` persists while the plugin stays open; it does not reset for each call.
-- Multiple Pi sessions can submit `figma_use` calls concurrently, but the shared local broker executes them sequentially. Each script still inherits the page context left by the previous script, so set the target page explicitly when it matters.
-- `figma.notify()` works, but it does not return output to the agent. Use `return` for tool output.
-- Do not call `figma.closePlugin()` or replace the plugin UI because either action can disconnect the bridge.
+- `node.placeholder` and `figma.io` are unavailable.
+- Failed scripts are not atomic. Inspect for partial changes before retrying.
+- **Work in the background by default.** Do not assign `figma.currentPage.selection`, change `figma.viewport.center` or `figma.viewport.zoom`, or call `figma.viewport.scrollAndZoomIntoView()` unless the user explicitly asks. Use node IDs and `node.screenshot()` for validation. Load and edit pages directly when possible; call `figma.setCurrentPageAsync()` only when the operation requires a visible page switch, and warn the user before that switch.
+- **Preflight every lookup before mutation.** `getNodeByIdAsync()`, `findOne()`, and query helpers can return `null`. Resolve all required IDs first, check every result and required method or node type, and return structured diagnostics for missing or incompatible nodes before making any change. Never call a method directly on an unchecked lookup result, and do not reuse stale IDs after failed, destructive, or replacement operations.
+- `figma.currentPage` persists between calls. The shared broker executes calls sequentially, so set the target page explicitly when required. Before reading `children` from another page, call `await page.loadAsync()` or `await figma.loadAllPagesAsync()`.
+- With dynamic page access, never read `instance.mainComponent`. Use `await instance.getMainComponentAsync()`. A synchronous `node.query()` selector cannot filter on `mainComponent`; discover instances first, then resolve their components asynchronously.
+- Use `return` for output. Do not call `figma.closePlugin()` or replace the plugin UI.
 
 IMPORTANT: Whenever you work with design systems, start with [working-with-design-systems/wwds.md](references/working-with-design-systems/wwds.md) to understand the key concepts, processes, and guidelines for working with design systems in Figma. Then load the more specific references for components, variables, text styles, and effect styles as needed.
 
@@ -48,6 +47,8 @@ IMPORTANT: Whenever you work with design systems, start with [working-with-desig
 16. **Always set `variable.scopes` explicitly when creating variables.** The default `ALL_SCOPES` pollutes every property picker — almost never what you want. Use specific scopes like `["FRAME_FILL", "SHAPE_FILL"]` for backgrounds, `["TEXT_FILL"]` for text colors, `["GAP"]` for spacing, etc. See [variable-patterns.md](references/variable-patterns.md) for the full list.
 17. **`await` every Promise.** Never leave a Promise unawaited — unawaited async calls (e.g. `figma.loadFontAsync(...)` without `await`, or `figma.setCurrentPageAsync(page)` without `await`) will fire-and-forget, causing silent failures or race conditions. The script may return before the async operation completes, leading to missing data or half-applied changes.
 18. **Never read `componentPropertyDefinitions` from a variant component.** Narrow the owner first: use the node itself when it is a `COMPONENT_SET`, use a `COMPONENT` only when its parent is not a `COMPONENT_SET`, and otherwise promote a variant `COMPONENT` to its parent set. Optional chaining does not make the getter safe. See [Component-property owner narrowing](references/component-patterns.md#component-property-owner-narrowing).
+19. **Set `componentPropertyReferences` only on a component sublayer after appending it to its owning component.** Never set it on the component root, component set, or an arbitrary page node. Capture the exact key returned by `addComponentProperty()`.
+20. **An empty local-variable list does not prove that the design system has no variables.** Inventory local collection names, existing node bindings, and available library collections before assuming an exact name, creating variables, or falling back to direct styles. Return the inventory instead of throwing when a requested collection name has no exact match.
 > For detailed WRONG/CORRECT examples of each rule, see [Gotchas & Common Mistakes](references/gotchas.md).
 
 ## 2. Page Rules (Critical)
@@ -383,8 +384,12 @@ When in doubt about any convention (naming, scoping, structure), check the Figma
 
 **List all pages and top-level nodes:**
 ```js
-const pages = figma.root.children.map(p => `${p.name} id=${p.id} children=${p.children.length}`);
-return pages.join('\n');
+await figma.loadAllPagesAsync();
+return figma.root.children.map((page) => ({
+  id: page.id,
+  name: page.name,
+  children: page.children.map((node) => ({ id: node.id, name: node.name, type: node.type })),
+}));
 ```
 
 **List existing components across all pages:**

@@ -236,8 +236,12 @@ A Figma file can have multiple pages (canvas nodes). `get_metadata` only returns
 - For more detail per page (e.g. child counts, top-level node types), fall back to `figma_use`:
 
 ```js
-const pages = figma.root.children.map(p => `${p.name} id=${p.id} children=${p.children.length}`);
-return pages.join('\n');
+await figma.loadAllPagesAsync();
+return figma.root.children.map((page) => ({
+  id: page.id,
+  name: page.name,
+  childCount: page.children.length,
+}));
 ```
 
 Icons, variables, and components may live on pages other than the first. Always enumerate all pages before concluding that the file has no existing assets.

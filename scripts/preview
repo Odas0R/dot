@@ -5,9 +5,35 @@ import fs from "fs";
 import path from "path";
 
 // Configuration
-const args = process.argv.slice(2);
+const rawArgs = process.argv.slice(2);
+const args = [];
 let currentPort = 3000;
 let WATCH_DIR = process.cwd();
+let spa = false;
+
+const printUsage = () => {
+  console.log(`Usage: preview [options] [directory] [port]
+       preview [options] [port] [directory]
+
+Options:
+  -s, --spa   Serve index.html for paths that do not match a file
+  -h, --help  Show this help`);
+};
+
+for (const arg of rawArgs) {
+  if (arg === "--spa" || arg === "-s") {
+    spa = true;
+  } else if (arg === "--help" || arg === "-h") {
+    printUsage();
+    process.exit(0);
+  } else if (arg.startsWith("-")) {
+    console.error(`Unknown option: ${arg}`);
+    printUsage();
+    process.exit(1);
+  } else {
+    args.push(arg);
+  }
+}
 
 const parsePort = (value) => {
   const port = Number(value);
@@ -121,8 +147,12 @@ const handler = (req, res) => {
   fs.stat(filePath, (statErr, stats) => {
     if (statErr) {
       if (statErr.code === "ENOENT" || statErr.code === "ENOTDIR") {
-        res.writeHead(404);
-        res.end(`404: File Not Found\nPath: ${pathname}`);
+        if (spa) {
+          serveFile(path.join(WATCH_DIR, "index.html"), "/index.html", res);
+        } else {
+          res.writeHead(404);
+          res.end(`404: File Not Found\nPath: ${pathname}`);
+        }
       } else {
         res.writeHead(500);
         res.end(`500: Internal Server Error\n${statErr.code}`);
@@ -144,42 +174,50 @@ const handler = (req, res) => {
       pathname = path.posix.join(pathname, "index.html");
     }
 
-    const ext = path.extname(filePath);
-    const contentType = MIMES[ext] || "application/octet-stream";
-
     // 4. Serve File
-    fs.readFile(filePath, (err, content) => {
-      if (err) {
-        if (err.code === "ENOENT") {
+    serveFile(filePath, pathname, res, stats.isDirectory());
+  });
+};
+
+const serveFile = (filePath, pathname, res, allowSpaFallback = false) => {
+  const ext = path.extname(filePath);
+  const contentType = MIMES[ext] || "application/octet-stream";
+
+  fs.readFile(filePath, (err, content) => {
+    if (err) {
+      if (err.code === "ENOENT") {
+        if (spa && allowSpaFallback) {
+          serveFile(path.join(WATCH_DIR, "index.html"), "/index.html", res);
+        } else {
           res.writeHead(404);
           res.end(`404: File Not Found\nPath: ${pathname}`);
-        } else {
-          res.writeHead(500);
-          res.end(`500: Internal Server Error\n${err.code}`);
         }
-        return;
-      }
-
-      res.writeHead(200, { "Content-Type": contentType });
-
-      // 5. Inject Live Reload Script (HTML only)
-      if (contentType === "text/html") {
-        const reloadScript = `
-                <script>
-                    (function() {
-                        const evtSource = new EventSource('/_reload');
-                        evtSource.onmessage = function(e) {
-                            if (e.data === 'reload') location.reload();
-                        };
-                    })();
-                </script>
-                </body>
-            `;
-        res.end(content.toString().replace("</body>", reloadScript));
       } else {
-        res.end(content);
+        res.writeHead(500);
+        res.end(`500: Internal Server Error\n${err.code}`);
       }
-    });
+      return;
+    }
+
+    res.writeHead(200, { "Content-Type": contentType });
+
+    // 5. Inject Live Reload Script (HTML only)
+    if (contentType === "text/html") {
+      const reloadScript = `
+              <script>
+                  (function() {
+                      const evtSource = new EventSource('/_reload');
+                      evtSource.onmessage = function(e) {
+                          if (e.data === 'reload') location.reload();
+                      };
+                  })();
+              </script>
+              </body>
+          `;
+      res.end(content.toString().replace("</body>", reloadScript));
+    } else {
+      res.end(content);
+    }
   });
 };
 

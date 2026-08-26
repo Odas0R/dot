@@ -10,6 +10,12 @@ alias android-studio="$HOME/tools/android-studio/bin/studio.sh"
 
 alias yarn="yarnpkg"
 
+tmpd() {
+  local directory
+  directory="$(command tmpd)" || return
+  [[ -n "$directory" ]] && cd "$directory"
+}
+
 wt() {
   case "${1:-}" in
     cd)

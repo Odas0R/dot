@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<style>
+		:root { color-scheme: light dark; font: 12px Inter, sans-serif; }
+		body { margin: 0; padding: 12px; background: var(--figma-color-bg); color: var(--figma-color-text); }
+		.row { display: flex; align-items: center; gap: 8px; }
+		.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--figma-color-icon-danger); }
+		.broker .dot { background: var(--figma-color-icon-warning); }
+		.connected .dot { background: var(--figma-color-icon-success); }
+		#session, #target { margin-top: 6px; overflow: hidden; color: var(--figma-color-text-secondary); text-overflow: ellipsis; white-space: nowrap; }
+	</style>
+</head>
+<body>
+	<div class="row"><span class="dot"></span><strong id="status">Connecting to bridge…</strong></div>
+	<div id="session">Session not assigned</div>
+	<div id="target">Waiting for file context</div>
+	<script>
+		const URL = "ws://localhost:3846/figma-use";
+		let socket;
+		let reconnectTimer;
+		let agentCount = 0;
+		let connectionId;
+		let target = {};
+
+		function render(brokerConnected) {
+			const piConnected = brokerConnected && agentCount > 0;
+			document.body.className = piConnected ? "connected" : brokerConnected ? "broker" : "";
+			document.getElementById("status").textContent = !brokerConnected
+				? "Connecting to bridge…"
+				: agentCount === 0
+					? "Waiting for Pi…"
+					: agentCount === 1
+						? "Connected to Pi"
+						: `Connected to Pi · ${agentCount} sessions`;
+			const sessionText = connectionId ? `Session ${connectionId}` : "Session not assigned";
+			const sessionElement = document.getElementById("session");
+			sessionElement.textContent = sessionText;
+			sessionElement.title = sessionText;
+			const targetText = target.fileName
+				? `${target.fileName} / ${target.pageName || "unknown page"}`
+				: "Waiting for file context";
+			const targetElement = document.getElementById("target");
+			targetElement.textContent = targetText;
+			targetElement.title = targetText;
+		}
+
+		function sendHello(targetSocket = socket) {
+			if (!targetSocket || targetSocket.readyState !== WebSocket.OPEN) return;
+			targetSocket.send(JSON.stringify({ ...target, type: "hello", role: "plugin", connectionId }));
+		}
+
+		function requestTarget() {
+			parent.postMessage({ pluginMessage: { type: "ready" } }, "*");
+		}
+
+		function connect() {
+			clearTimeout(reconnectTimer);
+			const nextSocket = new WebSocket(URL);
+			socket = nextSocket;
+			nextSocket.onopen = () => {
+				if (socket !== nextSocket) {
+					nextSocket.close();
+					return;
+				}
+				render(true);
+				sendHello(nextSocket);
+				requestTarget();
+			};
+			nextSocket.onmessage = (event) => {
+				if (socket !== nextSocket) return;
+				let message;
+				try { message = JSON.parse(event.data); } catch (_error) { return; }
+				if (message.type === "request-target") {
+					requestTarget();
+					return;
+				}
+
+				if (message.type === "session-status") {
+					connectionId = message.connectionId;
+					agentCount = Number.isInteger(message.agentCount) ? message.agentCount : 0;
+					render(nextSocket.readyState === WebSocket.OPEN);
+					if (!target.fileName) requestTarget();
+					return;
+				}
+				if (message.type === "agent-status") {
+					agentCount = Number.isInteger(message.count) ? message.count : 0;
+					render(nextSocket.readyState === WebSocket.OPEN);
+					return;
+				}
+				if (message.type === "execute") {
+					parent.postMessage({ pluginMessage: message }, "*");
+				}
+			};
+			const scheduleReconnect = () => {
+				if (socket !== nextSocket) return;
+				agentCount = 0;
+				render(false);
+				clearTimeout(reconnectTimer);
+				reconnectTimer = setTimeout(connect, 250);
+			};
+			nextSocket.onclose = scheduleReconnect;
+			nextSocket.onerror = () => {
+				scheduleReconnect();
+				nextSocket.close();
+			};
+		}
+
+		window.onmessage = (event) => {
+			const message = event.data && event.data.pluginMessage;
+			if (!message) return;
+			if (message.type === "target") {
+				target = message;
+				clearInterval(targetRequestTimer);
+				render(socket && socket.readyState === WebSocket.OPEN);
+				sendHello();
+				return;
+			}
+			if (socket && socket.readyState === WebSocket.OPEN) {
+				socket.send(JSON.stringify(message));
+			}
+		};
+
+		const targetRequestTimer = setInterval(() => {
+			if (!target.fileName) requestTarget();
+		}, 500);
+
+		render(false);
+		connect();
+	</script>
+</body>
+</html>
