@@ -5,11 +5,13 @@
   "description": "Minimal CDP tools for collaborative site exploration",
   "author": "Mario Zechner",
   "license": "MIT",
+  "scripts": {
+    "check": "for file in browser-*.js; do node --check \"$file\" || exit 1; done"
+  },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
-    "cheerio": "^1.2.0",
     "jsdom": "^30.0.1",
-    "puppeteer-core": "^25.6.0",
+    "puppeteer-core": "^25.8.0",
     "turndown": "^7.2.4",
     "turndown-plugin-gfm": "^1.0.2"
   }

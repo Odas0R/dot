@@ -1,218 +1,137 @@
 ---
 name: browser-tools
-description: Interactive browser automation via Chrome DevTools Protocol. Use when you need to interact with web pages, test frontends, or when user interaction with a visible browser is required.
+description: Interactive browser automation via Chrome DevTools Protocol. Use when you need to interact with web pages, test frontends, or require user interaction with a visible browser.
 ---
 
 # Browser Tools
 
-Chrome DevTools Protocol tools for agent-assisted web automation. These tools connect to Chrome running on `:9222` with remote debugging enabled.
+These scripts connect to Chrome on `:9222`. Resolve all `./...` paths relative to this skill directory, and use the resolved absolute paths in shell commands.
+
+Browser Tools automatically isolates each pi session. Tabs in the same session share authentication and storage until Chrome stops.
 
 ## Setup
 
-Run this command one time. Do not run `npm install` on each use:
+Run once from this skill directory:
 
 ```bash
-cd {baseDir}/browser-tools && npm install
+npm install
 ```
 
 ## Start Chrome
 
 ```bash
-{baseDir}/browser-start.js              # Fresh profile
-{baseDir}/browser-start.js --profile    # Copy user's profile (cookies, logins)
+./browser-start.js
 ```
 
-Launch Chrome with remote debugging on `:9222`. Use `--profile` to preserve the user's authentication state.
-
-Run `browser-start.js` in the foreground. The command waits until Chrome and one page are ready. It then exits and leaves Chrome running. Do not add `&` or a `sleep` after this command.
-
-**Shell rule:** Use absolute tool paths when you run more than one command. Do not use this form:
-
-```bash
-cd {baseDir}/browser-tools && ./browser-start.js & sleep 2 && ./browser-nav.js URL
-```
-
-The shell can run the `cd` in the background job. The next relative path then uses the old working directory and fails.
-
-Use this form:
-
-```bash
-TOOLS={baseDir}/browser-tools
-"$TOOLS/browser-start.js"
-"$TOOLS/browser-nav.js" http://127.0.0.1:4173
-"$TOOLS/browser-eval.js" 'document.title'
-```
+Run it in the foreground. It exits when Chrome is ready and leaves Chrome running. Do not add `&` or a startup delay.
 
 ## Navigate
 
 ```bash
-{baseDir}/browser-nav.js https://example.com
-{baseDir}/browser-nav.js https://example.com --new
+./browser-nav.js https://example.com
+./browser-nav.js https://example.com --new
+./browser-nav.js https://example.com --reload
 ```
 
-Navigate to URLs. Use the `--new` flag to open a new tab instead of reusing the current tab. If Chrome has no page, this command creates one.
+Navigation reuses the session's latest tab. `--new` creates a tab in the same isolated session. `--reload` navigates without cache.
 
 ## Evaluate JavaScript
 
 ```bash
-{baseDir}/browser-eval.js 'document.title'
-{baseDir}/browser-eval.js 'document.querySelectorAll("a").length'
+./browser-eval.js 'document.title'
+./browser-eval.js 'Array.from(document.querySelectorAll("button"), e => ({text: e.textContent.trim(), disabled: e.disabled}))'
 ```
 
-Execute JavaScript in the active tab. Code runs in async context. Use this to extract data, inspect page state, or perform DOM operations programmatically.
-
-## Screenshot
+The argument must be one JavaScript expression. Use an IIFE for multiple statements:
 
 ```bash
-{baseDir}/browser-screenshot.js
-```
-
-Capture current viewport and return temporary file path. Use this to visually inspect page state or verify UI changes.
-
-## Pick Elements
-
-```bash
-{baseDir}/browser-pick.js "Click the submit button"
-```
-
-**IMPORTANT**: Use this tool when the user wants to select specific DOM elements on the page. This launches an interactive picker that lets the user click elements to select them. The user can select multiple elements (Cmd/Ctrl+Click) and press Enter when done. The tool returns CSS selectors for the selected elements.
-
-Common use cases:
-- User says "I want to click that button" → Use this tool to let them select it
-- User says "extract data from these items" → Use this tool to let them select the elements
-- When you need specific selectors but the page structure is complex or ambiguous
-
-## Cookies
-
-```bash
-{baseDir}/browser-cookies.js
-```
-
-Display all cookies for the current tab including domain, path, httpOnly, and secure flags. Use this to debug authentication issues or inspect session state.
-
-## Extract Page Content
-
-```bash
-{baseDir}/browser-content.js https://example.com
-```
-
-Navigate to a URL and extract readable content as markdown. Uses Mozilla Readability for article extraction and Turndown for HTML-to-markdown conversion. Works on pages with JavaScript content (waits for page to load).
-
-## Recovery
-
-If a tool cannot connect, run `{baseDir}/browser-start.js` one time, then run the failed tool again. Do not kill Chrome first unless the start command also fails. If Chrome is connected but has no tab, the start and navigation commands create one automatically.
-
-## When to Use
-
-- Testing frontend code in a real browser
-- Interacting with pages that require JavaScript
-- When user needs to visually see or interact with a page
-- Debugging authentication or session issues
-- Scraping dynamic content that requires JS execution
-
----
-
-## Efficiency Guide
-
-### DOM Inspection Over Screenshots
-
-**Don't** take screenshots to see page state. **Do** parse the DOM directly:
-
-```javascript
-// Get page structure
-document.body.innerHTML.slice(0, 5000)
-
-// Find interactive elements
-Array.from(document.querySelectorAll('button, input, [role="button"]')).map(e => ({
-  id: e.id,
-  text: e.textContent.trim(),
-  class: e.className
-}))
+./browser-eval.js '(() => { const button = document.querySelector("button"); button.click(); return {text: button.textContent}; })()'
 ```
 
 ### Complex Scripts in Single Calls
 
-Wrap everything in an IIFE to run multi-statement code:
+Combine related inspection, interaction, and state collection in one evaluation. This reduces browser round trips and keeps each operation consistent with one page state.
+
+Wrap multiple statements in an IIFE and return structured data:
 
 ```javascript
-(function() {
-  // Multiple operations
-  const data = document.querySelector('#target').textContent;
-  const buttons = document.querySelectorAll('button');
+(() => {
+  const target = document.querySelector("#target");
+  const buttons = Array.from(document.querySelectorAll("button"));
 
-  // Interactions
-  buttons[0].click();
+  target?.click();
 
-  // Return results
-  return JSON.stringify({ data, buttonCount: buttons.length });
-})()
-```
-
-### Batch Interactions
-
-**Don't** make separate calls for each click. **Do** batch them:
-
-```javascript
-(function() {
-  const actions = ["btn1", "btn2", "btn3"];
-  actions.forEach(id => document.getElementById(id).click());
-  return "Done";
-})()
-```
-
-### Typing/Input Sequences
-
-```javascript
-(function() {
-  const text = "HELLO";
-  for (const char of text) {
-    document.getElementById("key-" + char).click();
-  }
-  document.getElementById("submit").click();
-  return "Submitted: " + text;
-})()
-```
-
-### Reading App/Game State
-
-Extract structured state in one call:
-
-```javascript
-(function() {
-  const state = {
-    score: document.querySelector('.score')?.textContent,
-    status: document.querySelector('.status')?.className,
-    items: Array.from(document.querySelectorAll('.item')).map(el => ({
-      text: el.textContent,
-      active: el.classList.contains('active')
-    }))
+  return {
+    targetText: target?.textContent.trim(),
+    buttonCount: buttons.length,
+    disabledButtons: buttons.filter(button => button.disabled).length
   };
-  return JSON.stringify(state, null, 2);
 })()
 ```
 
-### Waiting for Updates
+When an interaction updates the DOM asynchronously, wait inside the same evaluation:
 
-If DOM updates after actions, add a small delay with bash:
+```javascript
+(async () => {
+  document.querySelector("#submit")?.click();
+  await new Promise(resolve => setTimeout(resolve, 500));
+  return {
+    status: document.querySelector("[role='status']")?.textContent.trim()
+  };
+})()
+```
+
+## Screenshot
 
 ```bash
-sleep 0.5 && {baseDir}/browser-eval.js '...'
+./browser-screenshot.js
 ```
 
-### Investigate Before Interacting
+Returns the path to a viewport screenshot. Use it for visual or layout checks, not basic page-state inspection.
 
-Always start by understanding the page structure:
+## Pick Elements
+
+```bash
+./browser-pick.js "Select the submit button"
+```
+
+Use this when the user must select elements. The picker returns compact CSS selectors and text. Use Cmd/Ctrl+click for multiple elements, Enter to finish, or Escape to cancel. Run only one picker at a time.
+
+## Cookies
+
+```bash
+./browser-cookies.js
+```
+
+Displays application cookies visible to the session's latest tab.
+
+## Extract Page Content
+
+```bash
+./browser-content.js https://example.com
+```
+
+Navigates to the URL and returns readable Markdown. Output is limited to 30,000 characters.
+
+## Recovery
+
+If a command cannot connect, run `./browser-start.js` once and retry the command. Do not kill Chrome unless startup also fails.
+
+## Efficiency
+
+1. Inspect the DOM before taking a screenshot.
+2. Batch related interactions and reads in one evaluation.
+3. Limit returned HTML and text with `slice()`.
+
+Example inspection:
 
 ```javascript
-(function() {
-  return {
-    title: document.title,
-    forms: document.forms.length,
-    buttons: document.querySelectorAll('button').length,
-    inputs: document.querySelectorAll('input').length,
-    mainContent: document.body.innerHTML.slice(0, 3000)
-  };
-})()
+({
+  title: document.title,
+  buttons: Array.from(document.querySelectorAll("button"), element => ({
+    text: element.textContent.trim(),
+    disabled: element.disabled
+  })),
+  main: document.querySelector("main")?.innerText.slice(0, 3000)
+})
 ```
-
-Then target specific elements based on what you find.

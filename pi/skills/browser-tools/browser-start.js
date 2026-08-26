@@ -1,96 +1,76 @@
 #!/usr/bin/env node
 
-import { spawn, execSync } from "node:child_process";
+import { spawn } from "node:child_process";
+import { existsSync, mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import puppeteer from "puppeteer-core";
 
-const useProfile = process.argv[2] === "--profile";
-
-if (process.argv[2] && process.argv[2] !== "--profile") {
-	console.log("Usage: browser-start.js [--profile]");
-	console.log("\nOptions:");
-	console.log("  --profile  Copy your default Chrome profile (cookies, logins)");
+if (process.argv.length > 2) {
+	console.log("Usage: browser-start.js");
 	process.exit(1);
 }
 
-const SCRAPING_DIR = `${process.env.HOME}/.cache/browser-tools`;
+const BROWSER_URL = "http://localhost:9222";
+const CHROME_PATH = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const PROFILE_DIR = join(homedir(), ".cache", "browser-tools");
 
-async function ensurePage(browser) {
-	const pages = await browser.pages();
-	if (pages.length === 0) {
-		await browser.newPage();
-	}
-}
-
-// Check if already running on :9222. A browser can be connected but have no
-// page targets, for example after Chrome starts with --no-startup-window.
-try {
-	const browser = await puppeteer.connect({
-		browserURL: "http://localhost:9222",
+async function tryConnect() {
+	return await puppeteer.connect({
+		browserURL: BROWSER_URL,
 		defaultViewport: null,
 	});
-	await ensurePage(browser);
+}
+
+try {
+	const browser = await tryConnect();
 	await browser.disconnect();
 	console.log("✓ Chrome already running on :9222 and ready");
 	process.exit(0);
 } catch {}
 
-// Setup profile directory
-execSync(`mkdir -p "${SCRAPING_DIR}"`, { stdio: "ignore" });
-
-// Remove SingletonLock to allow new instance
-try {
-	execSync(`rm -f "${SCRAPING_DIR}/SingletonLock" "${SCRAPING_DIR}/SingletonSocket" "${SCRAPING_DIR}/SingletonCookie"`, { stdio: "ignore" });
-} catch {}
-
-if (useProfile) {
-	console.log("Syncing profile...");
-	execSync(
-		`rsync -a --delete \
-			--exclude='SingletonLock' \
-			--exclude='SingletonSocket' \
-			--exclude='SingletonCookie' \
-			--exclude='*/Sessions/*' \
-			--exclude='*/Current Session' \
-			--exclude='*/Current Tabs' \
-			--exclude='*/Last Session' \
-			--exclude='*/Last Tabs' \
-			"${process.env.HOME}/Library/Application Support/Google/Chrome/" "${SCRAPING_DIR}/"`,
-		{ stdio: "pipe" },
-	);
+if (!existsSync(CHROME_PATH)) {
+	console.error(`✗ Google Chrome not found at: ${CHROME_PATH}`);
+	process.exit(1);
 }
 
-// Start Chrome with flags to force new instance
+mkdirSync(PROFILE_DIR, { recursive: true });
+
 spawn(
-	"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+	CHROME_PATH,
 	[
 		"--remote-debugging-port=9222",
-		`--user-data-dir=${SCRAPING_DIR}`,
+		`--user-data-dir=${PROFILE_DIR}`,
 		"--no-first-run",
 		"--no-default-browser-check",
+		"--disable-extensions",
+		"--disable-sync",
+		"--disable-default-apps",
+		"--disable-background-networking",
+		"--disable-search-engine-choice-screen",
+		"--hide-crash-restore-bubble",
+		"--noerrdialogs",
+		"--password-store=basic",
+		"--use-mock-keychain",
 	],
 	{ detached: true, stdio: "ignore" },
 ).unref();
 
-// Wait for Chrome to be ready
 let connected = false;
-for (let i = 0; i < 30; i++) {
+for (let attempt = 0; attempt < 30; attempt++) {
 	try {
-		const browser = await puppeteer.connect({
-			browserURL: "http://localhost:9222",
-			defaultViewport: null,
-		});
-		await ensurePage(browser);
+		const browser = await tryConnect();
 		await browser.disconnect();
 		connected = true;
 		break;
 	} catch {
-		await new Promise((r) => setTimeout(r, 500));
+		await new Promise((resolve) => setTimeout(resolve, 500));
 	}
 }
 
 if (!connected) {
-	console.error("✗ Failed to connect to Chrome");
+	console.error("✗ Failed to connect to Chrome on :9222");
 	process.exit(1);
 }
 
-console.log(`✓ Chrome started on :9222${useProfile ? " with your profile" : ""}`);
+console.log("✓ Chrome started on :9222");

@@ -1,50 +1,33 @@
 #!/usr/bin/env node
 
-import puppeteer from "puppeteer-core";
+import { getAgentPage } from "./browser-session.js";
 
 const code = process.argv.slice(2).join(" ");
 if (!code) {
-  console.log("Usage: browser-eval.js 'code'");
-  console.log("\nExamples:");
-  console.log('  browser-eval.js "document.title"');
-  console.log("  browser-eval.js \"document.querySelectorAll('a').length\"");
-  process.exit(1);
+	console.log("Usage: browser-eval.js 'code'");
+	console.log("\nExamples:");
+	console.log('  browser-eval.js "document.title"');
+	console.log("  browser-eval.js \"document.querySelectorAll('a').length\"");
+	process.exit(1);
 }
 
-const b = await Promise.race([
-  puppeteer.connect({
-    browserURL: "http://localhost:9222",
-    defaultViewport: null,
-  }),
-  new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("timeout")), 5000),
-  ),
-]).catch((e) => {
-  console.error("✗ Could not connect to browser:", e.message);
-  console.error("  Run: browser-start.js");
-  process.exit(1);
-});
+const { browser, page } = await getAgentPage();
 
-const p = (await b.pages()).at(-1) || await b.newPage();
-
-const result = await p.evaluate((c) => {
-  const AsyncFunction = (async () => {}).constructor;
-  return new AsyncFunction(`return (${c})`)();
+const result = await page.evaluate((source) => {
+	const AsyncFunction = (async () => {}).constructor;
+	return new AsyncFunction(`return (${source})`)();
 }, code);
 
-if (Array.isArray(result)) {
-  for (let i = 0; i < result.length; i++) {
-    if (i > 0) console.log("");
-    for (const [key, value] of Object.entries(result[i])) {
-      console.log(`${key}: ${value}`);
-    }
-  }
-} else if (typeof result === "object" && result !== null) {
-  for (const [key, value] of Object.entries(result)) {
-    console.log(`${key}: ${value}`);
-  }
+if (typeof result === "string") {
+	console.log(result);
+} else if (result === undefined) {
+	console.log("undefined");
 } else {
-  console.log(result);
+	console.log(
+		JSON.stringify(result, (_, value) =>
+			typeof value === "bigint" ? value.toString() : value,
+		),
+	);
 }
 
-await b.disconnect();
+await browser.disconnect();
