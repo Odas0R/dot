@@ -113,6 +113,16 @@ Displays application cookies visible to the session's latest tab.
 
 Navigates to the URL and returns readable Markdown. Output is limited to 30,000 characters.
 
+## Close Chrome When Finished
+
+After you finish the browser task, close the browser session if you do not need it for another step:
+
+```bash
+./browser-close.js
+```
+
+Do this before your final response. The command closes this pi session's Chrome window. It stops Chrome when no other pi browser session uses it. Keep Chrome open only when the current task still needs browser access.
+
 ## Recovery
 
 If a command cannot connect, run `./browser-start.js` once and retry the command. Do not kill Chrome unless startup also fails.

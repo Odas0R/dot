@@ -25,7 +25,7 @@ const FIGMA_PROMPT_PATTERN = /\bfigma\b|https?:\/\/(?:www\.)?figma\.com\//i;
 const FIGMA_HINT =
 	"Figma MCP tools are available. For design-to-code work, call figma_get_design_context first. Use screenshots only as visual references, never as a substitute for structured design context.";
 const FIGMA_IMPLEMENT_USAGE =
-	"Usage: /figma-implement <figma-design-url-with-node-id> [instructions]";
+	"Usage: /figma-implement <figma-design-url-with-node-id> [more-figma-urls...] [instructions]";
 
 function errorMessage(error) {
 	return error instanceof Error ? error.message : String(error);
@@ -64,8 +64,11 @@ function normalizeNodeId(value) {
 	return dashed ? `${dashed[1]}:${dashed[2]}` : nodeId;
 }
 
-function extractFigmaTarget(prompt) {
+function extractFigmaTargets(prompt) {
 	const urls = prompt.match(/https?:\/\/(?:www\.)?figma\.com\/[^\s<>"']+/gi) ?? [];
+	const targets = [];
+	const seenNodeIds = new Set();
+
 	for (const candidate of urls) {
 		let url;
 		try {
@@ -74,24 +77,20 @@ function extractFigmaTarget(prompt) {
 			continue;
 		}
 
-		const nodeId = url.searchParams.get("node-id");
-		if (nodeId?.trim()) {
-			return { nodeId: normalizeNodeId(nodeId), url: url.href };
+		const rawNodeId = url.searchParams.get("node-id");
+		const nodeId = rawNodeId ? normalizeNodeId(rawNodeId) : "";
+		if (/^\d+:\d+$/.test(nodeId) && !seenNodeIds.has(nodeId)) {
+			seenNodeIds.add(nodeId);
+			targets.push({ nodeId, url: url.href });
 		}
 	}
-	return undefined;
+	return targets;
 }
 
-function parseFigmaTargetArgs(args, usage) {
-	const input = args.trim();
-	if (!input) throw new Error(usage);
-
-	const match = input.match(/^(\S+)(?:\s+([\s\S]*))?$/);
-	if (!match) throw new Error(usage);
-
+function parseFigmaDesignUrl(value, usage) {
 	let url;
 	try {
-		url = new URL(match[1]);
+		url = new URL(value);
 	} catch {
 		throw new Error(`Invalid Figma URL. ${usage}`);
 	}
@@ -113,18 +112,44 @@ function parseFigmaTargetArgs(args, usage) {
 		throw new Error(`The Figma Design URL must contain a valid node-id. ${usage}`);
 	}
 
+	return { url: url.href, nodeId };
+}
+
+function parseFigmaTargetArgs(args, usage) {
+	const input = args.trim();
+	if (!input) throw new Error(usage);
+
+	const tokens = [...input.matchAll(/\S+/g)];
+	const targets = [];
+	let instructionStart = input.length;
+
+	for (const token of tokens) {
+		if (
+			targets.length > 0 &&
+			!/^https?:\/\/(?:www\.)?figma\.com\//i.test(token[0])
+		) {
+			instructionStart = token.index;
+			break;
+		}
+		targets.push(parseFigmaDesignUrl(token[0], usage));
+	}
+
+	if (targets.length === 0) throw new Error(usage);
+
 	return {
-		url: url.href,
-		nodeId,
-		instructions: match[2]?.trim() || undefined,
+		targets,
+		instructions: input.slice(instructionStart).trim() || undefined,
 	};
 }
 
-function buildFigmaImplementPrompt({ url, instructions }) {
+function buildFigmaImplementPrompt({ targets, instructions }) {
 	const lines = [
-		`Implement the complete Figma target at ${url}.`,
+		targets.length === 1
+			? "Implement the complete Figma target below:"
+			: "Implement all Figma targets below as one complete task:",
+		...targets.map((target, index) => `${index + 1}. ${target.url}`),
 		"",
-		"Load and follow the `figma-design-to-code` skill. Treat the URL node as the root target and implement its complete scope. The URL is mandatory; never fall back to the current Figma desktop selection.",
+		"Load and follow the `figma-design-to-code` skill. Treat each URL node as an explicit root target. Call `figma_get_design_context` with the explicit node ID for every target before implementation, starting with target 1. Implement the complete scope of all targets. The URLs are mandatory; never fall back to the current Figma desktop selection.",
 	];
 
 	if (instructions) lines.push("", "Additional instructions:", instructions);
@@ -454,7 +479,7 @@ export default function figmaMcpExtension(pi) {
 	let connectedConfig;
 	let reconnectTimer;
 	let stopping = false;
-	let promptFigmaTarget;
+	let promptFigmaTargets = [];
 	const registeredPiToolNames = new Set();
 	const toolInfoByPiName = new Map();
 
@@ -623,13 +648,13 @@ export default function figmaMcpExtension(pi) {
 	});
 
 	pi.on("before_agent_start", (event) => {
-		promptFigmaTarget = extractFigmaTarget(event.prompt);
+		promptFigmaTargets = extractFigmaTargets(event.prompt);
 		if (!FIGMA_PROMPT_PATTERN.test(event.prompt) || toolInfoByPiName.size === 0) {
 			return undefined;
 		}
 
-		const targetHint = promptFigmaTarget
-			? ` The user supplied rootTargetId="${promptFigmaTarget.nodeId}". This explicit URL target overrides the current Figma desktop selection. Pass nodeId="${promptFigmaTarget.nodeId}" to figma_get_design_context first. Descendant reads may use explicit child node IDs discovered from that root. Every related Figma read, including figma_get_screenshot, must include an explicit nodeId; never omit it or silently use the current selection.`
+		const targetHint = promptFigmaTargets.length > 0
+			? ` The user supplied rootTargetIds=${JSON.stringify(promptFigmaTargets.map((target) => target.nodeId))}. These explicit URL targets override the current Figma desktop selection. Call figma_get_design_context with each root node ID before implementation, starting with nodeId="${promptFigmaTargets[0].nodeId}". Descendant reads may use explicit child node IDs discovered from those roots. Every related Figma read, including figma_get_screenshot, must include an explicit nodeId; never omit it or silently use the current selection.`
 			: "";
 		return {
 			systemPrompt: `${event.systemPrompt}\n\n${FIGMA_HINT}${targetHint}`,
@@ -637,18 +662,19 @@ export default function figmaMcpExtension(pi) {
 	});
 
 	pi.on("tool_call", (event) => {
-		if (!promptFigmaTarget) return undefined;
+		if (promptFigmaTargets.length === 0) return undefined;
 		const info = toolInfoByPiName.get(event.toolName);
 		if (!info?.acceptsNodeId || !event.input || typeof event.input !== "object") {
 			return undefined;
 		}
 		if (typeof event.input.nodeId !== "string" || !event.input.nodeId.trim()) {
+			const rootNodeIds = promptFigmaTargets.map((target) => target.nodeId).join(", ");
 			return {
 				block: true,
 				reason:
-					`The prompt supplied Figma root node ${promptFigmaTarget.nodeId}. ` +
-					`Pass an explicit nodeId to ${event.toolName}: use ${promptFigmaTarget.nodeId} ` +
-					"for the root target or an explicit child node ID discovered from it.",
+					`The prompt supplied Figma root nodes ${rootNodeIds}. ` +
+					`Pass an explicit nodeId to ${event.toolName}: use one of those root IDs ` +
+					"or an explicit child node ID discovered from them.",
 			};
 		}
 		return undefined;
@@ -656,7 +682,7 @@ export default function figmaMcpExtension(pi) {
 
 	pi.registerCommand("figma-implement", {
 		description:
-			"Implement a node-specific Figma Design URL",
+			"Implement one or more node-specific Figma Design URLs",
 		handler: async (args, ctx) => {
 			let target;
 			try {
@@ -671,7 +697,8 @@ export default function figmaMcpExtension(pi) {
 				pi.sendUserMessage(prompt);
 			} else {
 				pi.sendUserMessage(prompt, { deliverAs: "followUp" });
-				ctx.ui.notify(`Queued Figma implementation for ${target.nodeId}`, "info");
+				const nodeIds = target.targets.map((item) => item.nodeId).join(", ");
+				ctx.ui.notify(`Queued Figma implementation for ${nodeIds}`, "info");
 			}
 		},
 	});

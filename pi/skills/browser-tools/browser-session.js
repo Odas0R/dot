@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
+import { execFile } from "node:child_process";
 import { mkdir, rm, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { promisify } from "node:util";
 import puppeteer from "puppeteer-core";
 
 const BROWSER_URL = "http://localhost:9222";
@@ -12,6 +14,77 @@ const LOCKS_DIR = join(homedir(), ".cache", "browser-tools", "locks");
 const LOCK_WAIT_MS = 50;
 const LOCK_TIMEOUT_MS = 5000;
 const STALE_LOCK_MS = 10000;
+const AEROSPACE_WORKSPACE = "9";
+const WINDOW_WAIT_ATTEMPTS = 20;
+const WINDOW_WAIT_MS = 100;
+
+const exec = promisify(execFile);
+
+async function getBrowserPid() {
+	const { stdout } = await exec("lsof", [
+		"-nP",
+		"-t",
+		"-iTCP:9222",
+		"-sTCP:LISTEN",
+	]);
+	const pid = stdout.trim().split(/\s+/)[0];
+	if (!/^\d+$/.test(pid)) {
+		throw new Error("Could not find the Chrome process listening on :9222");
+	}
+	return pid;
+}
+
+async function listBrowserWindowIds(pid) {
+	const { stdout } = await exec("aerospace", [
+		"list-windows",
+		"--monitor",
+		"all",
+		"--pid",
+		pid,
+		"--json",
+	]);
+	const windows = JSON.parse(stdout);
+	return windows.map((window) => window["window-id"]);
+}
+
+async function setAccordionLayout(windowId) {
+	try {
+		await exec("aerospace", [
+			"layout",
+			"--window-id",
+			String(windowId),
+			"accordion",
+		]);
+	} catch (error) {
+		// AeroSpace exits with 1 and no error text when the layout is already set.
+		if (error.code !== 1 || error.stderr?.trim()) throw error;
+	}
+}
+
+async function moveBrowserWindowsToWorkspace() {
+	const pid = await getBrowserPid();
+
+	for (let attempt = 0; attempt < WINDOW_WAIT_ATTEMPTS; attempt++) {
+		const windowIds = await listBrowserWindowIds(pid);
+		if (windowIds.length > 0) {
+			for (const windowId of windowIds) {
+				await exec("aerospace", [
+					"move-node-to-workspace",
+					"--window-id",
+					String(windowId),
+					AEROSPACE_WORKSPACE,
+				]);
+			}
+			for (const windowId of windowIds) {
+				await setAccordionLayout(windowId);
+			}
+			return;
+		}
+		await new Promise((resolve) => setTimeout(resolve, WINDOW_WAIT_MS));
+	}
+
+	throw new Error("Chrome window did not appear in AeroSpace");
+}
 
 function getSessionId() {
 	return process.env.PI_SESSION_ID || "manual";
@@ -134,9 +207,9 @@ async function openAgentPage(options) {
 		browser = await connectBrowser();
 		const context = await getAgentContext(browser, sessionId);
 		const pages = await context.pages();
-		const page = options.newPage
-			? await context.newPage()
-			: pages.at(-1) || (await context.newPage());
+		const createsPage = options.newPage || pages.length === 0;
+		const page = createsPage ? await context.newPage() : pages.at(-1);
+		if (createsPage) await moveBrowserWindowsToWorkspace();
 		return { browser, context, page };
 	} catch (error) {
 		await browser?.disconnect().catch(() => {});
