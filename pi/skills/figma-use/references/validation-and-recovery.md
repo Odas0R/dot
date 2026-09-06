@@ -11,11 +11,13 @@
 
 ## `get_metadata` vs `get_screenshot`
 
-After each `figma_use` call, validate results using the right tool for the job. Do NOT reach for `get_screenshot` every time — it is expensive and should be reserved for visual checks.
+Validate coherent stage boundaries using the right tool for the job. Keep cheap structural checks in the build call where practical; avoid a separate inspection turn or screenshot for each repeated element. Capture one overview at the validate stage, then crop questionable areas only as needed.
+
+**Figpie compatibility:** `get_metadata` and `get_screenshot` below refer to separately available tools, not tools supplied by Figpie. When absent, use a read-only `figma_use` call returning explicit node properties for metadata, and `await node.screenshot()` for images. Keep both scoped to the affected subtree.
 
 ### `get_metadata` — Use for intermediate validation (preferred)
 
-`get_metadata` returns an XML tree of node IDs, types, names, positions, and sizes. Use it to confirm:
+When available, `get_metadata` provides node structure; otherwise return IDs, types, names, positions, and sizes from read-only Plugin API code. Use either approach to confirm:
 
 - **Structure & hierarchy**: correct parent-child relationships, component nesting, section contents
 - **Node counts**: expected number of variants created, children present
@@ -39,7 +41,7 @@ ComponentSet node to verify all 120 children exist with correct names, sizes, an
 
 ### `get_screenshot` — Use after each major creation milestone
 
-`get_screenshot` renders a pixel-accurate image. It is the only way to verify visual correctness (colors, typography rendering, effects, variable mode resolution). It is slower and produces large responses, so don't call it after every single `figma_use` — but do call it after each major milestone to catch visual problems early.
+Use `await node.screenshot()` or a separately available `get_screenshot` to verify visual correctness (colors, typography rendering, effects, variable mode resolution). Screenshots are slower and produce large responses, so capture them after major milestones rather than every call. Follow the [skill's output limits](../SKILL.md#3-return-is-your-output-channel); an export or output failure can occur after mutations have succeeded.
 
 **When to use `get_screenshot`:**
 - **After creating a component set** — verify variants look correct, grid is readable, nothing is collapsed or overlapping
@@ -55,28 +57,29 @@ ComponentSet node to verify all 120 children exist with correct names, sizes, an
 
 ## Error Recovery After Failed `figma_use`
 
-**`figma_use` is atomic — failed scripts do not execute.** If a script errors, no changes are made to the file. The file remains in exactly the same state as before the call. There are no partial nodes, no orphaned elements, and retrying after a fix is safe.
+**Figpie scripts are not atomic.** Earlier changes may remain after errors, timeouts, cancellation, disconnection, or output failures. Undo checkpoints do not provide automatic rollback. Follow the [skill's execution and recovery rules](../SKILL.md#7-error-recovery--self-correction), accounting for partial changes before retrying.
 
 **Recovery steps when `figma_use` returns an error:**
 1. **STOP — do NOT immediately fix the code and retry.** Read the error message carefully first.
-2. **Understand the error.** Most errors are caused by wrong API usage, missing font loads, invalid property values, or referencing nodes that don't exist.
-3. **If the error is unclear**, call `get_metadata` or `get_screenshot` to understand the current file state and confirm nothing has changed.
-4. **Fix the script** based on the error message.
-5. **Retry** the corrected script.
+2. **Understand the outcome.** Determine whether work never started, partially executed, or is still running/unknown. Wait for completion; if stuck, ask the user to restart Figpie in Figma before further execution.
+3. **Inspect affected nodes read-only**, even when the error is clear. Use Plugin API inspection or separately available metadata/screenshot tools once execution is idle; re-resolve IDs and identify partial changes.
+4. **Fix only the remaining or incorrect work** based on the error and observed state. Avoid duplicate creations or replaying completed mutations.
+5. **Retry** the targeted correction, return affected IDs, and validate again.
 
 ## Recommended Workflow
 
 ```
-1. figma_use  →  Create/modify nodes
-2. get_metadata     →  Verify structure, counts, names, positions (fast, cheap)
-3. figma_use  →  Fix any structural issues found
-4. get_metadata     →  Re-verify fixes
-5. ... repeat as needed ...
-6. get_screenshot   →  Visual check after each major milestone
+1. Inspect  →  Resolve the target and dependencies; return a focused inventory
+2. Build    →  Preflight, then create a coherent stage with structural checks
+3. Validate →  Review checks and one overview screenshot; inspect details if needed
+4. Correct  →  Targeted fixes and revalidation only when issues remain
+
+Keep root/named references and issues inline. Complete affected-ID arrays are
+preserved in the result or its local artifact; retrieve only fields needed next.
 
 ⚠️ ON ERROR at any step:
-   a. Read the error message carefully
-   b. get_metadata / get_screenshot  →  If the error is unclear, inspect file state
-   c. Fix the script based on the error
-   d. Retry the corrected script (safe — failed scripts don't modify the file)
+   a. Read the error; wait for running work or ask the user to restart a stuck plugin
+   b. Read-only inspection / screenshot  →  Account for partial changes and re-resolve IDs
+   c. Correct only missing or incorrect work
+   d. Return affected IDs and validate the targeted correction
 ```

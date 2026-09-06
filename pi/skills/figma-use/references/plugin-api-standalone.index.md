@@ -83,12 +83,12 @@
 
 | Method                                  | Notes                                                        |
 | --------------------------------------- | ------------------------------------------------------------ |
-| `closePlugin(message?)`                 | Auto-called; use `return` instead to pass results back       |
-| `closePluginWithFailure(message?)`      | Auto-called on errors; do not call manually                  |
-| `commitUndo()`                          | Snapshot to undo history                                     |
-| `triggerUndo()`                         | Revert to last snapshot                                      |
+| `closePlugin(message?)`                 | Reserved by Figpie; use `return` for output                  |
+| `closePluginWithFailure(message?)`      | Hosted-runtime API, unavailable in Figpie                    |
+| `commitUndo()`                          | Snapshot to undo history; Figpie checkpoints completed calls, not automatic rollback |
+| `triggerUndo()`                         | Reserved by Figpie; scripts must inspect partial changes rather than trigger rollback |
 | `saveVersionHistoryAsync(title, desc?)` | `Promise<VersionHistoryResult>`                              |
-| `notify(message, options?)`             | **throws "not implemented" in figma_use — do not use** |
+| `notify(message, options?)`             | Native Figma notification; use `return` for agent output |
 | `openExternal(url)`                     | Opens URL in browser                                         |
 
 ### Sub-APIs (properties on figma)
@@ -449,13 +449,8 @@ Video                   VersionHistoryResult    FindAllCriteria
 | `node.matches(selector)`      | `boolean`         | Test if node matches a selector |
 | `node.set(props)`             | `this`            | Set multiple properties at once, chainable |
 | `await node.screenshot(opts?)` | `Promise<void>`  | Capture PNG inline in tool response |
-| `node.placeholder`            | `boolean`         | Show/hide shimmer overlay |
 
-### figma.io Namespace
-
-| Method                        | Returns           | Description |
-| ----------------------------- | ----------------- | ----------- |
-| `figma.io.write(path, data)`  | `void`            | Write image/data to be returned in tool response |
+`node.placeholder` and `figma.io` are not available in Figpie. Return data or use `node.screenshot()` for inline images.
 
 ### Types
 

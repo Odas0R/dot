@@ -247,28 +247,23 @@ This works for icons, avatars, badges, or any swappable nested element.
 
 ### List all existing components across all pages
 
-`search_design_system` (MCP tool) is an option for published components. For on-canvas components, **don't loop pages inside one script** — even for read-only discovery.
-
-**Prefer the two-step fan-out:**
+If separately available, `search_design_system` can discover published components. For on-canvas components, discover page IDs first:
 
 ```javascript
-// Step 1 — one cheap figma_use call, no page switch. Returns the page IDs to fan out over.
 return figma.root.children.map(p => ({ id: p.id, name: p.name }));
 ```
 
-Then issue one `figma_use` call per page in parallel. Each script runs:
+Inspect each relevant page in a small call. Figpie serializes calls within a plugin session; parallel submission does not speed them up. Load pages without switching the user's view:
 
 ```javascript
-// Step 2 — one call per page, currentPage set exactly once.
-// Issue these calls in parallel; do not loop pages inside the script.
-const page = await figma.getNodeByIdAsync(PAGE_ID); // PAGE_ID supplied by caller
-await figma.setCurrentPageAsync(page);
-// Indexed type lookup — much faster than findAll with a side-effect predicate.
+const page = await figma.getNodeByIdAsync(PAGE_ID);
+if (!page || page.type !== 'PAGE') return { missingPageId: PAGE_ID };
+await page.loadAsync();
 const matches = page.findAllWithCriteria({ types: ['COMPONENT', 'COMPONENT_SET'] });
 return matches.map(n => ({ pageName: page.name, name: n.name, type: n.type, id: n.id }));
 ```
 
-See [gotchas.md → Set current page once per `figma_use` call](gotchas.md#set-current-page-once-per-figma_use-call--split-multi-page-work-into-parallel-calls) for the full rule.
+See [multi-page work](gotchas.md#multi-page-work-in-figpie).
 
 ### Inspect an existing component set's variant naming pattern
 
@@ -284,7 +279,7 @@ return { variantNames, propDefs };
 
 ### Find existing components in the file
 
-`search_design_system` is an option for published components. For on-canvas components, use the two-step fan-out from the section above — **don't loop pages inside one script.**
+For on-canvas components, use the page discovery and scoped inspection pattern above. Published-component search is optional when a separate tool provides it.
 
 **Step 1** — one cheap `figma_use` call returns page IDs:
 
@@ -292,11 +287,12 @@ return { variantNames, propDefs };
 return figma.root.children.map(p => ({ id: p.id, name: p.name }));
 ```
 
-**Step 2** — issue one `figma_use` call per page in parallel. Each script:
+**Step 2** — inspect each relevant page in a small call:
 
 ```javascript
 const page = await figma.getNodeByIdAsync(PAGE_ID);
-await figma.setCurrentPageAsync(page);
+if (!page || page.type !== 'PAGE') return { missingPageId: PAGE_ID };
+await page.loadAsync();
 // Indexed type lookup — much faster than findAll with a side-effect predicate.
 const components = page.findAllWithCriteria({ types: ['COMPONENT'] });
 return components.map(n => ({ name: n.name, id: n.id, page: page.name, w: n.width, h: n.height }));

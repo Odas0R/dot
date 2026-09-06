@@ -1,466 +1,95 @@
-import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { open } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-
-import {
-	DEFAULT_MAX_BYTES,
-	DEFAULT_MAX_LINES,
-	formatSize,
-	truncateHead,
-} from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { WebSocket } from "ws";
+import { ensureToken, STATE_DIR, TOKEN_FILE } from "./auth.js";
+import { BRIDGE_URL, validatePortEnvironment } from "./protocol.js";
+import { BrokerClient, describeConnection } from "./client.js";
+import { formatOutput, MAX_INLINE_BYTES, MAX_INLINE_LINES, MAX_INLINE_NODE_IDS } from "./output.js";
 
-const HOST = "127.0.0.1";
-const PORT = Number.parseInt(
-	process.env.PI_FIGPIE_PORT || process.env.PI_FIGMA_USE_PORT || "3846",
-	10,
-);
-const PATH = "/figma-use";
 const BROKER_FILE = join(dirname(fileURLToPath(import.meta.url)), "broker.js");
-const MAX_PAYLOAD_BYTES = 20 * 1024 * 1024;
+const LOG_FILE = join(STATE_DIR, "broker.log");
 
-function errorMessage(error) {
-	return error instanceof Error ? error.message : String(error);
-}
-
-function bridgeUrl() {
-	return `ws://${HOST}:${PORT}${PATH}`;
-}
-
-function parseMessage(data) {
-	const text = typeof data === "string" ? data : data.toString("utf8");
-	return JSON.parse(text);
-}
-
-function delay(milliseconds) {
-	return new Promise((resolve) => setTimeout(resolve, milliseconds));
-}
-
-async function formatOutput(text) {
-	const truncation = truncateHead(text, {
-		maxBytes: DEFAULT_MAX_BYTES,
-		maxLines: DEFAULT_MAX_LINES,
-	});
-	if (!truncation.truncated) return { text, outputFile: undefined };
-
-	const outputDir = join(tmpdir(), "pi-figpie");
-	await mkdir(outputDir, { recursive: true });
-	const outputFile = join(outputDir, `${randomUUID()}.txt`);
-	await writeFile(outputFile, text, "utf8");
-	const notice =
-		`[Output truncated: ${truncation.outputLines} of ${truncation.totalLines} lines ` +
-		`(${formatSize(truncation.outputBytes)} of ${formatSize(truncation.totalBytes)}). ` +
-		`Full output saved to: ${outputFile}]`;
-	return {
-		text: truncation.content ? `${truncation.content}\n\n${notice}` : notice,
-		outputFile,
-	};
+async function launchBroker(signal) {
+	signal.throwIfAborted();
+	const log = await open(LOG_FILE, "a", 0o600);
+	try {
+		signal.throwIfAborted();
+		const child = spawn(process.execPath, [BROKER_FILE], { detached: true, stdio: ["ignore", log.fd, log.fd], env: process.env });
+		await new Promise((resolve, reject) => { child.once("spawn", resolve); child.once("error", reject); });
+		child.unref();
+	} finally { await log.close(); }
 }
 
 /** @param {import("@earendil-works/pi-coding-agent").ExtensionAPI} pi */
 export default function figpieExtension(pi) {
-	const sessionId = randomUUID();
-	const pending = new Map();
-	let broker;
-	let hostBroker;
-	let connections = [];
-	let initializingCount = 0;
-	let connectionPromise;
-	let hostConnectionPromise;
-	let reconnectTimer;
-	let hostReconnectTimer;
-	let stopping = false;
-	let hostStopping = false;
-
-	function rejectPending(reason) {
-		for (const request of pending.values()) {
-			clearTimeout(request.timer);
-			request.reject(new Error(reason));
-		}
-		pending.clear();
-	}
-
-	function handleBrokerMessage(data) {
-		let message;
-		try {
-			message = parseMessage(data);
-		} catch {
-			return;
-		}
-		if (message.type === "connections-status") {
-			connections = Array.isArray(message.connections) ? message.connections : [];
-			initializingCount = Number.isInteger(message.initializingCount)
-				? message.initializingCount
-				: 0;
-			return;
-		}
-		if (typeof message.id !== "string") return;
-		const request = pending.get(message.id);
-		if (!request) return;
-		pending.delete(message.id);
-		clearTimeout(request.timer);
-		if (message.type === "result") {
-			request.resolve({
-				text: typeof message.text === "string" ? message.text : "undefined",
-				images: Array.isArray(message.images)
-					? message.images.filter((image) =>
-						typeof image?.data === "string" && typeof image?.mimeType === "string")
-					: [],
-				connection: request.connection,
-			});
-		} else if (message.type === "error") {
-			const stack = typeof message.stack === "string" ? `\n${message.stack}` : "";
-			request.reject(new Error(`${message.message || "Figma execution failed"}${stack}`));
-		}
-	}
-
-	function connectOnce(timeoutMilliseconds = 1000) {
-		return new Promise((resolve, reject) => {
-			const socket = new WebSocket(bridgeUrl(), { maxPayload: MAX_PAYLOAD_BYTES });
-			let settled = false;
-			const timer = setTimeout(() => {
-				if (settled) return;
-				settled = true;
-				socket.close();
-				reject(new Error("Timed out while connecting to the Figpie broker"));
-			}, timeoutMilliseconds);
-
-			socket.once("open", () => {
-				socket.send(JSON.stringify({ type: "hello", role: "agent", sessionId }));
-			});
-			socket.on("message", (data) => {
-				let message;
-				try {
-					message = parseMessage(data);
-				} catch {
-					return;
-				}
-				if (!settled && message.type === "connections-status") {
-					settled = true;
-					clearTimeout(timer);
-					broker = socket;
-					connections = Array.isArray(message.connections) ? message.connections : [];
-					initializingCount = Number.isInteger(message.initializingCount)
-						? message.initializingCount
-						: 0;
-					resolve();
-					return;
-				}
-				handleBrokerMessage(data);
-			});
-			socket.on("close", () => {
-				clearTimeout(timer);
-				if (!settled) {
-					settled = true;
-					reject(new Error("Figpie broker is not available"));
-				}
-				if (broker === socket) {
-					broker = undefined;
-					connections = [];
-					initializingCount = 0;
-					if (!stopping) {
-						rejectPending("Figpie broker disconnected");
-						clearTimeout(reconnectTimer);
-						reconnectTimer = setTimeout(() => ensureBroker().catch(() => {}), 250);
-					}
-				}
-			});
-			socket.on("error", () => {});
-		});
-	}
-
-	function launchBroker() {
-		const child = spawn(process.execPath, [BROKER_FILE], {
-			detached: true,
-			stdio: "ignore",
-			env: process.env,
-		});
-		child.unref();
-	}
-
-	function connectHostOnce(timeoutMilliseconds = 1000) {
-		return new Promise((resolve, reject) => {
-			const socket = new WebSocket(bridgeUrl(), { maxPayload: MAX_PAYLOAD_BYTES });
-			let settled = false;
-			const timer = setTimeout(() => {
-				if (settled) return;
-				settled = true;
-				socket.close();
-				reject(new Error("Timed out while hosting the Figpie broker"));
-			}, timeoutMilliseconds);
-
-			socket.once("open", () => {
-				socket.send(JSON.stringify({ type: "hello", role: "host", sessionId }));
-			});
-			socket.on("message", (data) => {
-				let message;
-				try {
-					message = parseMessage(data);
-				} catch {
-					return;
-				}
-				if (!settled && message.type === "host-status") {
-					settled = true;
-					clearTimeout(timer);
-					hostBroker = socket;
-					resolve();
-				}
-			});
-			socket.on("close", () => {
-				clearTimeout(timer);
-				if (!settled) {
-					settled = true;
-					reject(new Error("Figpie broker host is not available"));
-				}
-				if (hostBroker === socket) {
-					hostBroker = undefined;
-					if (!hostStopping) {
-						clearTimeout(hostReconnectTimer);
-						hostReconnectTimer = setTimeout(() => ensureHostBroker().catch(() => {}), 250);
-					}
-				}
-			});
-			socket.on("error", () => {});
-		});
-	}
-
-	async function ensureHostBroker() {
-		if (hostBroker?.readyState === WebSocket.OPEN) return;
-		if (hostConnectionPromise) return hostConnectionPromise;
-		hostConnectionPromise = (async () => {
-			try {
-				await connectHostOnce(300);
-				return;
-			} catch {
-				launchBroker();
-			}
-			let lastError;
-			for (let attempt = 0; attempt < 30; attempt += 1) {
-				await delay(100);
-				try {
-					await connectHostOnce(500);
-					return;
-				} catch (error) {
-					lastError = error;
-				}
-			}
-			throw lastError || new Error("Could not host the Figpie broker");
-		})().finally(() => {
-			hostConnectionPromise = undefined;
-		});
-		return hostConnectionPromise;
-	}
-
-	async function ensureBroker() {
-		if (broker?.readyState === WebSocket.OPEN) return;
-		if (connectionPromise) return connectionPromise;
-		connectionPromise = (async () => {
-			try {
-				await connectOnce(300);
-				return;
-			} catch {
-				launchBroker();
-			}
-			let lastError;
-			for (let attempt = 0; attempt < 30; attempt += 1) {
-				await delay(100);
-				try {
-					await connectOnce(500);
-					return;
-				} catch (error) {
-					lastError = error;
-				}
-			}
-			throw lastError || new Error("Could not start the Figpie broker");
-		})().finally(() => {
-			connectionPromise = undefined;
-		});
-		return connectionPromise;
-	}
-
-	async function closeClient() {
-		stopping = true;
-		clearTimeout(reconnectTimer);
-		rejectPending("The Figpie client stopped");
-		const socket = broker;
-		broker = undefined;
-		connections = [];
-		initializingCount = 0;
-		if (socket?.readyState === WebSocket.OPEN) {
-			await new Promise((resolve) => {
-				socket.once("close", resolve);
-				socket.close(1000, "Pi session stopped");
-				setTimeout(resolve, 500);
-			});
-		}
-	}
-
-	function describeConnection(connection) {
-		const fileKey = connection.fileKey ? ` [fileKey=${connection.fileKey}]` : "";
-		return `${connection.connectionId} — ${connection.fileName || "unknown file"} / ${connection.pageName || "unknown page"}${fileKey}`;
-	}
-
-	function assertFigmaSessionAvailable() {
-		if (connections.length > 0) return;
-		if (initializingCount > 0) {
-			throw new Error(
-				`${initializingCount} Figma plugin session${initializingCount === 1 ? " is" : "s are"} connected but still initializing. Wait briefly, then retry. Restart Figpie in Figma if this continues.`,
-			);
-		}
-		throw new Error(
-			"No Figma plugin sessions are connected. Run Figpie in the target Figma file.",
-		);
-	}
-
-	function selectConnection(requestedId) {
-		assertFigmaSessionAvailable();
-		if (requestedId) {
-			const normalized = requestedId.trim().toUpperCase();
-			const match = connections.find((connection) => connection.connectionId === normalized);
-			if (match) return match;
-			throw new Error(
-				`Figma session ${requestedId} was not found. Available sessions:\n${connections.map(describeConnection).join("\n")}`,
-			);
-		}
-		if (connections.length === 1) return connections[0];
-		throw new Error(
-			[
-				"Multiple Figma sessions are connected.",
-				"Match the requested file or page to this list, then retry with connectionId. Ask the user only if the target is ambiguous:",
-				...connections.map(describeConnection),
-			].join("\n"),
-		);
-	}
-
-	async function executeCode(code, timeoutSeconds, requestedConnectionId) {
-		await ensureBroker();
-		const connection = selectConnection(requestedConnectionId);
-		if (Buffer.byteLength(code, "utf8") > MAX_PAYLOAD_BYTES) {
-			throw new Error(`Figma JavaScript exceeds the ${MAX_PAYLOAD_BYTES}-byte limit`);
-		}
-
-		const id = randomUUID();
-		return new Promise((resolve, reject) => {
-			const timer = setTimeout(() => {
-				pending.delete(id);
-				reject(new Error(`Figma JavaScript timed out after ${timeoutSeconds} seconds`));
-			}, timeoutSeconds * 1000);
-			pending.set(id, { resolve, reject, timer, connection });
-			broker.send(JSON.stringify({ type: "execute", id, code, connectionId: connection.connectionId }), (error) => {
-				if (!error) return;
-				pending.delete(id);
-				clearTimeout(timer);
-				reject(error);
-			});
-		});
-	}
-
+	const client = new BrokerClient({ tokenLoader: async () => { validatePortEnvironment(); return ensureToken(); }, launchBroker });
 	pi.registerTool({
 		name: "figma_use",
 		label: "Execute Figma JavaScript",
-		description:
-			"Execute arbitrary JavaScript in a connected Figma session through the Figma Plugin API. Figpie connects automatically. If more than one session is connected, discover the available connection IDs from the ambiguity error, match the user's requested file or page, and retry with connectionId. Ask the user only when the target remains ambiguous. The code runs inside an async function with `figma` in scope, so top-level `await` and `return` are supported. Enhanced helpers include figma.createAutoLayout(), node.query(), node.matches(), node.set(), and node.screenshot(). Return JSON-serializable data. This tool can read, create, modify, or delete Figma content and can leave partial changes when code fails.",
-		promptSnippet: "Execute Figma Plugin API JavaScript in the connected local Figma file",
+		description: `Execute Figma Plugin API JavaScript in a paired local session. Code is an async function body with figma in scope: use top-level await and return, not an IIFE. Helpers: figma.createAutoLayout(), node.query(), node.matches(), node.set(), node.screenshot(). Multiple sessions produce an inventory error; match the file/page and retry with connectionId. Batch coherent inspect/build/validate/correct stages; same-session calls are sequential. Failures and cancellation may leave changes or running work: inspect before retrying. Return compact summaries with rootId, refs, issues and complete createdNodeIds/mutatedNodeIds arrays. More than ${MAX_INLINE_NODE_IDS} IDs are saved locally with counts/summary inline. Text is capped at ${MAX_INLINE_BYTES / 1024} KiB/${MAX_INLINE_LINES} lines with full received output saved when abbreviated.`,
+		promptSnippet: "Execute Figma Plugin API JavaScript in the paired local Figma file",
 		promptGuidelines: [
-			"Use figma_use only after loading the figma-use skill for Figma write or scripted inspection tasks.",
-			"When multiple Figma sessions exist, self-discover their IDs, select by the file or page named by the user, and ask only if the match is ambiguous.",
-			"Keep figma_use calls small, inspect before mutation, and return all created or changed node IDs.",
+			"For figma_use, load the figma-use skill once per agent session; reuse it across calls. Reload after a skill/runtime update or loss of the guidance from context. Load specialized references only as needed.",
+			"When figma_use finds multiple sessions, match the requested file/page to the inventory and specify connectionId; ask only if ambiguous.",
+			"Batch figma_use by coherent stages: inspect → build → validate → correct. Preflight lookups/fonts before mutation; use loops for repeated elements instead of a fixed node-count limit. Validate stage boundaries and inspect partial changes before retries.",
+			"Return concise figma_use summaries, named references, issues, and complete affected-ID arrays; large lists are preserved in a local artifact. Read only needed fields from that artifact, not the entire result by default.",
 		],
 		parameters: Type.Object({
-			code: Type.String({
-				description:
-					"JavaScript function body. `figma` is in scope. Use top-level await and an explicit return value. Do not wrap the code in an async IIFE.",
-			}),
-			connectionId: Type.Optional(
-				Type.String({
-					description: "Target Figma session ID, such as K7M4-P2. Omit when only one session is connected.",
-				}),
-			),
-			timeoutSeconds: Type.Optional(
-				Type.Integer({
-					description: "Execution timeout in seconds, including time spent waiting behind other Pi sessions",
-					minimum: 1,
-					maximum: 120,
-					default: 30,
-				}),
-			),
+			code: Type.String({ description: "JavaScript async function body. figma is in scope. Use top-level await and an explicit return; no IIFE." }),
+			connectionId: Type.Optional(Type.String({ description: "Target session ID, such as K7M4-P2Q8. Omit when only one session exists." })),
+			timeoutSeconds: Type.Optional(Type.Integer({ description: "Deadline in seconds, including connection, queue, and execution time", minimum: 1, maximum: 120, default: 30 })),
 		}),
 		async execute(_toolCallId, params, signal, onUpdate) {
-			if (signal?.aborted) throw new Error("Figma execution cancelled");
-			onUpdate?.({
-				content: [{ type: "text", text: "Waiting to execute JavaScript in Figma..." }],
-				details: { connections },
-			});
-
-			const timeoutSeconds = params.timeoutSeconds ?? 30;
-			let abortHandler;
-			const execution = executeCode(params.code, timeoutSeconds, params.connectionId);
-			const cancelled = new Promise((_, reject) => {
-				abortHandler = () => reject(new Error("Figma execution cancelled"));
-				signal?.addEventListener("abort", abortHandler, { once: true });
-			});
-			try {
-				const result = await (signal ? Promise.race([execution, cancelled]) : execution);
-				const output = await formatOutput(result.text);
-				return {
-					content: [
-						{ type: "text", text: output.text },
-						...result.images.map((image) => ({
-							type: "image",
-							data: image.data,
-							mimeType: image.mimeType,
-						})),
-					],
-					details: {
-						connection: result.connection,
-						outputFile: output.outputFile,
-						imageNames: result.images.map((image) => image.name).filter(Boolean),
-					},
-				};
-			} finally {
-				if (abortHandler) signal?.removeEventListener("abort", abortHandler);
+			signal?.throwIfAborted();
+			onUpdate?.({ content: [{ type: "text", text: "Waiting to execute JavaScript in Figma..." }], details: { connections: client.connections } });
+			let result;
+			try { result = await client.execute(params.code, params.timeoutSeconds ?? 30, params.connectionId, signal); }
+			catch (error) {
+				if (signal?.aborted || error?.name === "AbortError") throw error;
+				const output = await formatOutput(error instanceof Error ? error.message : String(error));
+				if (!output.abbreviated) throw error;
+				throw new Error(output.text);
 			}
+			const output = await formatOutput(result.text);
+			return {
+				content: [{ type: "text", text: output.text }, ...result.images.map(image => ({ type: "image", data: image.data, mimeType: image.mimeType }))],
+				details: { connection: result.connection, outputFile: output.outputFile, abbreviated: output.abbreviated, nodeIdCounts: output.nodeIdCounts, imageNames: result.images.map(image => image.name).filter(Boolean) },
+			};
 		},
 	});
-
 	pi.registerCommand("figpie-status", {
-		description: "Show this Pi session's Figpie status",
+		description: "Show broker, Figma sessions, and recovery status",
 		handler: async (_args, ctx) => {
-			ctx.ui.notify(
-				[
-					`Figpie connected: ${broker?.readyState === WebSocket.OPEN ? "yes" : "no"}`,
-					`Broker: ${bridgeUrl()}`,
-					`Ready Figma sessions: ${connections.length}`,
-					`Initializing Figma sessions: ${initializingCount}`,
-					...connections.map(describeConnection),
-				].join("\n"),
-				broker?.readyState === WebSocket.OPEN ? "info" : "warning",
-			);
+			if (!ctx.hasUI) return;
+			ctx.ui.notify([
+				`Figpie connected: ${client.connected ? "yes" : "no"}`,
+				`Broker: ${BRIDGE_URL}`,
+				`Initializing sessions: ${client.initializingCount}`,
+				...client.connections.map(describeConnection),
+				...(client.lastError ? [`Last error: ${client.lastError.message}`] : []),
+				`Broker log: ${LOG_FILE}`,
+			].join("\n"), client.connected ? "info" : "warning");
 		},
 	});
-
-	pi.on("session_start", async (_event, ctx) => {
-		hostStopping = false;
-		stopping = false;
-		try {
-			await ensureHostBroker();
-			await ensureBroker();
-			assertFigmaSessionAvailable();
-		} catch (error) {
-			ctx.ui.notify(`Could not connect to Figpie: ${errorMessage(error)}`, "error");
-		}
+	pi.registerCommand("figpie-pair", {
+		description: "Show the private pairing token to paste into the Figma plugin",
+		handler: async (_args, ctx) => {
+			if (!ctx.hasUI) throw new Error(`Pair interactively, or read your private token at ${TOKEN_FILE} outside the agent conversation.`);
+			const token = await ensureToken();
+			// A UI-only dialog keeps the credential out of tool results and model context.
+			await ctx.ui.select(`Paste this token into Figpie in Figma (keep it private):\n${token}`, ["Done"]);
+		},
 	});
-
+	let unavailable;
+	pi.on("session_start", (_event, ctx) => {
+		unavailable = error => { if (ctx.hasUI) ctx.ui.notify(`Figpie: ${error.message}. See /figpie-status.`, "error"); };
+		client.on("unavailable", unavailable);
+		client.start(); // Background connection attempts do not block Pi startup.
+	});
 	pi.on("session_shutdown", async () => {
-		hostStopping = true;
-		clearTimeout(hostReconnectTimer);
-		await closeClient().catch(() => {});
-		const socket = hostBroker;
-		hostBroker = undefined;
-		if (socket?.readyState === WebSocket.OPEN) socket.close(1000, "Pi host session stopped");
+		if (unavailable) client.off("unavailable", unavailable);
+		await client.stop();
 	});
 }

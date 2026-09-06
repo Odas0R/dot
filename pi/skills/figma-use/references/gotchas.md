@@ -6,7 +6,7 @@
 
 - Component properties and variant creation pitfalls
 - Paint, color, and variable binding pitfalls
-- Page context and plugin lifecycle pitfalls (set current page once per `figma_use` call; split multi-page work across calls)
+- Page context and plugin lifecycle pitfalls (persistent page state; background loading; sequential same-session calls)
 - Auto Layout and sizing order pitfalls (including HUG/FILL interactions, and TEXT nodes that ignore FILL and collapse to a zero-width thread)
 - Variant layout and geometry pitfalls
 - Canonical text-edit recipe + font loading and text/typography pitfalls
@@ -79,7 +79,7 @@ The same applies to `COMPONENT_SET` nodes — `addComponentProperty` always retu
 
 ## MUST return ALL created/mutated node IDs
 
-Every script that creates or mutates nodes on the canvas must track and return all affected node IDs in the return value. Without these IDs, subsequent calls cannot reference, validate, or clean up those nodes.
+Every script that creates or mutates nodes on the canvas must track and return complete affected-ID arrays. Figpie may save large arrays in a local artifact and return counts/summary inline; this preserves IDs without filling the agent context. Keep root/named references and issues concise, and read only needed IDs from the artifact. The bridge does not automatically discover omitted mutations or guarantee an ID manifest after a thrown error. See [compact output](../SKILL.md#3-return-is-your-output-channel).
 
 ```js
 // WRONG — only returns the parent frame ID, loses track of children
@@ -188,45 +188,18 @@ await figma.setCurrentPageAsync(targetPage)
 const page = figma.currentPage  // works
 ```
 
-## Set current page once per `figma_use` call — split multi-page work into parallel calls
+## Multi-page work in Figpie
 
-**A `figma_use` script must call `setCurrentPageAsync` at most once.** Never loop over `figma.root.children` and switch pages inside one script.
-
-**The rule is the same for reads and writes:** if work spans multiple pages, split it into **multiple `figma_use` tool calls, one per target page, and YOU MUST issue them in parallel**.
-
-> **Explicit instruction to the agent:** emit all N `figma_use` calls in a **single assistant message**, as N parallel tool-use blocks. Do not send them in separate turns. Do not await one before issuing the next. Each call sets `currentPage` exactly once; the harness runs them concurrently. Sequential per-page calls defeat the entire point of splitting and are slower than the in-loop pattern this rule replaces.
+Page state persists between calls. Keep work scoped to a known page or subtree and prefer loading pages without switching the user's visible page. Split jobs at meaningful dependency, validation, deadline, or output boundaries; repeated elements can share one prepared build call. Calls to one plugin session run sequentially, even when submitted in parallel. There is no transactional guarantee within or across calls.
 
 ```js
-// WRONG — one script switches pages on every iteration; reloads the file N times sequentially
-const componentsByPage = {}
-for (const page of figma.root.children) {
-  await figma.setCurrentPageAsync(page)
-  componentsByPage[page.name] = page.findAllWithCriteria({ types: ['COMPONENT'] }).map(n => n.id)
-}
-return componentsByPage
+const page = await figma.getNodeByIdAsync(PAGE_ID);
+if (!page || page.type !== 'PAGE') return { missingPageId: PAGE_ID };
+await page.loadAsync();
+return { pageId: page.id, components: page.findAllWithCriteria({ types: ['COMPONENT'] }).map(n => n.id) };
 ```
 
-Instead, do it in two steps and parallelize step 2:
-
-```js
-// CORRECT — step 1: cheap, no page switch. Return the page IDs you'll fan out over.
-return figma.root.children.map(p => ({ id: p.id, name: p.name }))
-```
-
-Then in the **next assistant turn**, emit **N parallel `figma_use` tool-use blocks in one message** — one per page. Each script runs this:
-
-```js
-// CORRECT — step 2: one call per page, currentPage set exactly once.
-// The assistant issues N of these in parallel — do NOT loop pages inside the script.
-const page = await figma.getNodeByIdAsync(PAGE_ID)  // PAGE_ID supplied by caller
-await figma.setCurrentPageAsync(page)
-// ... read or mutate this page ...
-return { pageId: page.id, components: page.findAllWithCriteria({ types: ['COMPONENT'] }).map(n => n.id) }
-```
-
-This applies to discovery, mutation, component-set creation, and audits — reads and writes alike. **The only acceptable reason to switch pages multiple times in one script is when splitting would break a transactional/atomicity guarantee** (i.e., the operation must succeed across all pages or none, and a partial failure between calls would corrupt state). "It's read-only" and "I want a consistent snapshot" are *not* exceptions — fan out in parallel.
-
-The same rule generalizes to *any* traversal: scope it to the smallest known ancestor — see [Scope traversal to the smallest known ancestor](#scope-traversal-to-the-smallest-known-ancestor).
+Switch pages with `setCurrentPageAsync()` only when the operation requires it, warning the user first. Scope traversal to the [smallest known ancestor](#scope-traversal-to-the-smallest-known-ancestor).
 
 ## `get_metadata` operates on one subtree — discover pages explicitly
 
@@ -246,13 +219,11 @@ return figma.root.children.map((page) => ({
 
 Icons, variables, and components may live on pages other than the first. Always enumerate all pages before concluding that the file has no existing assets.
 
-## Never use figma.notify()
+## Return output to the agent
+
+`figma.notify()` is a native Figma UI notification, not an output channel for Figpie. Prefer `return` so the agent receives the result without interrupting the user:
 
 ```js
-// WRONG — throws "not implemented" error
-figma.notify("Done!")
-
-// CORRECT — return a value to send data back to the agent
 return "Done!"
 ```
 
@@ -500,7 +471,7 @@ const inFrame = frame.findAllWithCriteria({ types: ['INSTANCE'] })
 
 **Never use `figma.root.findAll(...)` in a `figma_use` script.** It walks every page that has been loaded into memory and forces every other page to load if not already in memory — the worst-case traversal. There is no legitimate use of it in this codebase.
 
-**Never loop `figma.root.children` calling `setCurrentPageAsync(page)` and then `page.findAll(...)`** — that's the same antipattern in slow motion: one whole-page scan per page, plus the cost of switching pages. If work spans multiple pages, **fan out** instead: emit one `figma_use` per page in parallel (see [Set current page once per `figma_use` call](#set-current-page-once-per-figma_use-call--split-multi-page-work-into-parallel-calls)).
+For multi-page work, load each needed page with `page.loadAsync()` and scope its traversal. Split large jobs into small validated calls; same-session calls remain sequential. See [multi-page work](#multi-page-work-in-figpie).
 
 When you don't have a frame ID handy, capture one from a parent call and pass it to subsequent calls — `getNodeByIdAsync(id).findAllWithCriteria(...)` beats `figma.currentPage.findAllWithCriteria(...)` every time the target subtree is smaller than the page.
 
@@ -1014,4 +985,4 @@ const icon = figma.createNodeFromSvg(
 icon.resize(24, 24); // scales the whole icon — createNodeFromSvg children carry SCALE constraints
 ```
 
-**Sizing:** the SVG string must include a `viewBox` plus explicit `width`/`height`. Without `width`/`height` the node falls back to the `viewBox` size, which is often smaller than the slot and reads as "the icon didn't size properly." To fit an icon to a target box, set the SVG's `width`/`height` to the target or call `icon.resize(size, size)` after import. See [figma-generate-design](../../figma-generate-design/SKILL.md) for the screen-building icon workflow.
+**Sizing:** the SVG string must include a `viewBox` plus explicit `width`/`height`. Without `width`/`height` the node falls back to the `viewBox` size, which is often smaller than the slot and reads as "the icon didn't size properly." To fit an icon to a target box, set the SVG's `width`/`height` to the target or call `icon.resize(size, size)` after import. If a separate `figma-generate-design` skill is installed, consult it for the broader screen-building icon workflow.

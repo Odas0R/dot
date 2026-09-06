@@ -6,128 +6,189 @@
 		:root { color-scheme: light dark; font: 12px Inter, sans-serif; }
 		body { margin: 0; padding: 12px; background: var(--figma-color-bg); color: var(--figma-color-text); }
 		.row { display: flex; align-items: center; gap: 8px; }
-		.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--figma-color-icon-danger); }
-		.broker .dot { background: var(--figma-color-icon-warning); }
+		.dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--figma-color-icon-danger); }
 		.connected .dot { background: var(--figma-color-icon-success); }
 		#session, #target { margin-top: 6px; overflow: hidden; color: var(--figma-color-text-secondary); text-overflow: ellipsis; white-space: nowrap; }
+		#detail { margin: 8px 0; min-height: 28px; overflow-wrap: anywhere; }
+		input { box-sizing: border-box; width: 100%; margin: 6px 0; }
+		button { cursor: pointer; }
 	</style>
 </head>
 <body>
-	<div class="row"><span class="dot"></span><strong id="status">Connecting to bridge…</strong></div>
+	<div class="row"><span class="dot"></span><strong id="status">Pair with Pi</strong></div>
 	<div id="session">Session not assigned</div>
 	<div id="target">Waiting for file context</div>
+	<div id="detail" role="status">Run /figpie-pair in Pi, then paste the private token below.</div>
+	<form id="pairing">
+		<label for="token">Pairing token</label>
+		<input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste token from /figpie-pair">
+		<button type="submit">Pair / reconnect</button>
+		<button id="forget" type="button">Forget token</button>
+	</form>
 	<script>
-		const URL = "ws://localhost:3846/figma-use";
+		const URL = "ws://127.0.0.1:3846/figma-use";
+		const PROTOCOL_VERSION = 2;
+		const MAX_MESSAGE_BYTES = 16 * 1024 * 1024;
+		const MAX_PAYLOAD_BYTES = 20 * 1024 * 1024;
+		const isRecord = value => value !== null && typeof value === "object" && !Array.isArray(value);
+		const isId = value => typeof value === "string" && value.length > 0 && value.length <= 128;
 		let socket;
 		let reconnectTimer;
-		let agentCount = 0;
+		let helloTimer;
+		let token = "";
 		let connectionId;
 		let target = {};
-
-		function render(brokerConnected) {
-			const piConnected = brokerConnected && agentCount > 0;
-			document.body.className = piConnected ? "connected" : brokerConnected ? "broker" : "";
-			document.getElementById("status").textContent = !brokerConnected
-				? "Connecting to bridge…"
-				: agentCount === 0
-					? "Waiting for Pi…"
-					: agentCount === 1
-						? "Connected to Pi"
-						: `Connected to Pi · ${agentCount} sessions`;
-			const sessionText = connectionId ? `Session ${connectionId}` : "Session not assigned";
-			const sessionElement = document.getElementById("session");
-			sessionElement.textContent = sessionText;
-			sessionElement.title = sessionText;
-			const targetText = target.fileName
-				? `${target.fileName} / ${target.pageName || "unknown page"}`
-				: "Waiting for file context";
-			const targetElement = document.getElementById("target");
-			targetElement.textContent = targetText;
-			targetElement.title = targetText;
+		let agentCount = 0;
+		let authenticated = false;
+		let helloSent = false;
+		let contextRequest = 0;
+		let awaitingContext;
+		let failures = 0;
+		let paused = false;
+		let pairingEdited = false;
+		let detail = "Run /figpie-pair in Pi, then paste the private token below.";
+		const executions = new Map();
+		const post = message => parent.postMessage({ pluginMessage: message }, "*");
+		function render() {
+			document.body.className = authenticated && agentCount ? "connected" : "";
+			document.getElementById("status").textContent = target.busyId ? "Figma execution busy" : authenticated ? (agentCount ? "Connected to Pi" : "Waiting for Pi") : token ? (paused ? "Connection needs attention" : "Connecting to Pi…") : "Pair with Pi";
+			for (const [id, text] of [["session", connectionId ? `Session ${connectionId} · ${agentCount} Pi sessions` : "Session not assigned"], ["target", target.fileName ? `${target.fileName} / ${target.pageName || "unknown page"}` : "Waiting for file context"]]) {
+				const element = document.getElementById(id);
+				element.textContent = text;
+				element.title = text;
+			}
+			document.getElementById("detail").textContent = detail;
 		}
-
-		function sendHello(targetSocket = socket) {
-			if (!targetSocket || targetSocket.readyState !== WebSocket.OPEN) return;
-			targetSocket.send(JSON.stringify({ ...target, type: "hello", role: "plugin", connectionId }));
+		function send(message, destination = socket) {
+			if (destination?.readyState !== WebSocket.OPEN) return;
+			let encoded = JSON.stringify(message);
+			if (new TextEncoder().encode(encoded).length > MAX_MESSAGE_BYTES - 1024) {
+				encoded = JSON.stringify({ type: "error", id: message.id, message: "Result exceeds the 16 MiB transport budget. Return less data; changes may remain." });
+			}
+			if (destination.bufferedAmount + encoded.length > MAX_PAYLOAD_BYTES) { destination.close(1009, "Send buffer full"); return; }
+			destination.send(encoded);
 		}
-
-		function requestTarget() {
-			parent.postMessage({ pluginMessage: { type: "ready" } }, "*");
-		}
-
-		function connect() {
+		function disconnect() {
 			clearTimeout(reconnectTimer);
-			const nextSocket = new WebSocket(URL);
-			socket = nextSocket;
-			nextSocket.onopen = () => {
-				if (socket !== nextSocket) {
-					nextSocket.close();
-					return;
-				}
-				render(true);
-				sendHello(nextSocket);
-				requestTarget();
-			};
-			nextSocket.onmessage = (event) => {
-				if (socket !== nextSocket) return;
-				let message;
-				try { message = JSON.parse(event.data); } catch (_error) { return; }
-				if (message.type === "request-target") {
-					requestTarget();
-					return;
-				}
-
-				if (message.type === "session-status") {
-					connectionId = message.connectionId;
-					agentCount = Number.isInteger(message.agentCount) ? message.agentCount : 0;
-					render(nextSocket.readyState === WebSocket.OPEN);
-					if (!target.fileName) requestTarget();
-					return;
-				}
-				if (message.type === "agent-status") {
-					agentCount = Number.isInteger(message.count) ? message.count : 0;
-					render(nextSocket.readyState === WebSocket.OPEN);
-					return;
-				}
-				if (message.type === "execute") {
-					parent.postMessage({ pluginMessage: message }, "*");
-				}
-			};
-			const scheduleReconnect = () => {
-				if (socket !== nextSocket) return;
-				agentCount = 0;
-				render(false);
-				clearTimeout(reconnectTimer);
-				reconnectTimer = setTimeout(connect, 250);
-			};
-			nextSocket.onclose = scheduleReconnect;
-			nextSocket.onerror = () => {
-				scheduleReconnect();
-				nextSocket.close();
-			};
+			clearTimeout(helloTimer);
+			const previous = socket;
+			socket = undefined;
+			authenticated = false;
+			agentCount = 0;
+			executions.clear();
+			if (previous) { previous.close(); post({ type: "transport-lost" }); }
 		}
-
-		window.onmessage = (event) => {
-			const message = event.data && event.data.pluginMessage;
-			if (!message) return;
-			if (message.type === "target") {
-				target = message;
-				clearInterval(targetRequestTimer);
-				render(socket && socket.readyState === WebSocket.OPEN);
-				sendHello();
+		function connect() {
+			if (!token || paused) return;
+			disconnect();
+			helloSent = false;
+			const next = new WebSocket(URL);
+			socket = next;
+			helloTimer = setTimeout(() => { if (socket === next && !authenticated) next.close(1000, "Hello timed out"); }, 4000);
+			next.onopen = () => {
+				if (socket !== next) { next.close(); return; }
+				// Correlate a fresh snapshot; a queued target from an old transport is insufficient.
+				awaitingContext = String(++contextRequest);
+				post({ type: "ready", requestId: awaitingContext });
+			};
+			next.onmessage = event => {
+				if (socket !== next) return;
+				let message;
+				try { message = JSON.parse(event.data); } catch { next.close(1008, "Invalid JSON"); return; }
+				if (!isRecord(message)) { next.close(1008, "Invalid message"); return; }
+				if (message.type === "protocol-error") {
+					paused = true;
+					detail = typeof message.message === "string" ? message.message : "Pairing/protocol rejected. Update the plugin and use /figpie-pair.";
+					next.close();
+					render();
+					return;
+				}
+				if (message.type === "session-status") {
+					if (message.version !== PROTOCOL_VERSION || typeof message.connectionId !== "string" || !/^[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(message.connectionId) || !Number.isInteger(message.agentCount)) {
+						paused = true;
+						detail = "Incompatible broker. Stop the old broker on port 3846, update the plugin, and /reload Pi.";
+						next.close(); render(); return;
+					}
+					authenticated = true;
+					connectionId = message.connectionId;
+					agentCount = message.agentCount;
+					failures = 0;
+					clearTimeout(helloTimer);
+					detail = "Paired. If an execution stays busy after cancellation, restart this plugin and inspect partial changes.";
+					render(); return;
+				}
+				if (!authenticated) { next.close(1008, "Hello required"); return; }
+				if (message.type === "agent-status" && Number.isInteger(message.count)) { agentCount = message.count; render(); return; }
+				if (message.type === "execute" && isId(message.id) && typeof message.code === "string" && Number.isSafeInteger(message.deadline)) {
+					executions.set(message.id, next);
+					post(message); return;
+				}
+				if (message.type === "cancel" && isId(message.id)) { post(message); return; }
+				next.close(1008, "Invalid broker message");
+			};
+			next.onclose = () => {
+				if (socket !== next) return;
+				disconnect();
+				render();
+				if (!paused && token) reconnectTimer = setTimeout(connect, Math.min(10_000, 250 * 2 ** Math.min(failures++, 6)) * (0.8 + Math.random() * 0.4));
+			};
+			next.onerror = () => next.close();
+			render();
+		}
+		window.onmessage = event => {
+			if (event.source !== parent) return;
+			const message = event.data?.pluginMessage;
+			if (!isRecord(message)) return;
+			if (message.type === "pairing") {
+				if (!pairingEdited && !token && typeof message.token === "string" && /^[a-f0-9]{64}$/.test(message.token)) { token = message.token; connect(); }
 				return;
 			}
-			if (socket && socket.readyState === WebSocket.OPEN) {
-				socket.send(JSON.stringify(message));
+			if (message.type === "pairing-error") {
+				detail = typeof message.message === "string" ? message.message : "Pairing storage is unavailable.";
+				render(); return;
+			}
+			if (message.type === "target") {
+				if (message.version !== PROTOCOL_VERSION || !(message.busyId === null || isId(message.busyId))) return;
+				target = message;
+				if (socket?.readyState === WebSocket.OPEN) {
+					if (!helloSent && message.requestId === awaitingContext && awaitingContext !== undefined) {
+						helloSent = true;
+						send({ ...target, type: "hello", version: PROTOCOL_VERSION, role: "plugin", token, connectionId });
+					} else if (authenticated) send(target);
+				}
+				render(); return;
+			}
+			if (["result", "error"].includes(message.type) && isId(message.id)) {
+				const destination = executions.get(message.id);
+				executions.delete(message.id);
+				if (authenticated && destination === socket) send(message, destination);
 			}
 		};
-
-		const targetRequestTimer = setInterval(() => {
-			if (!target.fileName) requestTarget();
-		}, 500);
-
-		render(false);
-		connect();
+		document.getElementById("pairing").onsubmit = event => {
+			event.preventDefault();
+			pairingEdited = true;
+			const input = document.getElementById("token");
+			const entered = input.value.trim();
+			if (entered && !/^[a-f0-9]{64}$/.test(entered)) { detail = "Paste the complete 64-character token from /figpie-pair."; render(); return; }
+			if (entered) token = entered;
+			input.value = "";
+			paused = false;
+			failures = 0;
+			post({ type: "save-pairing", token });
+			connect();
+		};
+		document.getElementById("forget").onclick = () => {
+			pairingEdited = true;
+			token = ""; paused = true; disconnect();
+			post({ type: "save-pairing", token: "" });
+			detail = "Token forgotten. Run /figpie-pair in Pi to pair again.";
+			render();
+		};
+		// Refresh names and busy state even when pages are renamed without switching pages.
+		setInterval(() => post({ type: "ready" }), 3000);
+		post({ type: "load-pairing" });
+		post({ type: "ready" });
+		render();
 	</script>
 </body>
 </html>

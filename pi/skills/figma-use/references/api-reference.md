@@ -344,14 +344,14 @@ function walk(node) {
 
 ---
 
-## What Does NOT Work
+## Figpie Runtime Availability
 
 | API | Status |
 |-----|--------|
-| `figma.notify()` | **Throws "not implemented"** — most common mistake |
-| `figma.showUI()` | No-op (silently ignored) |
-| `figma.openExternal()` | No-op (silently ignored) |
-| `figma.loadAllPagesAsync()` | Not implemented |
-| `figma.variables.extendLibraryCollectionByKeyAsync()` | Not implemented |
-| `figma.teamLibrary.*` | Not implemented (requires the team-library backend) |
+| `figma.notify()` | Native Figma notification; use `return` for agent output |
+| `figma.showUI()` / `figma.closePlugin()` | Reserved by Figpie; scripts must leave the bridge running |
+| `figma.openExternal()` | Native API with user-visible side effects; use only when requested |
+| `figma.loadAllPagesAsync()` | Native dynamic-page API; prefer loading only needed pages |
+| `figma.variables.extendLibraryCollectionByKeyAsync()` | Availability depends on installed Figma/API support; verify before use |
+| `figma.teamLibrary.*` | Native library APIs, subject to permissions and file/library access |
 | `figma.getLocalComponents*()` | **Does not exist** — unlike styles, there is no `getLocalComponents()` or `getLocalComponentSetsAsync()` (or any `getLocalComponent*` variant). Use `page.findAllWithCriteria({ types: ['COMPONENT', 'COMPONENT_SET'] })` to locate components in the current file (avoid the slower `findAll(n => n.type === '…')` predicate scan). |

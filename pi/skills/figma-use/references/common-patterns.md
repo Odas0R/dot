@@ -323,7 +323,7 @@ return {
 
 ## Large ComponentSet with Variable Modes (Multi-Step Pattern)
 
-For component sets with many variants (50+), split into multiple `figma_use` calls:
+For complex component sets, split at dependency/validation boundaries, as in the example below. Variant count alone is not a reason to split: a preflighted, repetitive build can stay in one call when its deadline and output budget permit. See the [stage-based workflow](../SKILL.md#6-incremental-workflow-how-to-avoid-bugs).
 
 **Call 1: Create variable collections and return IDs**
 

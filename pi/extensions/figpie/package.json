@@ -11,6 +11,10 @@
       "./index.js"
     ]
   },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "check": "node --check index.js && node --check client.js && node --check broker.js && node --check auth.js && node --check protocol.js && node --check output.js && node --check plugin/code.js"
+  },
   "dependencies": {
     "ws": "^8.18.3"
   },

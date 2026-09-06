@@ -22,13 +22,16 @@
 
 ### Page Context
 
-Page context resets between `figma_use` calls — `figma.currentPage` always starts on the first page. Use `await figma.setCurrentPageAsync(page)` at the start of each invocation to switch to the correct page. The sync setter `figma.currentPage = page` does **NOT work** and will throw — always use the async method.
+Page context persists between Figpie calls. Resolve the intended page explicitly and load it without changing the user's visible page:
 
 ```javascript
 const targetPage = figma.root.children.find(p => p.name === "My Page");
-await figma.setCurrentPageAsync(targetPage);
-// targetPage.children is now populated
+if (!targetPage) return { missingPage: "My Page" };
+await targetPage.loadAsync();
+// targetPage.children is now available; edit targetPage directly.
 ```
+
+If an operation requires a visible switch, warn the user and use `await figma.setCurrentPageAsync(targetPage)`, not the synchronous setter.
 
 ### Returning Results
 
@@ -42,18 +45,13 @@ return { nodeId: frame.id, count: 5 }
 return "Created 3 components"
 ```
 
-Errors are automatically captured — no try/catch needed. `figma.notify()` does **not** exist. Return all information via the `return` value.
+Errors are captured but do not roll back changes. Inspect partial state before retrying. `figma.notify()` displays a native Figma notification; it does not send output to the agent. Return all information via the `return` value.
 
 ### Working Incrementally
 
-Don't build an entire screen in one call. Break work into small steps:
-1. Create tokens/variables
-2. Create text styles
-3. Build individual components
-4. Compose sections
-5. Assemble screens
+Follow the [stage-based workflow](../SKILL.md#6-incremental-workflow-how-to-avoid-bugs): inspect → build → validate → correct. A prepared screen can share one build call; use loops for repeated elements and deduplicate font/dependency loading before mutation. Split tokens, styles, components, or sections into separate stages when a dependency needs validation or the batch risks exceeding deadlines/output limits—not because it crosses a node-count threshold.
 
-Verify structure with `get_metadata` between steps. Use `get_screenshot` after each major creation milestone to catch visual problems early.
+Keep cheap structural checks in the build call. Validate the completed stage with read-only inspection and one overview screenshot; request cropped screenshots only where needed. Return compact root/named references and issues, plus full affected-ID arrays for Figpie's local artifact handling.
 
 ## Creating Nodes
 
