@@ -6,7 +6,7 @@ One Pi tool, `figma_use`, executes JavaScript in a local Figma Design developmen
 Pi sessions → authenticated loopback broker → plugin UI → plugin sandbox → Figma Plugin API
 ```
 
-The detached broker listens only on `127.0.0.1:3846`. Multiple Pi sessions and Figma plugin sessions can connect. Each plugin gets a connection ID. Calls are sequential within a plugin session and concurrent across different sessions.
+The detached broker listens only on `127.0.0.1:3846`. The plugin connects through `ws://localhost:3846/figma-use`: Figma's manifest validator rejects the numeric loopback URL, so its allowlist uses `ws://localhost:3846` with a local-access explanation. Pi still connects directly to `127.0.0.1`. Multiple Pi sessions and Figma plugin sessions can connect. Each plugin gets a connection ID. Calls are sequential within a plugin session and concurrent across different sessions.
 
 ## Install and pair
 
@@ -18,11 +18,19 @@ npm install
 1. In Figma Desktop, open **Plugins → Development → Import plugin from manifest…** and select `plugin/manifest.json` from this directory.
 2. Run **Figpie** in the target Design file.
 3. Reload Pi. Run **`/figpie-pair`** and paste the displayed private token into the plugin's pairing field.
-4. Click **Pair / reconnect** and keep the plugin window open.
+4. Click **Connect** and keep the plugin window open.
+
+The compact panel uses Figma's official light/dark theme CSS variables with styled semantic HTML controls (no external UI framework). Once paired, it shows the file/page, routing ID, and connected Pi-session count; credentials collapse into **Connection settings**. Dropped connections retry automatically. Use **Retry** in the pairing form when needed, or open settings to update/forget the token. Connection-changing controls are disabled while an execution is busy.
 
 The token is stored in `~/.config/figpie/pairing-token` (0600, parent directory 0700) and in Figma's plugin client storage. Treat it as a local credential; do not paste it into an agent conversation or commit it. **Forget token** removes the Figma-side copy. To rotate credentials, stop the broker, remove the local token file, reload Pi, and pair each plugin again.
 
 Pi starts the broker on demand and retries transient connection failures with bounded exponential backoff. Startup is non-blocking; either Pi or the Figma plugin may start first. `/figpie-status` shows connection inventory, busy/blocked state, queue lengths, and the last connection error. Broker launch diagnostics go to `~/.config/figpie/broker.log`.
+
+### Pairing diagnostics
+
+`Figpie connected: yes` in `/figpie-status` means **Pi is connected to the broker**, not that Figma has paired. A paired Figma plugin also appears as a session/file/page entry. The plugin UI reports the stages separately: reaching the broker, receiving Figma file context, and authenticating.
+
+If it reaches the broker but cannot obtain file context, close and reopen the entire Figpie plugin with the updated `code.js` and `ui.html`. Pi's `/reload` does not refresh an already-open Figma plugin. The UI/sandbox channel uses a fresh per-window handshake key rather than assuming host messages come from `window.parent`; that key is automatic, stays off the broker wire, and is separate from the user-managed pairing token.
 
 ### Upgrade from the unauthenticated broker
 

@@ -35,8 +35,12 @@ test("rejects public credentials and symlink token files", { skip: process.platf
 test("fixed endpoint matches UI/manifest and rejects unsupported overrides", () => {
 	const ui = readFileSync(new URL("../plugin/ui.html", import.meta.url), "utf8");
 	const manifest = JSON.parse(readFileSync(new URL("../plugin/manifest.json", import.meta.url), "utf8"));
-	assert.ok(ui.includes(`const URL = "${BRIDGE_URL}"`));
-	assert.ok(manifest.networkAccess.allowedDomains.includes(new URL(BRIDGE_URL).origin));
+	const pluginURL = new URL(BRIDGE_URL);
+	assert.equal(pluginURL.hostname, "127.0.0.1", "Pi still connects directly to IPv4 loopback");
+	pluginURL.hostname = "localhost"; // Figma's manifest validator rejects numeric loopback URLs.
+	assert.ok(ui.includes(`const URL = "${pluginURL.href}"`));
+	assert.deepEqual(manifest.networkAccess.allowedDomains, [pluginURL.origin]);
+	assert.ok(manifest.networkAccess.reasoning, "Figma requires reasoning for local-server access");
 	validatePortEnvironment({ PI_FIGPIE_PORT: "3846" });
 	for (const value of ["0", "bad", "3846foo", "4000"]) assert.throws(() => validatePortEnvironment({ PI_FIGPIE_PORT: value }), /no longer supported/);
 });

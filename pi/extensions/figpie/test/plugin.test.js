@@ -5,7 +5,7 @@ import vm from "node:vm";
 import { MAX_MESSAGE_BYTES, MAX_IMAGE_BYTES, MAX_IMAGES, PROTOCOL_VERSION } from "../protocol.js";
 
 const source = readFileSync(new URL("../plugin/code.js", import.meta.url), "utf8");
-function sandbox() {
+function sandbox({ initializeBridge = true } = {}) {
 	const context = vm.createContext({ console, setTimeout, clearTimeout });
 	vm.runInContext(`
 		var messages = [], listeners = new Map(), undos = 0;
@@ -28,15 +28,35 @@ function sandbox() {
 		};
 		var __html__ = '';
 	`, context);
+	const envelopes = [];
+	context.figma.ui.postMessage = envelope => { envelopes.push(envelope); context.messages.push(envelope.message); };
 	vm.runInContext(source, context, { filename: "plugin/code.js" });
+	const receiveUI = context.figma.ui.onmessage;
+	const bridgeId = "b".repeat(32);
+	context.figma.ui.onmessage = message => receiveUI({ bridgeId, message });
+	if (initializeBridge) void context.figma.ui.onmessage({ type: "ready" });
 	let sequence = 0;
 	async function execute(code, options = {}) {
 		const id = `test-${sequence++}`;
 		await context.figma.ui.onmessage({ type: "execute", id, code, deadline: Date.now() + 5000, ...options });
 		return context.messages.find(m => m.id === id && ["result", "error"].includes(m.type));
 	}
-	return { context, execute };
+	return { context, execute, receiveUI, bridgeId, envelopes };
 }
+
+test("UI channel requires initialization and pins its key before commands or token access", async () => {
+	const { context, receiveUI, bridgeId, envelopes } = sandbox({ initializeBridge: false });
+	const execute = { type: "execute", id: "bad", code: 'figma.currentPage.name="wrong"', deadline: Date.now() + 5000 };
+	for (const envelope of [execute, { bridgeId, message: execute }, { bridgeId: "invalid", message: { type: "ready" } }]) await receiveUI(envelope);
+	assert.equal(envelopes.length, 0);
+	assert.equal(context.page.name, "Page");
+	await receiveUI({ bridgeId, message: { type: "ready", requestId: "init" } });
+	assert.equal(envelopes[0].bridgeId, bridgeId);
+	assert.equal(envelopes[0].message.requestId, "init");
+	for (const message of [execute, { type: "load-pairing" }, { type: "ready" }]) await receiveUI({ bridgeId: "c".repeat(32), message });
+	assert.equal(envelopes.length, 1, "wrong keys must not receive tokens, reset the channel, or execute work");
+	assert.equal(context.page.name, "Page");
+});
 
 test("wire constants match the broker", () => {
 	const context = sandbox().context;

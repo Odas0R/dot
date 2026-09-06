@@ -8,7 +8,7 @@
   "permissions": ["teamlibrary"],
   "documentAccess": "dynamic-page",
   "networkAccess": {
-    "allowedDomains": ["http://127.0.0.1:3846", "ws://127.0.0.1:3846"],
+    "allowedDomains": ["ws://localhost:3846"],
     "reasoning": "Connects only to the local Figpie broker."
   }
 }

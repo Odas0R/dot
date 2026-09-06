@@ -1,5 +1,6 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+import { realpathSync } from "node:fs";
 import { WebSocket, WebSocketServer } from "ws";
 import { ensureToken, tokenMatches, TOKEN_PATTERN } from "./auth.js";
 import {
@@ -229,7 +230,18 @@ export async function startBroker({ token, port = PORT, maxQueue = 32, helloMs =
 	return { port: server.address().port, close };
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+function isMainModule() {
+	if (!process.argv[1]) return false;
+	try {
+		// Node resolves the module URL but may retain a symlink in argv[1].
+		return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1]);
+	} catch {
+		// Importers using --eval can supply an argv label that is not a file.
+		return false;
+	}
+}
+
+if (isMainModule()) {
 	try {
 		validatePortEnvironment();
 		const broker = await startBroker({ token: await ensureToken() });

@@ -1,4 +1,4 @@
-figma.showUI(__html__, { width: 340, height: 240, themeColors: true });
+figma.showUI(__html__, { width: 320, height: 216, themeColors: true });
 
 // Wire constants are checked against protocol.js by the test suite.
 const PROTOCOL_VERSION = 2;
@@ -15,6 +15,11 @@ const NODE_TYPES = new Set([
 const isRecord = value => value !== null && typeof value === "object" && !Array.isArray(value);
 const isId = value => typeof value === "string" && value.length > 0 && value.length <= 128;
 let activeRun = null;
+let uiBridgeId;
+
+function postToUI(message) {
+	if (uiBridgeId) figma.ui.postMessage({ bridgeId: uiBridgeId, message });
+}
 
 function isNode(value) {
 	if (!isRecord(value)) return false;
@@ -222,26 +227,30 @@ function descendants(root) {
 	return result;
 }
 function sendTarget(requestId) {
-	figma.ui.postMessage({ type: "target", version: PROTOCOL_VERSION, requestId: isId(requestId) ? requestId : undefined, fileKey: figma.fileKey, fileName: figma.root.name, pageName: figma.currentPage.name, editorType: figma.editorType, busyId: activeRun?.id || null });
+	postToUI({ type: "target", version: PROTOCOL_VERSION, requestId: isId(requestId) ? requestId : undefined, fileKey: figma.fileKey, fileName: figma.root.name, pageName: figma.currentPage.name, editorType: figma.editorType, busyId: activeRun?.id || null });
 }
 function postError(id, error) {
-	figma.ui.postMessage({ type: "error", id, message: String(error?.message || error).slice(0, 8192), stack: typeof error?.stack === "string" ? error.stack.slice(0, 32768) : undefined });
+	postToUI({ type: "error", id, message: String(error?.message || error).slice(0, 8192), stack: typeof error?.stack === "string" ? error.stack.slice(0, 32768) : undefined });
 }
 figma.on("currentpagechange", sendTarget);
 
-figma.ui.onmessage = async (message) => {
-	if (!isRecord(message)) return;
+figma.ui.onmessage = async (envelope) => {
+	if (!isRecord(envelope) || typeof envelope.bridgeId !== "string" || !/^[a-f0-9]{32}$/.test(envelope.bridgeId) || !isRecord(envelope.message)) return;
+	const message = envelope.message;
+	// Bootstrap through Figma's own UI channel, then pin this UI's random key.
+	if (!uiBridgeId && ["load-pairing", "ready"].includes(message.type)) uiBridgeId = envelope.bridgeId;
+	if (envelope.bridgeId !== uiBridgeId) return;
 	if (message.type === "ready") { sendTarget(message.requestId); return; }
 	if (message.type === "load-pairing" || message.type === "save-pairing") {
 		try {
 			if (message.type === "load-pairing") {
 				const token = await figma.clientStorage.getAsync("figpie-pairing-v2");
-				figma.ui.postMessage({ type: "pairing", token: typeof token === "string" ? token : "" });
+				postToUI({ type: "pairing", token: typeof token === "string" ? token : "" });
 			} else if (typeof message.token === "string" && /^(?:[a-f0-9]{64})?$/.test(message.token)) {
 				await figma.clientStorage.setAsync("figpie-pairing-v2", message.token);
 			}
 		} catch {
-			figma.ui.postMessage({ type: "pairing-error", message: "Figma could not load/save pairing. Pair again; storage may be unavailable." });
+			postToUI({ type: "pairing-error", message: "Figma could not load/save pairing. Pair again; storage may be unavailable." });
 		}
 		return;
 	}
@@ -383,7 +392,7 @@ figma.ui.onmessage = async (message) => {
 		guard();
 		const response = { type: "result", id: message.id, text: serialize(result), images: screenshots };
 		if (utf8Length(JSON.stringify(response)) > MAX_MESSAGE_BYTES - 1024) throw new Error("Result exceeds the 16 MiB message budget. Return less data or fewer screenshots; changes may remain.");
-		figma.ui.postMessage(response);
+		postToUI(response);
 	} catch (error) { postError(message.id, error); }
 	finally {
 		for (const [object, event, callback] of subscriptions) { try { object.off(event, callback); } catch {} }
