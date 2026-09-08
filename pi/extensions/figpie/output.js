@@ -5,6 +5,7 @@ import { join } from "node:path";
 export const MAX_INLINE_BYTES = 8 * 1024;
 export const MAX_INLINE_LINES = 200;
 export const MAX_INLINE_NODE_IDS = 50;
+
 const ID_FIELDS = ["createdNodeIds", "mutatedNodeIds"];
 
 function fits(text) {

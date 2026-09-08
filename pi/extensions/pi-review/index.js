@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:net";
-import { humanKittyError, launchKitty } from "../shared/kitty.js";
+import { humanKittyError, launchKitty } from "../lib/kitty.js";
 
 const REVIEW_PROTOCOL_VERSION = 1;
 const MAX_REVIEW_ITEMS = 100;
@@ -320,12 +320,12 @@ function handleReviewSocket(socket, token, getActiveCtx) {
 	});
 }
 
-async function openDiffviewInKittyOverlay(cwd, diffArgs, reviewBridge) {
+async function openDiffviewInKittyOverlay(pi, cwd, diffArgs, reviewBridge) {
 	const command = diffArgs
 		? `DiffviewOpen --imply-local ${diffArgs}`
 		: "DiffviewOpen --imply-local";
 
-	await launchKitty({
+	await launchKitty(pi, {
 		type: "overlay",
 		cwd,
 		title: "Pi review diff",
@@ -422,7 +422,7 @@ export default function piReviewExtension(pi) {
 			try {
 				const diffArgs = ensureSafeExArgs(args);
 				const reviewBridge = await ensureReviewServer(ctx);
-				await openDiffviewInKittyOverlay(ctx.cwd, diffArgs, reviewBridge);
+				await openDiffviewInKittyOverlay(pi, ctx.cwd, diffArgs, reviewBridge);
 				ctx.ui.notify("Opened interactive Diffview review", "info");
 			} catch (error) {
 				const message = error instanceof Error ? error.message : String(error);

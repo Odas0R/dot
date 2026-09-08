@@ -26,7 +26,7 @@ for package in "$PI_SRC"/extensions/*/package.json; do
     --prefix "$(dirname "$package")"
 done
 
-for resource in extensions prompts skills themes; do
+for resource in extensions prompts skills themes commands; do
   source="$PI_SRC/$resource"
   target="$PI_HOME/$resource"
 

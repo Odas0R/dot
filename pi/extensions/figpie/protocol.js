@@ -1,4 +1,3 @@
-// Keep plugin/code.js and plugin/ui.html wire constants in sync (covered by tests).
 export const PROTOCOL_VERSION = 2;
 export const PORT = 3846;
 export const HOST = "127.0.0.1";
@@ -10,6 +9,7 @@ export const MAX_CODE_BYTES = 1024 * 1024;
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // Aggregate base64 bytes, not decoded bytes.
 export const MAX_IMAGES = 10;
 export const CONNECTION_ID = /^[A-Z2-9]{4}-[A-Z2-9]{4}$/;
+
 export const isConnectionId = value => typeof value === "string" && CONNECTION_ID.test(value);
 export const isRecord = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 export const isId = (value) => typeof value === "string" && value.length > 0 && value.length <= 128;
