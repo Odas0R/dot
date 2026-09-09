@@ -247,7 +247,7 @@ This works for icons, avatars, badges, or any swappable nested element.
 
 ### List all existing components across all pages
 
-If separately available, `search_design_system` can discover published components. For on-canvas components, discover page IDs first:
+Discover page IDs first:
 
 ```javascript
 return figma.root.children.map(p => ({ id: p.id, name: p.name }));

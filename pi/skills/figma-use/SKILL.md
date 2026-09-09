@@ -404,8 +404,6 @@ return figma.root.children.map((page) => ({
 
 **List existing components across all pages:**
 
-When separately available, `search_design_system` is an option for published components. For on-canvas components, discover page IDs and inspect each relevant page in a small call.
-
 Step 1: one read-only `figma_use` to get page IDs:
 ```js
 return figma.root.children.map(p => ({ id: p.id, name: p.name }));
