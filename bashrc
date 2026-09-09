@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export SHELL="/usr/local/bin/bash"
+export SHELL="$BASH"
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 

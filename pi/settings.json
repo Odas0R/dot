@@ -10,12 +10,5 @@
     "openai-codex/gpt-6-astra"
   ],
   "defaultThinkingLevel": "medium",
-  "hideThinkingBlock": false,
-  "extensions": [
-    "-extensions/optmem/index.js",
-    "-extensions/figma-mcp/index.js"
-  ],
-  "skills": [
-    "-skills/figma-design-to-code/SKILL.md"
-  ]
+  "hideThinkingBlock": false
 }
