@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Figpie icon">
-  <rect width="128" height="128" rx="28" fill="#211B2B"/>
-  <path d="M60 18A46 46 0 1 0 110 68H60V18Z" fill="#F24E1E"/>
-  <path d="M69 58V17A46 46 0 0 1 110 58H69Z" fill="#A259FF"/>
-  <circle cx="64" cy="64" r="7" fill="#FFF7ED"/>
-</svg>

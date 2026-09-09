@@ -1,25 +1,24 @@
 {
-  "name": "@odas0r/pi-figpie",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "engines": {
-    "node": ">=20"
-  },
-  "pi": {
-    "extensions": [
-      "./index.js"
-    ]
-  },
-  "scripts": {
-    "test": "node --test test/*.test.js",
-    "check": "node --check index.js && node --check client.js && node --check broker.js && node --check auth.js && node --check protocol.js && node --check output.js && node --check plugin/code.js"
-  },
-  "dependencies": {
-    "ws": "^8.18.3"
-  },
-  "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
-    "typebox": "*"
-  }
+	"name": "@odas0r/pi-figpie",
+	"version": "0.2.0",
+	"private": true,
+	"type": "module",
+	"engines": {
+		"node": ">=20"
+	},
+	"pi": {
+		"extensions": [
+			"./index.js"
+		]
+	},
+	"scripts": {
+		"check": "node --check index.js && find src -name '*.js' -print0 | xargs -0 -n1 node --check"
+	},
+	"dependencies": {
+		"ws": "^8.18.3"
+	},
+	"peerDependencies": {
+		"@earendil-works/pi-coding-agent": "*",
+		"typebox": "*"
+	}
 }

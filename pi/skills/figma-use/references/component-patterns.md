@@ -253,7 +253,7 @@ Discover page IDs first:
 return figma.root.children.map(p => ({ id: p.id, name: p.name }));
 ```
 
-Inspect each relevant page in a small call. Figpie serializes calls within a plugin session; parallel submission does not speed them up. Load pages without switching the user's view:
+Inspect each relevant page in a small call. Figpie serializes calls within a Figma CDP target; parallel submission does not speed them up. Load pages without switching the user's view:
 
 ```javascript
 const page = await figma.getNodeByIdAsync(PAGE_ID);

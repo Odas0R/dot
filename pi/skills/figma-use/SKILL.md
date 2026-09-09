@@ -6,7 +6,7 @@ disable-model-invocation: false
 
 # figma-use — Figma Plugin API Skill
 
-Use the `figma_use` tool to execute JavaScript in Figma files via Figpie's local Plugin API bridge. Adapted from [Figma's official skill](https://github.com/figma/mcp-server-guide/tree/main/skills/figma-use); see [provenance and intentional differences](README.md). All detailed reference docs live in `references/`.
+Use the `figma_use` tool to execute JavaScript in Figma files via Figpie's local Figma Desktop CDP bridge. Adapted from [Figma's official skill](https://github.com/figma/mcp-server-guide/tree/main/skills/figma-use). All detailed reference docs live in `references/`.
 
 **Loading policy:** load this skill once before the first `figma_use` call in each agent session, then reuse it across calls and tasks. Independently spawned agents load it in their own context. Reload after a skill/runtime update or compaction/context loss that removes the needed guidance. Switching Figma files requires fresh target inspection, not another skill read.
 
@@ -20,10 +20,10 @@ Figpie-specific execution rules (the applicable sections below and local referen
 - Failed scripts are not atomic. Errors, timeouts, cancellation, disconnection, and output failures may leave changes. Follow [Error Recovery](#7-error-recovery--self-correction) before retrying.
 - **Work in the background by default.** Do not assign `figma.currentPage.selection`, change `figma.viewport.center` or `figma.viewport.zoom`, or call `figma.viewport.scrollAndZoomIntoView()` unless the user explicitly asks. Use node IDs and `node.screenshot()` for validation. Load and edit pages directly when possible; call `figma.setCurrentPageAsync()` only when the operation requires a visible page switch, and warn the user before that switch.
 - **Preflight every lookup before mutation.** `getNodeByIdAsync()`, `findOne()`, and query helpers can return `null`. Resolve all required IDs first, check every result and required method or node type, and return structured diagnostics for missing or incompatible nodes before making any change. Never call a method directly on an unchecked lookup result, and do not reuse stale IDs after failed, destructive, or replacement operations.
-- `figma.currentPage` persists between calls. The shared broker executes calls sequentially within each plugin session; separate sessions can run concurrently. Before reading `children` from another page, call `await page.loadAsync()` or, for genuinely document-wide work, `await figma.loadAllPagesAsync()`.
+- `figma.currentPage` persists between calls. The shared broker executes calls sequentially within each CDP target; separate targets can run concurrently. Before reading `children` from another page, call `await page.loadAsync()` or, for genuinely document-wide work, `await figma.loadAllPagesAsync()`.
 - With dynamic page access, never read `instance.mainComponent`. Use `await instance.getMainComponentAsync()`. A synchronous `node.query()` selector cannot filter on `mainComponent`; discover instances first, then resolve their components asynchronously.
 - Use `return` for output. Do not call `figma.closePlugin()` or replace the plugin UI. Keep async work within the call; event handlers registered through Figpie's adapter are removed at completion.
-- If no session is connected, ask the user to pair through `/figpie-pair`; keep credentials out of tool output and conversation context. Setup and troubleshooting belong in the [Figpie README](../../extensions/figpie/README.md#install-and-pair). When multiple sessions are listed, match the requested file/page and specify `connectionId`; ask only if ambiguous.
+- Desktop management is user-controlled. If no target is connected, ask the user to run `/figpie-connect` (diagnose, patch if needed, launch, verify) or `/figpie-status` (desktop and connection diagnostics). The connect command asks for confirmation before replacing vendor signatures with local ad-hoc signatures and disabling the patched app's hardened runtime. `/figpie-restore` restores the matching original app backup after confirmation. CDP uses loopback port `3847` by default (`PI_FIGPIE_CDP_PORT` overrides it before starting Pi). Do not patch, launch, or restore Figma through tools. If closing Figma is required, ask the user to save and close it normally; never forcibly quit it. Connecting never replays failed scripts. When multiple CDP targets are listed, match the requested file/page and specify `connectionId`; ask only if ambiguous.
 
 IMPORTANT: On the first design-system task in the session, consult [working-with-design-systems/wwds.md](references/working-with-design-systems/wwds.md) for the key concepts and guidelines. Load the specific component, variable, text-style, or effect-style reference only when needed, and reuse previously loaded guidance.
 
@@ -73,7 +73,7 @@ If the operation requires a visible switch, warn the user and use `await figma.s
 
 ### Multi-page work — scope calls and avoid unnecessary page switches
 
-Scope each stage to known pages or subtrees and split only where dependencies, risk, or result size justify it. Repeated work can share one prepared build call. Figpie executes calls sequentially within one plugin session, even when submitted in parallel; waiting in the queue consumes the execution deadline. There is no execution-speed benefit from same-session parallel fan-out and no one-page-switch-per-call runtime restriction.
+Scope each stage to known pages or subtrees and split only where dependencies, risk, or result size justify it. Repeated work can share one prepared build call. Figpie executes calls sequentially within one CDP target, even when submitted in parallel; waiting in the queue consumes the execution deadline. There is no execution-speed benefit from same-target parallel fan-out and no one-page-switch-per-call runtime restriction.
 
 ```js
 // Discover page IDs first; inspect each relevant page in a small call.
@@ -118,7 +118,7 @@ return {
 
 ## 4. Editor Mode
 
-Figpie's current manifest supports **Figma Design only** (editorType `"figma"`). The FigJam/Slides distinctions below are retained as Plugin API reference, not a promise that Figpie connects to those editors. FigJam (`"figjam"`) and Slides (`"slides"`) have different sets of available node types — most design nodes are blocked in FigJam, and FigJam-only nodes are blocked in Slides.
+Figpie's current CDP integration targets **Figma Design only** (editorType `"figma"`). The FigJam/Slides distinctions below are retained as Plugin API reference, not a promise that Figpie connects to those editors. FigJam (`"figjam"`) and Slides (`"slides"`) have different sets of available node types — most design nodes are blocked in FigJam, and FigJam-only nodes are blocked in Slides.
 
 **Tell the editor from the URL:** Design = `figma.com/design/...`, FigJam = `figma.com/board/...`, Slides = `figma.com/slides/...`. Confirm before assuming an API is available.
 
@@ -132,7 +132,7 @@ Available in Slides mode: Rectangle, Frame, Component, Text, Ellipse, Star, Line
 
 **Design-only APIs (not just node types):** `figma.createPage()` is available only in Design files (`figma.com/design/...`). In both FigJam (`figma.com/board/...`) and Slides (`figma.com/slides/...`) it throws `TypeError: figma.createPage no such property 'createPage' on the figma global object`. Do not emit `figma.createPage()` in FigJam or Slides workflows.
 
-> **Slides note:** Slides workflows require a separately available integration and its own runtime guidance; the current Figpie plugin cannot be run in Slides files.
+> **Slides note:** Slides workflows require a separately available integration and its own runtime guidance; the current Figpie CDP integration does not support Slides files.
 
 ## 5. Efficient APIs — Prefer These Over Verbose Alternatives
 
@@ -301,7 +301,7 @@ Use **stage-based batching** to reduce agent turns without weakening preflight o
 
 ### Suggested step order for complex tasks
 
-In the workflow and table below, `get_metadata` and `get_screenshot` mean separately available tools. Figpie itself registers only `figma_use`; use read-only Plugin API inspection and `await node.screenshot()` respectively when those tools are absent.
+In the workflow and table below, `get_metadata` and `get_screenshot` mean separately available tools. Figpie registers only `figma_use` as an agent-facing tool; connection management uses user-invoked slash commands. For document work, use read-only Plugin API inspection and `await node.screenshot()` respectively when those tools are absent.
 
 ```
 Inspect  → relevant target/assets/fonts, not a document dump
@@ -324,15 +324,15 @@ an unfamiliar component pattern before instantiating it throughout the page).
 
 ## 7. Error Recovery & Self-Correction
 
-**Figpie scripts are not atomic.** Earlier changes can remain after a script, screenshot export, or output serialization fails. Undo checkpoints separate completed calls, including partial failures, but do not roll back changes automatically.
+**Figpie scripts are not atomic.** Earlier changes can remain after a script, screenshot export, or output serialization fails. When supported by the Figma runtime, undo checkpoints separate completed calls, including partial failures. They do not roll back changes automatically.
 
-**Cancellation and deadlines:** queued requests are removed on cancellation/expiry. Already-running work may continue; deadlines include connection and queue time. Figpie keeps the session blocked until execution completes. If it stays busy, ask the user to restart the plugin before inspecting partial changes; synchronous infinite loops may require Figma's plugin termination controls.
+**Cancellation and deadlines:** queued requests are removed on cancellation/expiry. Already-running work may continue; deadlines include connection and queue time. Figpie keeps the target blocked until execution completes. After a timeout or disconnect, never replay the mutation. Ask the user to run `/figpie-status` for connection diagnostics. If work remains stuck, ask the user to save and close/reopen Figma before inspecting partial changes; never forcibly quit the app.
 
 ### When `figma_use` returns an error
 
 1. **STOP.** Do not immediately fix the code and retry.
-2. **Read the error message carefully.** Determine whether work never started, partially executed, or is still running/unknown. Wait for completion or ask the user to restart a stuck plugin.
-3. **Inspect affected nodes read-only**, even if the error is clear. Use `figma_use` once the session is idle, or separately available metadata/screenshot tools. Re-resolve required IDs and account for partial changes.
+2. **Read the error message carefully.** Determine whether work never started, partially executed, or is still running/unknown. Wait for completion or ask the user to save and close/reopen a stuck Figma app; never forcibly quit it.
+3. **Inspect affected nodes read-only**, even if the error is clear. Use `figma_use` once the target is idle, or separately available metadata/screenshot tools. Re-resolve required IDs and account for partial changes.
 4. **Fix only the missing or incorrect work**, avoiding duplicate creations or replay of completed mutations.
 5. **Retry** the targeted correction, return affected IDs, and validate again.
 
@@ -345,7 +345,7 @@ an unfamiliar component pattern before instantiating it throughout the page).
 | `Error: in get_componentPropertyDefinitions: Can only get component property definitions of a component set or non-variant component` | Read `componentPropertyDefinitions` from a variant `COMPONENT` | Read from its parent `COMPONENT_SET` instead. Narrow the owner before touching the getter; optional chaining does not prevent this error. See [component-property owner narrowing](references/component-patterns.md#component-property-owner-narrowing). |
 | Property value out of range | Color channel > 1 (used 0–255 instead of 0–1) | Divide by 255 |
 | `"Cannot read properties of null"` | Node doesn't exist (wrong ID, wrong page) | Check page context, verify ID |
-| Script hangs / no response | Infinite loop or unresolved promise | Wait for completion; ask the user to restart a stuck plugin, inspect partial changes, and correct the script before retrying |
+| Script hangs / no response | Infinite loop or unresolved promise | Wait for completion; ask the user to run `/figpie-status`, ask the user to save and close/reopen Figma if stuck, inspect partial changes, and correct only remaining work |
 | `"The node with id X does not exist"` | Parent instance was implicitly detached by a child `detachInstance()`, changing IDs | Re-discover nodes by traversal from a stable (non-instance) parent frame |
 
 ### When the script succeeds but the result looks wrong
@@ -409,7 +409,7 @@ Step 1: one read-only `figma_use` to get page IDs:
 return figma.root.children.map(p => ({ id: p.id, name: p.name }));
 ```
 
-Step 2: inspect each relevant page in a small call. Same-session calls run sequentially; load the page without switching the user's view:
+Step 2: inspect each relevant page in a small call. Same-target calls run sequentially; load the page without switching the user's view:
 ```js
 const page = await figma.getNodeByIdAsync(PAGE_ID);
 if (!page || page.type !== 'PAGE') return { missingPageId: PAGE_ID };

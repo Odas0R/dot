@@ -78,7 +78,7 @@ Keep root/named references and issues inline. Complete affected-ID arrays are
 preserved in the result or its local artifact; retrieve only fields needed next.
 
 ⚠️ ON ERROR at any step:
-   a. Read the error; wait for running work or ask the user to restart a stuck plugin
+   a. Read the error; wait for running work or ask the user to save and close/reopen a stuck Figma file. Ask the user to run /figpie-status or /figpie-connect for connection failures; never forcibly quit Figma
    b. Read-only inspection / screenshot  →  Account for partial changes and re-resolve IDs
    c. Correct only missing or incorrect work
    d. Return affected IDs and validate the targeted correction

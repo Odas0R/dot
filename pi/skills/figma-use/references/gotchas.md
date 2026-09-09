@@ -190,7 +190,7 @@ const page = figma.currentPage  // works
 
 ## Multi-page work
 
-Page state persists between calls. Keep work scoped to a known page or subtree and prefer loading pages without switching the user's visible page. Split jobs at meaningful dependency, validation, deadline, or output boundaries; repeated elements can share one prepared build call. Calls to one plugin session run sequentially, even when submitted in parallel. There is no transactional guarantee within or across calls.
+Page state persists between calls. Keep work scoped to a known page or subtree and prefer loading pages without switching the user's visible page. Split jobs at meaningful dependency, validation, deadline, or output boundaries; repeated elements can share one prepared build call. Calls to one Figma CDP target run sequentially, even when submitted in parallel. There is no transactional guarantee within or across calls.
 
 ```js
 const page = await figma.getNodeByIdAsync(PAGE_ID);

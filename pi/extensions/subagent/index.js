@@ -437,6 +437,10 @@ export default async function subagentExtension(pi) {
 		promptSnippet: "Run one delegated task in an observable, Kitty-backed Pi session",
 		promptGuidelines: [
 			"Use subagent once per delegated task; subagent calls are serialized automatically, so prefer multiple simple calls over asking one child to orchestrate other children.",
+			"For bounded, read-only subagent discovery, prefer model openai-codex/gpt-5.6-luna with medium thinking by default. Use low for mechanical searches and extraction; use xhigh for deep investigation, subtle cross-module tracing, or reconciling conflicting evidence.",
+			"Ask discovery subagents for file paths, line references, supporting evidence, and uncertainties. Verify relevant code before acting on their conclusions.",
+			"For subagent Figma work requiring design judgment—creating or substantially refining screens, visual hierarchy, or components—prefer openai-codex/gpt-6-astra with xhigh thinking. For read-only inspection, use the discovery defaults; for mechanical edits with exact specifications, inherit current settings. Validate visual changes with screenshots, regardless of thinking level.",
+			"For subagent implementation and correctness-sensitive review, prefer model openai-codex/gpt-6-astra and inherit the current thinking level. For complex architecture or hard bugs, use openai-codex/gpt-6-astra with xhigh thinking. Otherwise inherit current settings unless there is a clear reason to override. These are defaults, not rigid rules; follow explicit user model and thinking preferences.",
 		],
 		parameters: Type.Object({
 			task: Type.String({ description: "The complete task for the child Pi process" }),
