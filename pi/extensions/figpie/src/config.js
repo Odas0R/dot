@@ -8,7 +8,7 @@ export const APP_PATH = resolve(process.env.PI_FIGPIE_APP_PATH || "/Applications
 // Dedicated to Figpie; keep clear of the usual browser-debugging ports.
 export const CDP_PORT = Number(process.env.PI_FIGPIE_CDP_PORT || 3847);
 // Bump when changing the IPC contract or injected runtime; old brokers must not be reused.
-export const VERSION = 5;
+export const VERSION = 7;
 export const MAX_MESSAGE_BYTES = 16 * 1024 * 1024;
 export const MAX_CODE_BYTES = 1024 * 1024;
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;

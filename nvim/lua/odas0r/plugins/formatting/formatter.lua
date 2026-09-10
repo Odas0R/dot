@@ -79,6 +79,15 @@ return {
           }
         end,
       },
+      markdown = {
+        function()
+          return {
+            exe = "mdformat",
+            args = { "-" },
+            stdin = true,
+          }
+        end,
+      },
       sh = {
         function()
           return {

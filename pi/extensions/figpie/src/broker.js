@@ -1,5 +1,6 @@
 import net from "node:net";
 import { randomUUID } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 import { chmod, lstat, mkdir, rm, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Channel } from "./ipc.js";
@@ -24,7 +25,36 @@ const SETUP_ACTIONS = {
 	connect: connectDesktop,
 	restore: restoreDesktop,
 };
+
 const isId = (value) => typeof value === "string" && value.length > 0 && value.length <= 128;
+
+const SCRIPTING_CONNECTION_GRACE_MS = 10_000;
+const SCRIPTING_CONNECTION_POLL_MS = 500;
+const SCRIPTING_STARTUP_STATUSES = new Set(["already-running", "launched", "cdp-not-ready"]);
+
+export async function waitForScriptingConnection(
+	refresh,
+	{
+		deadline,
+		graceMs = SCRIPTING_CONNECTION_GRACE_MS,
+		pollMs = SCRIPTING_CONNECTION_POLL_MS,
+		isCancelled = () => false,
+		now = Date.now,
+		sleep = delay,
+	} = {},
+) {
+	let inventory = await refresh();
+	const stopAt = Math.min(deadline ?? Infinity, now() + graceMs);
+	const hasUsableConnection = () => inventory.connections.some((connection) => !connection.blocked);
+	while (!hasUsableConnection() && !isCancelled()) {
+		const remaining = stopAt - now();
+		if (remaining <= 0) break;
+		await sleep(Math.min(pollMs, remaining));
+		if (isCancelled() || stopAt - now() <= 0) break;
+		inventory = await refresh();
+	}
+	return inventory;
+}
 
 // Only the process holding this short-lived startup lock may remove a stale
 // socket. Concurrent Pi startups otherwise risk unlinking a live broker.
@@ -245,7 +275,14 @@ export async function startBroker() {
 				const desktop = await setupTask;
 				// No debugger is expected after a successful restore or startup rollback.
 				const restored = (message.action === "restore" && desktop.ok) || desktop.rollback?.ok;
-				const inventory = restored ? { connections: [], issues: [] } : await targets.refresh();
+				let inventory;
+				if (restored) inventory = { connections: [], issues: [] };
+				else if (message.action === "connect" && SCRIPTING_STARTUP_STATUSES.has(desktop.status))
+					inventory = await waitForScriptingConnection(() => targets.refresh(), {
+						deadline: message.deadline,
+						isCancelled: () => item.finished,
+					});
+				else inventory = await targets.refresh();
 				finish(item, { type: "result", data: { action: message.action, desktop, ...inventory } });
 			} finally {
 				setupTask = null;
@@ -296,7 +333,7 @@ export async function startBroker() {
 			.then((result) => {
 				if (!result || !["result", "error"].includes(result.type) || result.id !== item.runId)
 					throw new Error("Invalid Figma execution response");
-				finish(item, { ...result, connection: describeTarget(entry) });
+				finish(item, { ...result, connection: describeTarget(entry, { completed: item }) });
 			})
 			.catch((error) => {
 				finish(item, { type: "error", message: `${error.message}\n${UNCERTAIN}`, stack: error.stack });

@@ -12,6 +12,7 @@ export function createHelpers(figma, run, limits, selectors) {
 		"COMPONENT_SET",
 		"COMPONENT",
 		"INSTANCE",
+		"SLOT",
 		"BOOLEAN_OPERATION",
 		"VECTOR",
 		"STAR",

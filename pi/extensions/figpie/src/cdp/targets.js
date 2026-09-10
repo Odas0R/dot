@@ -5,12 +5,13 @@ import { installationExpression, runtimeExpression } from "../runtime/index.js";
 
 const PROBE = `typeof figma !== "undefined" && typeof figma.getNodeByIdAsync === "function" && typeof figma.createFrame === "function" && figma.editorType === "figma"`;
 
-export function describeTarget(entry) {
+export function describeTarget(entry, { completed } = {}) {
+	const active = entry.active === completed ? null : entry.active;
 	return {
 		connectionId: entry.id,
 		...entry.info,
-		busy: Boolean(entry.active || entry.info.busyId),
-		blocked: Boolean(entry.statusError || entry.active?.finished || (!entry.active && entry.info.busyId)),
+		busy: Boolean(active || entry.info.busyId || entry.queue.length),
+		blocked: Boolean(entry.statusError || active?.finished || (!active && entry.info.busyId)),
 		queueLength: entry.queue.length,
 		...(entry.statusError ? { issue: entry.statusError } : {}),
 	};
